@@ -13,14 +13,14 @@ use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use k8_metadata_core::Spec;
-use k8_metadata_core::metadata::K8Meta;
-use k8_metadata_core::metadata::InputK8Obj;
-use k8_metadata_core::metadata::UpdateK8ObjStatus;
-use k8_metadata_core::metadata::K8List;
-use k8_metadata_core::metadata::K8Obj;
-use k8_metadata_core::metadata::K8Status;
-use k8_metadata_core::metadata::K8Watch;
+use k8_obj_metadata::Spec;
+use k8_obj_metadata::K8Meta;
+use k8_obj_metadata::InputK8Obj;
+use k8_obj_metadata::UpdateK8ObjStatus;
+use k8_obj_metadata::K8List;
+use k8_obj_metadata::K8Obj;
+use k8_obj_metadata::K8Status;
+use k8_obj_metadata::K8Watch;
 
 use crate::MetadataClient;
 use crate::MetadataClientError;

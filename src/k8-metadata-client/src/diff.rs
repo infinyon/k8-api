@@ -1,7 +1,7 @@
 use serde::Serialize;
 
-use k8_metadata_core::Crd;
-use k8_metadata_core::metadata::K8Obj;
+use k8_obj_metadata::Crd;
+use k8_obj_metadata::K8Obj;
 
 #[derive(Debug)]
 pub enum ApplyResult<S, P> {

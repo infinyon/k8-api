@@ -4,11 +4,6 @@ mod error;
 mod config;
 mod stream;
 
-pub mod config_map;
-pub mod secret;
-pub mod pod;
-pub mod service;
-pub mod stateful;
 
 #[cfg(feature = "k8")]
 pub mod fixture;

@@ -2,10 +2,10 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use k8_metadata_core::Crd;
-use k8_metadata_core::CrdNames;
-use k8_metadata_core::Spec;
-use k8_metadata_core::Status;
+use k8_obj_metadata::Crd;
+use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::Spec;
+use k8_obj_metadata::Status;
 
 
 

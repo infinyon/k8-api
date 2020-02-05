@@ -4,13 +4,11 @@
 //! Trait for CRD Spec/Status definition
 //!
 mod crd;
-pub mod metadata;
+mod metadata;
 pub mod options;
 
-pub use self::crd::Crd;
-pub use self::crd::CrdNames;
-pub use self::crd::GROUP;
-pub use self::crd::V1;
+pub use self::crd::*;
+pub use self::metadata::*;
 
 pub trait Status: Sized{}
 

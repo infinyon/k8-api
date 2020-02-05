@@ -1,11 +1,11 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use k8_metadata_core::metadata::Env;
-use k8_metadata_core::Crd;
-use k8_metadata_core::CrdNames;
-use k8_metadata_core::Spec;
-use k8_metadata_core::Status;
+use k8_obj_metadata::Env;
+use k8_obj_metadata::Crd;
+use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::Spec;
+use k8_obj_metadata::Status;
 
 
 //
@@ -176,9 +176,9 @@ pub struct ContainerStateRunning {
 #[cfg(test)]
 mod test {
 
-    use k8_metadata_core::metadata::item_uri;
-    use k8_metadata_core::metadata::items_uri;
-    use k8_metadata_core::metadata::DEFAULT_NS;
+    use k8_obj_metadata::item_uri;
+    use k8_obj_metadata::items_uri;
+    use k8_obj_metadata::DEFAULT_NS;
     use crate::pod::PodSpec;
 
     #[test]

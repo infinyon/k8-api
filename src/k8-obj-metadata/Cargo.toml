@@ -1,0 +1,17 @@
+[package]
+edition = "2018"
+name = "k8-obj-metadata"
+version = "0.1.0"
+authors = ["Fluvio Contributors <team@fluvio.io>"]
+description = "Core Kubernetes metadata traits"
+repository = "https://github.com/infinyon/k8-api"
+license = "Apache-2.0"
+categories = ["encoding"]
+
+
+[dependencies]
+log = "0.4.8"
+serde = { version ="1.0.103", features = ['derive'] }
+serde_json = "1.0.27"
+serde_qs = "0.4.1"
+http = { version = "0.1.15" }

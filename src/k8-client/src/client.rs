@@ -22,21 +22,20 @@ use http::header::HeaderValue;
 use isahc::prelude::*;
 use isahc::HttpClient;
 
-use k8_metadata_core::Spec;
-use k8_metadata_core::metadata::item_uri;
-use k8_metadata_core::metadata::K8Meta;
-use k8_metadata_core::metadata::items_uri;
-use k8_metadata_core::metadata::InputK8Obj;
-use k8_metadata_core::metadata::UpdateK8ObjStatus;
-use k8_metadata_core::metadata::K8List;
-use k8_metadata_core::metadata::K8Obj;
-use k8_metadata_core::metadata::K8Status;
-use k8_metadata_core::metadata::K8Watch;
-use k8_metadata_core::options::ListOptions;
+use k8_obj_metadata::Spec;
+use k8_obj_metadata::item_uri;
+use k8_obj_metadata::K8Meta;
+use k8_obj_metadata::items_uri;
+use k8_obj_metadata::InputK8Obj;
+use k8_obj_metadata::UpdateK8ObjStatus;
+use k8_obj_metadata::K8List;
+use k8_obj_metadata::K8Obj;
+use k8_obj_metadata::K8Status;
+use k8_obj_metadata::K8Watch;
+use k8_obj_metadata::options::ListOptions;
 use k8_metadata_client::PatchMergeType;
 use k8_metadata_client::MetadataClient;
 use k8_metadata_client::TokenStreamResult;
-
 use k8_config::K8Config;
 
 use crate::stream::BodyStream;

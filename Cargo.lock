@@ -639,7 +639,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "bytes 0.5.4",
@@ -652,7 +652,8 @@ dependencies = [
  "k8-config",
  "k8-diff",
  "k8-metadata-client",
- "k8-metadata-core",
+ "k8-obj-core",
+ "k8-obj-metadata",
  "log",
  "openssl-sys",
  "pin-utils",
@@ -683,13 +684,13 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "flv-future-core",
  "futures",
  "k8-diff",
- "k8-metadata-core",
+ "k8-obj-metadata",
  "log",
  "pin-utils",
  "serde",
@@ -698,8 +699,33 @@ dependencies = [
 ]
 
 [[package]]
-name = "k8-metadata-core"
-version = "0.1.2"
+name = "k8-obj-app"
+version = "0.1.0"
+dependencies = [
+ "http",
+ "k8-obj-core",
+ "k8-obj-metadata",
+ "log",
+ "serde",
+ "serde_json",
+ "serde_qs 0.4.6",
+]
+
+[[package]]
+name = "k8-obj-core"
+version = "0.1.0"
+dependencies = [
+ "http",
+ "k8-obj-metadata",
+ "log",
+ "serde",
+ "serde_json",
+ "serde_qs 0.4.6",
+]
+
+[[package]]
+name = "k8-obj-metadata"
+version = "0.1.0"
 dependencies = [
  "http",
  "log",
