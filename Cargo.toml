@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "src/k8-metadata-core",
+    "src/k8-metadata-client",
+    "src/k8-diff",
+    "src/k8-config",
+    "src/k8-client"
+    
+]

@@ -1,0 +1,13 @@
+[package]
+name = "k8-diff"
+edition = "2018"
+version = "0.1.0"
+authors = ["Fluvio Contributors <team@fluvio.io>"]
+description = "Used for computing diff between Kubernetes objects"
+repository = "https://github.com/infinyon/k8-api"
+license = "Apache-2.0"
+
+[dependencies]
+log = "0.4.8"
+serde = "1.0.103"
+serde_json = "1.0.40"

@@ -1,0 +1,40 @@
+[package]
+edition = "2018"
+name = "k8-client"
+version = "0.1.0"
+authors = ["Fluvio Contributors <team@fluvio.io>"]
+description = "Core Kubernetes metadata traits"
+repository = "https://github.com/infinyon/k8-api"
+license = "Apache-2.0"
+categories = ["api-bindings","asynchronous","encoding","network-programming"]
+readme = "README.md"
+
+[features]
+k8 = []
+k8_stream = ["k8"]
+
+
+[dependencies]
+log = "0.4.8"
+bytes = "0.5.3"
+http = "0.1.16"
+futures = { version = "0.3.1"}
+isahc = { version = "0.8.1", features = ["json","static-curl"]}
+curl = { version = "0.4.25", features = ["mesalink"]}
+openssl-sys = { version = "0.9.43", features = ["vendored"] }
+pin-utils = "0.1.0-alpha.4"
+serde = { version ="1.0.103", features = ['derive'] }
+serde_json = "1.0.40"
+serde_qs = "0.5.0"
+async-trait = "0.1.21"
+k8-metadata-core = { version = "0.1.0", path = "../k8-metadata-core"}
+k8-metadata-client = { version = "0.1.0", path = "../k8-metadata-client"}
+flv-future-core = { version = "0.1.0" }
+k8-diff = { version = "0.1.0", path = "../k8-diff"}
+k8-config = { version = "0.1.0", path = "../k8-config"}
+
+
+[dev-dependencies]
+rand = "0.7.2"
+flv-future-core = { version = "0.1.0", features=["fixture"]}
+flv-util = { version = "0.1.0", features=["fixture"]}

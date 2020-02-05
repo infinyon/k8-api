@@ -1,0 +1,21 @@
+[package]
+edition = "2018"
+name = "k8-metadata-client"
+version = "0.1.0"
+authors = ["Fluvio Contributors <team@fluvio.io>"]
+description = "Trait for interfacing kubernetes metadata service"
+repository = "https://github.com/infinyon/k8-api"
+license = "Apache-2.0"
+
+[dependencies]
+log = "0.4.8"
+futures = { version = "0.3.1"}
+pin-utils = "0.1.0-alpha.4"
+serde = { version ="1.0.103", features = ['derive'] }
+serde_json = "1.0.40"
+serde_qs = "0.5.0"
+async-trait = "0.1.21"
+flv-future-core = { version = "0.1.0" }
+k8-diff = { version = "0.1.0", path = "../k8-diff"}
+k8-metadata-core = { version = "0.1.0", path = "../k8-metadata-core" }
+
