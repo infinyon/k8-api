@@ -13,3 +13,6 @@ pub use self::client::K8Client;
 pub use self::config::K8HttpClientBuilder;
 pub use self::error::ClientError;
 
+pub mod metadata {
+    pub use k8_metadata_client::*;
+}
