@@ -4,41 +4,42 @@ use std::marker::Unpin;
 use std::task::Context;
 use std::task::Poll;
 
-use bytes::Bytes;
 use futures::stream::Stream;
 
-use log::error;
 use log::trace;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
 use std::mem;
 
-//type ChunkList = Vec<Result<Vec<u8>, HyperError>>;
 
+/// Watch Stream suitable for parsing Kubernetes HTTP stream
+/// It relies on inner stream which returns streams of bytes
 pub struct WatchStream<S>
 where
     S: Stream,
 {
     stream: S,
-    last_buffer: Vec<u8>,
-    chunks: ChunkList,
+    done: bool,
+    buffer: Vec<u8>,
 }
 
 impl <S>Unpin for WatchStream<S> where S: Stream {}
 
 impl<S> WatchStream<S>
 where
-    S: Stream<Item = Result<Chunk, HyperError>>,
+    S: Stream<Item = Vec<u8>>
 {
     unsafe_pinned!(stream: S);
-    unsafe_unpinned!(last_buffer: Vec<u8>);
-    unsafe_unpinned!(chunks: ChunkList);
+    unsafe_unpinned!(buffer: Vec<u8>);
+    unsafe_unpinned!(done: bool);
 
     pub fn new(stream: S) -> Self {
+
+        let buffer = Vec::new();
         WatchStream {
             stream,
-            last_buffer: Vec::new(),
-            chunks: Vec::new(),
+            done: false,
+            buffer
         }
     }
 }
@@ -47,91 +48,120 @@ const SEPARATOR: u8 = b'\n';
 
 impl<S> Stream for WatchStream<S>
 where
-    S: Stream<Item = Result<Chunk, HyperError>>,
+    S: Stream<Item = Vec<u8>>
 {
-    type Item = Result<ChunkList, HyperError>;
+    type Item = Vec<u8>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        let mut chunks = mem::replace(self.as_mut().chunks(), Vec::new());
-        let last_buffer = mem::replace(self.as_mut().last_buffer(), Vec::new());
-        let mut buf: Bytes = last_buffer.into();
+
+        let mut done = self.as_ref().done;
+        let mut last_buffer = mem::replace(self.as_mut().buffer(),Vec::new());
+        
         trace!(
-            "entering poll next with prev buf: {}, chunk: {}",
-            buf.len(),
-            chunks.len()
+            "entering poll next with buffer: {}, done: {}",
+            last_buffer.len(),
+            done
         );
 
-        loop {
-            trace!(
-                "polling chunk with prev buf len: {}, chunk: {}",
-                buf.len(),
-                chunks.len()
-            );
-            let poll_result = self.as_mut().stream().poll_next(cx);
-            match poll_result {
-                Poll::Pending => {
-                    trace!(
-                        "stream is pending. returning pending.  saving buf len: {}",
-                        buf.len()
-                    );
-                    if buf.len() > 0 {
-                        mem::replace(self.as_mut().last_buffer(), buf.to_vec());
+        
+        // if not done, we accumulate buffer from inner until they are exhausted
+        if !done {
+            
+            loop {
+                trace!("not done. polling inner");
+                match self.as_mut().stream().poll_next(cx) {
+                    Poll::Pending => break,
+                    Poll::Ready(chunk_item) => {
+                        match chunk_item {
+                            Some(mut chunk) => {
+                                trace!("got inner stream len: {}",chunk.len());
+                               // trace!("chunk: {}", String::from_utf8_lossy(&chunk).to_string());
+                                last_buffer.append(&mut chunk);
+                            },
+                            None => {
+                                done = true;
+                                break;   
+                            }
+                        }                        
                     }
-                    if chunks.len() > 0 {
-                        mem::replace(self.as_mut().chunks(), chunks);
-                    }
-                    return Poll::Pending;
                 }
-                Poll::Ready(next_item) => match next_item {
-                    None => {
-                        trace!("none from stream. ready to return items");
-                        return Poll::Ready(None);
-                    }
-                    Some(chunk_result) => match chunk_result {
-                        Ok(chunk) => {
-                            trace!("chunk: {}", String::from_utf8_lossy(&chunk).to_string());
-                            buf.extend_from_slice(&chunk);
-                            trace!(
-                                "parsing chunk with len: {} accum buffer: {}",
-                                chunk.len(),
-                                buf.len()
-                            );
-                            loop {
-                                if let Some(i) = buf.iter().position(|&c| c == SEPARATOR) {
-                                    trace!("found separator at: {}", i);
-                                    let head = buf.slice(0, i);
-                                    buf = buf.slice(i + 1, buf.len());
-
-                                    chunks.push(Ok(head.to_vec()));
-                                } else {
-                                    trace!("no separator found");
-                                    break;
-                                }
-                            }
-                            if buf.len() > 0 {
-                                trace!(
-                                    "remainder chars count: {}. they will be added to accum buffer",
-                                    buf.len()
-                                );
-                                trace!(
-                                    "current buf: {}",
-                                    String::from_utf8_lossy(&buf).to_string()
-                                );
-                            } else {
-                                trace!(
-                                    "end of loop buf is empty. returning {} chunks",
-                                    chunks.len()
-                                );
-                                return Poll::Ready(Some(Ok(chunks)));
-                            }
-                        }
-                        Err(err) => {
-                            error!("error: {}", err);
-                            return Poll::Ready(Some(Err(err.into())));
-                        }
-                    },
-                },
             }
         }
+
+        mem::replace(self.as_mut().done(),done);
+
+        if last_buffer.len() > 0 {
+            trace!("no more inner, buffer len: {}",last_buffer.len());
+           // trace!("chunk: {:#}",String::from_utf8_lossy(&last_buffer).to_string());
+
+            if let Some(i) = last_buffer.iter().position(|&c| c == SEPARATOR) {
+                trace!("found separator at: {}", i);
+                let remainder = last_buffer.split_off(i+1);                            
+                // need to truncate last one since it contains remainder
+                last_buffer.truncate(last_buffer.len()-1);
+                mem::replace(self.as_mut().buffer(),remainder);
+                return Poll::Ready(Some(last_buffer))
+            } else {
+                trace!("no separator");
+                if done {
+                    trace!("since we are done, returning last buffer");
+                    return Poll::Ready(Some(last_buffer));
+                }   
+                mem::replace(self.as_mut().buffer(),last_buffer);
+                       
+            }
+        } else {
+            trace!("no buffer, swapping pending");
+            mem::replace(self.as_mut().buffer(),last_buffer);
+        }
+
+        if done {
+            trace!("done, returning none");
+            Poll::Ready(None)
+        } else {
+            trace!("not done, returning pending");
+            Poll::Pending
+        }  
+        
+    }
+}
+
+
+
+#[cfg(test)]
+mod test {
+
+    use std::io::Error as IoError;
+
+    use futures::stream::StreamExt;
+    use isahc::Body;
+    use flv_future_core::test_async;
+    use crate::stream::BodyStream;
+
+    use super::WatchStream;
+    
+    #[test_async]
+    async fn test_stream() -> Result<(),IoError> {
+
+        let raw_body = "apple\nbanana\ngrape\n";
+    
+        println!("body: {:#}",raw_body);
+
+        let body = Body::from(raw_body);
+
+        let stream = BodyStream::new(body);
+
+        let mut wstream = WatchStream::new(stream);
+
+        let mut chunks = vec![];
+        while let Some(chunk) = wstream.next().await {
+            println!("content: {}",chunk.len());
+            chunks.push(chunk);
+        }
+        assert_eq!(chunks.len(),3);
+        assert_eq!(chunks[0].len(),5);
+        assert_eq!(chunks[1].len(),6);
+        Ok(())
+
     }
 }

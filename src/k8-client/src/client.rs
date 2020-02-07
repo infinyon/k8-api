@@ -39,15 +39,9 @@ use k8_metadata_client::TokenStreamResult;
 use k8_config::K8Config;
 
 use crate::stream::BodyStream;
+use crate::wstream::WatchStream;
 use crate::ClientError;
 use crate::K8HttpClientBuilder;
-
-// For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-
-
-
-
-
 
 
 /// K8 Cluster accessible thru API
@@ -147,24 +141,24 @@ impl K8Client {
                 Ok(req) => req,
                 Err(err) =>  {
                     error!("error uri err: {}",err);
-                    return BodyStream::empty();
+                    return WatchStream::new(BodyStream::empty());
                 }
             };
 
             if let Err(err) = self.finish_request(&mut request) {
                 error!("error finish request: {}",err);
-                return  BodyStream::empty()
+                return  WatchStream::new(BodyStream::empty())
             };
 
             match self.client.send_async(request).await {
                 Ok(response) => {
                     trace!("res status: {}", response.status());
                     trace!("res header: {:#?}", response.headers());
-                    BodyStream::new(response.into_body())
+                    WatchStream::new(BodyStream::new(response.into_body()))
                 },
                 Err(err) => {
                     error!("error getting streaming: {}",err);
-                    BodyStream::empty()
+                    WatchStream::new(BodyStream::empty())
                 }
             }
         
@@ -181,13 +175,13 @@ impl K8Client {
         S::Status: Debug
     {
 
-        self.stream_of_chunks(uri).map(|chunk| {   
+        self.stream_of_chunks(uri).map(move |chunk| {   
 
             trace!("decoding raw stream : {}", String::from_utf8_lossy(&chunk).to_string());
 
             let result: Result<K8Watch<S, S::Status>, serde_json::Error> = 
                 serde_json::from_slice(&chunk).map_err(|err| {
-                    error!("parsing error: {}", err);
+                    error!("parsing error, chunk_len: {}, error: {}",chunk.len(), err);
                     error!("error raw stream {}", String::from_utf8_lossy(&chunk).to_string());
                     err
                 });

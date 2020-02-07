@@ -1,6 +1,6 @@
 mod client;
 mod error;
-//mod wstream;
+mod wstream;
 mod config;
 mod stream;
 
