@@ -6,6 +6,7 @@
 mod crd;
 mod metadata;
 pub mod options;
+pub mod store;
 
 pub use self::crd::*;
 pub use self::metadata::*;
