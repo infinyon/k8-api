@@ -11,15 +11,34 @@ pub mod store;
 pub use self::crd::*;
 pub use self::metadata::*;
 
-pub trait Status: Sized{}
+
+use std::fmt::Debug;
+use serde::Serialize;
+use serde::Deserialize;
+use serde::de::DeserializeOwned;
+
+
+
+pub trait Status: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync {}
+
+pub trait Header: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync {}
 
 /// Kubernetes Spec
-pub trait Spec: Sized {
+pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync  {
 
     type Status: Status;
 
+    type Header: Header;
+
+    /// if true, spec is namespaced
+    const NAME_SPACED: bool = true;
+
     /// return uri for single instance
     fn metadata() -> &'static Crd;
+
+    fn label() -> &'static str {
+        Self::metadata().names.kind
+    }
 
     fn api_version() -> String {
         let metadata = Self::metadata();
@@ -39,3 +58,8 @@ pub trait Spec: Sized {
     }
 
 }
+
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+pub struct DefaultHeader{}
+
+impl Header for DefaultHeader{}

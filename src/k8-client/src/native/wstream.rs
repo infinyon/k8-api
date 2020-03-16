@@ -3,13 +3,13 @@ use std::pin::Pin;
 use std::marker::Unpin;
 use std::task::Context;
 use std::task::Poll;
+use std::mem;
 
 use futures::stream::Stream;
-
 use log::trace;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
-use std::mem;
+
 
 
 /// Watch Stream suitable for parsing Kubernetes HTTP stream
@@ -135,8 +135,8 @@ mod test {
 
     use futures::stream::StreamExt;
     use isahc::Body;
-    use flv_future_core::test_async;
-    use crate::stream::BodyStream;
+    use flv_future_aio::test_async;
+    use super::super::stream::BodyStream;
 
     use super::WatchStream;
     

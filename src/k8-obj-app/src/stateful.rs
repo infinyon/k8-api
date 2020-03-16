@@ -8,6 +8,7 @@ use k8_obj_metadata::CrdNames;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
 use k8_obj_core::pod::PodSpec;
+use k8_obj_metadata::DefaultHeader;
 
 const STATEFUL_API: Crd = Crd {
     group: "apps",
@@ -35,6 +36,7 @@ pub struct StatefulSetSpec {
 impl Spec for StatefulSetSpec {
 
     type Status = StatefulSetStatus;
+    type Header = DefaultHeader;
 
     fn metadata() -> &'static Crd {
         &STATEFUL_API
@@ -87,7 +89,7 @@ pub struct VolumeRequest {
     pub storage: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default,Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetStatus {
     pub replicas: u16,

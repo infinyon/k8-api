@@ -6,7 +6,7 @@ use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-
+use k8_obj_metadata::DefaultHeader;
 
 //
 // Pod Object
@@ -24,6 +24,7 @@ const POD_API: Crd = Crd {
 impl Spec for PodSpec {
 
     type Status = PodStatus;
+    type Header = DefaultHeader;
 
     fn metadata() -> &'static Crd {
         &POD_API
@@ -168,36 +169,4 @@ pub struct ContainerState {
 #[serde(rename_all = "camelCase")]
 pub struct ContainerStateRunning {
     pub started_at: String,
-}
-
-//
-// Test Cases
-//
-#[cfg(test)]
-mod test {
-
-    use k8_obj_metadata::item_uri;
-    use k8_obj_metadata::items_uri;
-    use k8_obj_metadata::DEFAULT_NS;
-    use crate::pod::PodSpec;
-
-    #[test]
-    fn test_pod_item_uri() {
-        let uri = item_uri::<PodSpec>("https://localhost", "test", DEFAULT_NS, None);
-        assert_eq!(
-            uri,
-            "https://localhost/api/v1/namespaces/default/pods/test"
-        );
-    }
-
-    #[test]
-    fn test_pod_items_uri() {
-        let uri = items_uri::<PodSpec>("https://localhost", DEFAULT_NS, None);
-        assert_eq!(
-            uri,
-            "https://localhost/api/v1/namespaces/default/pods"
-        );
-    }
-
-
 }

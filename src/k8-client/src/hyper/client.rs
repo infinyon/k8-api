@@ -1,31 +1,35 @@
 use std::fmt::Debug;
 use std::fmt::Display;
+use std::sync::Arc;
+
 
 use log::debug;
 use log::error;
 use log::trace;
+use bytes::buf::ext::BufExt;
 use futures::future::FutureExt;
 use futures::stream::Stream;
 use futures::stream::StreamExt;
+use futures::stream::TryStreamExt;
 use futures::stream::BoxStream;
+use futures::stream::empty;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
-use serde::Serialize;
 use serde_json;
 use serde_json::Value;
-use http::Uri;
-use http::status::StatusCode;
-use http::header::ACCEPT;
-use http::header::CONTENT_TYPE;
-use http::header::AUTHORIZATION;
-use http::header::HeaderValue;
-use isahc::prelude::*;
-use isahc::HttpClient;
+use hyper::Uri;
+use hyper::StatusCode;
+use hyper::header::ACCEPT;
+use hyper::header::CONTENT_TYPE;
+use hyper::header::AUTHORIZATION;
+use hyper::header::HeaderValue;
+use hyper::Body;
+use hyper::body::aggregate;
+use hyper::Request;
+use hyper::body::Bytes;
 
 use k8_obj_metadata::Spec;
-use k8_obj_metadata::item_uri;
 use k8_obj_metadata::K8Meta;
-use k8_obj_metadata::items_uri;
 use k8_obj_metadata::InputK8Obj;
 use k8_obj_metadata::UpdateK8ObjStatus;
 use k8_obj_metadata::K8List;
@@ -36,18 +40,24 @@ use k8_obj_metadata::options::ListOptions;
 use k8_metadata_client::PatchMergeType;
 use k8_metadata_client::MetadataClient;
 use k8_metadata_client::TokenStreamResult;
+use k8_metadata_client::NameSpace;
+use k8_metadata_client::ListArg;
 use k8_config::K8Config;
 
-use crate::stream::BodyStream;
-use crate::wstream::WatchStream;
+
 use crate::ClientError;
-use crate::K8HttpClientBuilder;
+use crate::uri::item_uri;
+use crate::ListStream;
+use crate::uri::items_uri;
+use super::config::HyperHttpsClient;
+use super::config::HyperBuilder;
+use super::wstream::WatchStream;
 
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
 pub struct K8Client {
-    client: HttpClient,
+    client: HyperHttpsClient,
     host: String,
     token: Option<String>
 }
@@ -63,13 +73,13 @@ impl K8Client {
         Self::new(config)
     }
 
+    
     pub fn new(config: K8Config) -> Result<Self, ClientError> {
 
-        
-        let helper = K8HttpClientBuilder::new(config);
-        let client = helper.build()?;
-        let host = helper.config().api_path().to_owned();
+        let helper = HyperBuilder::new(config)?;
+        let host = helper.host();
         let token = helper.token();
+        let client = helper.build()?;
         debug!("using k8 token: {:#?}",token);
         Ok(
             Self {
@@ -96,90 +106,99 @@ impl K8Client {
     }
 
     /// handle request. this is async function
-    async fn handle_request<B,T>(
+    async fn handle_request<T>(
         &self,
-        mut request: Request<B>
+        mut request: Request<Body>
     ) -> Result<T, ClientError>
     where
         T: DeserializeOwned,
-        B: Into<Body>
     {
         self.finish_request(&mut request)?;
         
-        let mut resp = self.client.send_async(request).await?;
+        let resp = self.client.request(request).await?;
 
         let status = resp.status();
         debug!("response status: {:#?}", status);
 
-        if status == StatusCode::NOT_FOUND {
+        if status.as_u16() == StatusCode::NOT_FOUND {
+            debug!("returning not found");
             return Err(ClientError::NotFound);
         }
 
-        /*
-        let text = resp.text()?;
-        trace!("text: {}",text);
+        let body = aggregate(resp).await?;
     
-        serde_json::from_str(&text).map_err(|err| err.into())
-        */
-        resp.json().map_err(|err| err.into())
+        serde_json::from_reader(body.reader())
+            .map_err(|err| {
+                error!("json error: {}", err);
+                //let v = body.bytes();
+                //let raw = String::from_utf8_lossy(&v).to_string();
+                //error!("raw: {}", err);
+                /*
+                let v: serde_json::Value = serde_json::from_slice(&body).expect("this shoud parse");
+                trace!("json struct: {:#?}", v);
+                */
+                err.into()
+            })
+        
+    
     }
 
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
-    fn stream_of_chunks<S>(&self,uri: Uri) -> impl Stream< Item = Vec<u8>> + '_
+    fn stream_of_chunks<S>(&self,uri: Uri) -> impl Stream< Item = Bytes> + '_
     where
-        K8Watch<S, S::Status>: DeserializeOwned,
-        S: Spec + Debug,
-        S::Status: Debug,
+        S: Spec,
+        K8Watch<S>: DeserializeOwned,
     {
         debug!("streaming: {}", uri);
-
-
+        
         let ft = async move {
 
             let mut request = match http::Request::get(uri).body(Body::empty()) {
                 Ok(req) => req,
                 Err(err) =>  {
                     error!("error uri err: {}",err);
-                    return WatchStream::new(BodyStream::empty());
+                    return empty().right_stream()
                 }
             };
 
             if let Err(err) = self.finish_request(&mut request) {
                 error!("error finish request: {}",err);
-                return  WatchStream::new(BodyStream::empty())
+                return empty().right_stream()
             };
 
-            match self.client.send_async(request).await {
+            match self.client.request(request).await {
                 Ok(response) => {
                     trace!("res status: {}", response.status());
                     trace!("res header: {:#?}", response.headers());
-                    WatchStream::new(BodyStream::new(response.into_body()))
+                    WatchStream::new(response.into_body().map_err(|err| err.into())).left_stream()
                 },
                 Err(err) => {
                     error!("error getting streaming: {}",err);
-                    WatchStream::new(BodyStream::empty())
+                    empty().right_stream()
                 }
             }
+            
         
         };
 
         ft.flatten_stream()
     }
 
-
-    fn stream<S>(&self, uri: Uri) -> impl Stream<Item = TokenStreamResult<S,S::Status,ClientError>> + '_ 
+    /// return get stream of uri
+    fn stream<S>(&self, uri: Uri) -> impl Stream<Item = TokenStreamResult<S,ClientError>> + '_ 
     where
-        K8Watch<S, S::Status>: DeserializeOwned,
-        S: Spec + Debug + 'static,
-        S::Status: Debug
+        K8Watch<S>: DeserializeOwned,
+        S: Spec + 'static,
+        S::Status: 'static,
+        S::Header: 'static
     {
 
         self.stream_of_chunks(uri).map(move |chunk| {   
-
+              
             trace!("decoding raw stream : {}", String::from_utf8_lossy(&chunk).to_string());
 
-            let result: Result<K8Watch<S, S::Status>, serde_json::Error> = 
+            let result: Result<K8Watch<S>, serde_json::Error> = 
                 serde_json::from_slice(&chunk).map_err(|err| {
                     error!("parsing error, chunk_len: {}, error: {}",chunk.len(), err);
                     error!("error raw stream {}", String::from_utf8_lossy(&chunk).to_string());
@@ -192,7 +211,25 @@ impl K8Client {
                 }
                 Err(err) => Err(err.into()),
             }])
+            
         })
+    }
+
+    pub async fn retrieve_items_inner<S,N>(
+        &self,
+        namespace: N,
+        options: Option<ListOptions>
+    ) -> Result<K8List<S>, ClientError>
+    where
+        S: Spec,
+        N: Into<NameSpace> + Send + Sync
+    {
+       
+        let uri = items_uri::<S>(self.hostname(), namespace.into(), options);
+        debug!("{}: retrieving items: {}", S::label(),uri);
+        let items = self.handle_request(Request::get(uri).body(Body::empty())?).await?;
+        trace!("items retrieved: {:#?}",items);
+        Ok(items)
     }
 
 }
@@ -209,32 +246,51 @@ impl MetadataClient for K8Client {
     async fn retrieve_item<S,M>(
         &self,
         metadata: &M
-    ) -> Result<K8Obj<S,S::Status>, ClientError>
+    ) -> Result<K8Obj<S>, ClientError>
     where
-        K8Obj<S,S::Status>: DeserializeOwned,
         S: Spec,
         M: K8Meta<S> + Send + Sync
     {
-        let uri = metadata.item_uri(self.hostname());
-        debug!("retrieving item: {}", uri);
+        let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
+        debug!("{}: retrieving item: {}", S::label(),uri);
 
-        self.handle_request(http::Request::get(uri).body(Body::empty())?).await
+       
+        self.handle_request(Request::get(uri).body(Body::empty())?).await
     }
 
-    async fn retrieve_items<S>(
+    async fn retrieve_items_with_option<S,N>(
         &self,
-        namespace: &str,
-    ) -> Result<K8List<S,S::Status>, ClientError>
+        namespace: N,
+        option: Option<ListArg>
+    ) -> Result<K8List<S>, ClientError>
     where
-        K8List<S,S::Status>: DeserializeOwned,
         S: Spec,
+        N: Into<NameSpace> + Send + Sync
     {
-        let uri = items_uri::<S>(self.hostname(), namespace, None);
-
-        debug!("retrieving items: {}", uri);
-
-        self.handle_request(http::Request::get(uri).body(Body::empty())?).await
+        let list_option = option.map(|opt| ListOptions {
+            field_selector: opt.field_selector,
+            label_selector: opt.label_selector,
+            ..Default::default()
+        });
+        self.retrieve_items_inner(namespace,list_option).await
     }
+
+
+    fn retrieve_items_in_chunks<'a,S,N>(
+        self: Arc<Self>,
+        namespace: N,
+        limit: u32,
+        option: Option<ListArg>
+    ) -> BoxStream<'a,K8List<S>>
+    where
+        S: Spec + 'static,
+        N: Into<NameSpace> + Send + Sync + 'static
+    {       
+
+        ListStream::new(namespace.into(),limit,option,self.clone()).boxed()
+
+    }
+
 
     async fn delete_item<S,M>(
         &self,
@@ -244,23 +300,23 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta<S> + Send + Sync
     {
-        let uri = metadata.item_uri(self.hostname());
-        debug!("delete item on url: {}", uri);
+        let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
+        debug!("{}: delete item on url: {}", S::label(),uri);
 
-        self.handle_request(http::Request::delete(uri).body(Body::empty())?).await
+
+        self.handle_request(Request::delete(uri).body(Body::empty())?).await
     }
 
     /// create new object
     async fn create_item<S>(
         &self,
         value: InputK8Obj<S>
-    ) -> Result<K8Obj<S,S::Status>, ClientError>
+    ) -> Result<K8Obj<S>, ClientError>
     where
-        InputK8Obj<S>: Serialize + Debug,
-        K8Obj<S,S::Status>: DeserializeOwned,
-        S: Spec + Send,
+        S: Spec
     {
-        let uri = items_uri::<S>(self.hostname(), &value.metadata.namespace, None);
+        let namespace: NameSpace = value.metadata.namespace.clone().into();
+        let uri = items_uri::<S>(self.hostname(), namespace , None);
         debug!("creating '{}'", uri);
         trace!("creating RUST {:#?}", &value);
 
@@ -274,7 +330,7 @@ impl MetadataClient for K8Client {
 
         let request = Request::post(uri)
             .header(CONTENT_TYPE,"application/json")
-            .body(bytes)?;
+            .body(bytes.into())?;
 
         self.handle_request(request).await
     }
@@ -282,13 +338,10 @@ impl MetadataClient for K8Client {
     /// update status
     async fn update_status<S>(
         &self,
-        value: &UpdateK8ObjStatus<S,S::Status>,
-    ) -> Result<K8Obj<S,S::Status>, ClientError>
+        value: &UpdateK8ObjStatus<S>,
+    ) -> Result<K8Obj<S>, ClientError>
     where
-        UpdateK8ObjStatus<S,S::Status>: Serialize + Debug,
-        K8Obj<S,S::Status>: DeserializeOwned,
-        S: Spec + Send + Sync,
-        S::Status: Send + Sync
+        S: Spec
     {
         let uri = item_uri::<S>(
             self.hostname(),
@@ -308,7 +361,7 @@ impl MetadataClient for K8Client {
 
         let request = Request::put(uri)
             .header(CONTENT_TYPE,"application/json")
-            .body(bytes)?;
+            .body(bytes.into())?;
 
         self.handle_request(request).await
     }
@@ -318,15 +371,14 @@ impl MetadataClient for K8Client {
         &self,
         metadata: &M,
         patch: &Value,
-    ) -> Result<K8Obj<S,S::Status>, ClientError>
+    ) -> Result<K8Obj<S>, ClientError>
     where
-        K8Obj<S,S::Status>: DeserializeOwned,
-        S: Spec + Debug,
+        S: Spec,
         M: K8Meta<S> + Display + Send + Sync
     {
         debug!("patching item at '{}'", metadata);
         trace!("patch json value: {:#?}", patch);
-        let uri = metadata.item_uri(self.hostname());
+        let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
         let merge_type = PatchMergeType::for_spec(S::metadata());
 
         
@@ -340,7 +392,7 @@ impl MetadataClient for K8Client {
                 CONTENT_TYPE,
                 merge_type.content_type(),
             )
-            .body(bytes)?;
+            .body(bytes.into())?;
 
         self.handle_request(request).await
     }
@@ -348,15 +400,16 @@ impl MetadataClient for K8Client {
 
     
     /// stream items since resource versions
-    fn watch_stream_since<S>(
+    fn watch_stream_since<S,N>(
         &self,
-        namespace: &str,
+        namespace: N,
         resource_version: Option<String>,
-    ) -> BoxStream<'_,TokenStreamResult<S,S::Status,Self::MetadataClientError>>
+    ) -> BoxStream<'_,TokenStreamResult<S,Self::MetadataClientError>>
     where
-        K8Watch<S,S::Status>: DeserializeOwned,
-        S: Spec + Debug + 'static,
-        S::Status: Debug
+        S: Spec + 'static,
+        S::Status: 'static,
+        S::Header: 'static,
+        N: Into<NameSpace>
     {
 
         let opt = ListOptions {
@@ -365,7 +418,7 @@ impl MetadataClient for K8Client {
             timeout_seconds: Some(3600),
             ..Default::default()
         };
-        let uri = items_uri::<S>(self.hostname(), namespace, Some(&opt));
+        let uri = items_uri::<S>(self.hostname(), namespace.into(), Some(opt));
         self.stream(uri).boxed()
     }
     

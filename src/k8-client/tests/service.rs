@@ -8,17 +8,18 @@ mod integration_tests {
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
 
-    use flv_future_core::test_async;
+    use flv_future_aio::test_async;
     use k8_client::fixture::TEST_NS;
     use k8_client::ClientError;
-    use k8_metadata_core::metadata::InputK8Obj;
-    use k8_metadata_core::metadata::InputObjectMeta;
+    use k8_obj_metadata::InputK8Obj;
+    use k8_obj_metadata::InputObjectMeta;
     use k8_client::K8Client;
-    use k8_client::service::ServicePort;
-    use k8_client::service::ServiceSpec;
-    use k8_metadata_core::Spec;
-    use k8_metadata::client::MetadataClient;
-    use types::defaults::SPU_DEFAULT_NAME;
+    use k8_obj_core::service::ServicePort;
+    use k8_obj_core::service::ServiceSpec;
+    use k8_obj_metadata::Spec;
+    use k8_metadata_client::MetadataClient;
+
+    const SPU_DEFAULT_NAME: &'static str = "spu";
 
     fn create_client() -> K8Client {
         K8Client::default().expect("cluster not initialized")
@@ -74,4 +75,5 @@ mod integration_tests {
         assert!(true, "passed");
         Ok(())
     }
+
 }

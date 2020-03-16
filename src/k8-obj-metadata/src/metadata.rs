@@ -2,23 +2,30 @@ use std::collections::HashMap;
 use std::collections::BTreeMap;
 use std::marker::PhantomData;
 use std::fmt;
+use std::fmt::Debug;
 
-use http::Uri;
+
 use serde::de::Deserializer;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
-use crate::options::prefix_uri;
-use crate::options::ListOptions;
+
 use crate::Spec;
+
 
 pub const DEFAULT_NS: &'static str = "default";
 pub const TYPE_OPAQUE: &'static str = "Opaque";
 
-pub trait K8Meta<S> where S: Spec {
 
-    // return uri for given host name
-    fn item_uri(&self,host_name: &str) -> Uri;
+
+pub trait K8Meta {
+
+    /// resource name
+    fn name(&self) -> &str;
+
+    /// namespace
+    fn namespace(&self) -> &str;
 }
 
 pub trait LabelProvider: Sized {
@@ -56,6 +63,7 @@ pub struct ObjectMeta {
     pub deletion_grace_period_seconds: Option<u32>,
     pub labels: HashMap<String, String>,
     pub owner_references: Vec<OwnerReferences>,
+    pub annotations: HashMap<String,String>
 }
 
 impl LabelProvider for ObjectMeta {
@@ -64,6 +72,19 @@ impl LabelProvider for ObjectMeta {
         self.labels = labels;
         self
     }
+}
+
+
+impl K8Meta for ObjectMeta {
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn namespace(&self) -> &str {
+        &self.namespace
+    }
+    
 }
 
 
@@ -182,18 +203,19 @@ impl fmt::Display for InputObjectMeta {
     }
 }
 
-impl <S>K8Meta<S> for InputObjectMeta where S: Spec {
 
-     fn item_uri(&self,host_name: &str) -> Uri {
-         
-         item_uri::<S>(
-            host_name,
-            &self.name,
-            &self.namespace,
-            None,
-        )
-     }
+impl K8Meta for InputObjectMeta {
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn namespace(&self) -> &str {
+        &self.namespace
+    }
+    
 }
+
 
 
 
@@ -270,29 +292,6 @@ pub struct OwnerReferences {
     pub uid: String,
 }
 
-/// items uri
-pub fn item_uri<S>(host: &str, name: &str, namespace: &str, sub_resource: Option<&str>) -> Uri
-where
-    S: Spec + Sized,
-{
-    let crd = S::metadata();
-    let prefix = prefix_uri(crd, host, namespace, None);
-    let uri_value = format!("{}/{}{}", prefix, name, sub_resource.unwrap_or(""));
-    let uri: Uri = uri_value.parse().unwrap();
-    uri
-}
-
-/// items uri
-pub fn items_uri<S>(host: &str, namespace: &str, list_options: Option<&ListOptions>) -> Uri
-where
-    S: Spec,
-{
-    let crd = S::metadata();
-    let uri_value = prefix_uri(crd, host, namespace, list_options);
-    let uri: Uri = uri_value.parse().unwrap();
-    uri
-}
-
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 pub enum StatusEnum {
     SUCCESS,
@@ -339,23 +338,29 @@ pub struct StatusDetails {
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8Obj<S,P> {
+#[serde(bound(serialize = "S: Serialize"))]
+#[serde(bound(deserialize = "S: DeserializeOwned"))]
+pub struct K8Obj<S> where S: Spec {
+    #[serde(default = "S::api_version")]
     pub api_version: String,
+    #[serde(default = "S::kind")]
     pub kind: String,
-    pub metadata: ObjectMeta,
-    pub spec: S,
-    pub status: Option<P>,
     #[serde(default)]
-    pub data: Option<BTreeMap<String, String>>,
+    pub metadata: ObjectMeta,
+    #[serde(default)]
+    pub spec: S,
+    #[serde(flatten)]
+    pub header: S::Header,
+    #[serde(default)]
+    pub status: S::Status,
 }
 
 
 
 
-
-impl <S> K8Obj<S,S::Status>
-    where S: Spec + Default,
-        S::Status: Default
+impl <S> K8Obj<S>
+    where 
+        S: Spec
 {
 
     #[allow(dead_code)]
@@ -365,18 +370,17 @@ impl <S> K8Obj<S,S::Status>
             kind: S::kind(),
             metadata: ObjectMeta::named(name),
             spec,
-            status: None,
             ..Default::default()
         }
     }
 
     #[allow(dead_code)]
     pub fn set_status(mut self,status: S::Status) -> Self {
-        self.status = Some(status);
+        self.status = status;
         self
     }
 
-    pub fn as_status_update(&self,status: S::Status) -> UpdateK8ObjStatus<S,S::Status>  {
+    pub fn as_status_update(&self,status: S::Status) -> UpdateK8ObjStatus<S>  {
 
         UpdateK8ObjStatus {
             api_version: S::api_version(),
@@ -388,8 +392,8 @@ impl <S> K8Obj<S,S::Status>
     }
 }
 
-impl <S> K8Obj<S,S::Status>
-    where S: Spec + Default + Clone,
+impl <S> K8Obj<S>
+    where S: Spec
 {
 
     pub fn as_input(&self) -> InputK8Obj<S> {
@@ -417,7 +421,7 @@ pub struct K8SpecObj<S,M> {
 }
 
 impl <S,M> K8SpecObj<S,M> 
-    where S: Spec + Default
+    where S: Spec
 {
     pub fn new(spec: S,metadata: M) -> Self where M: Default {
         Self {
@@ -437,18 +441,19 @@ pub type UpdateK8Obj<S> = K8SpecObj<S,ItemMeta>;
 /// Used for updating k8obj
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateK8ObjStatus<S,P> {
+pub struct UpdateK8ObjStatus<S> 
+    where S: Spec
+{
     pub api_version: String,
     pub kind: String,
     pub metadata: UpdateItemMeta,
-    pub status: P,
+    pub status: S::Status,
     pub data: PhantomData<S>
 }
 
 
-impl <S>UpdateK8ObjStatus<S,S::Status> 
-    where S: Spec + Default,
-        S::Status: Default
+impl <S>UpdateK8ObjStatus<S> 
+    where S: Spec
 {
 
     pub fn new(status: S::Status, metadata: UpdateItemMeta) -> Self {
@@ -536,14 +541,22 @@ impl <S>TemplateSpec<S> {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8List<S, P> {
+#[serde(bound(serialize = "K8Obj<S>: Serialize"))]
+#[serde(bound(deserialize = "K8Obj<S>: DeserializeOwned"))]
+pub struct K8List<S> 
+    where 
+        S: Spec
+{
     pub api_version: String,
-    pub items: Vec<K8Obj<S, P>>,
+    pub items: Vec<K8Obj<S>>,
     pub kind: String,
     pub metadata: ListMetadata 
 }
 
-impl <S> K8List<S,S::Status> where S: Spec {
+impl <S> K8List<S> 
+    where 
+        S: Spec, 
+{
 
     #[allow(dead_code)]
     pub fn new() -> Self {
@@ -570,10 +583,14 @@ pub trait DeserializeWith: Sized {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type", content = "object")]
-pub enum K8Watch<Spec, Status> {
-    ADDED(K8Obj<Spec, Status>),
-    MODIFIED(K8Obj<Spec, Status>),
-    DELETED(K8Obj<Spec, Status>),
+#[serde(bound(serialize = "K8Obj<S>: Serialize"))]
+#[serde(bound(deserialize = "K8Obj<S>: DeserializeOwned"))]
+pub enum K8Watch<S> 
+    where S:Spec
+{
+    ADDED(K8Obj<S>),
+    MODIFIED(K8Obj<S>),
+    DELETED(K8Obj<S>),
 }
 
 

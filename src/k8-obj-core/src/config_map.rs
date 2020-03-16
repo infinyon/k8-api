@@ -5,7 +5,7 @@ use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-
+use k8_obj_metadata::DefaultHeader;
 
 //
 // ConfigMap Object
@@ -19,9 +19,12 @@ const CONFIG_MAP_API: Crd = Crd {
     },
 };
 
+
+
 impl Spec for ConfigMapSpec {
 
     type Status = ConfigMapStatus;
+    type Header = DefaultHeader;
 
     fn metadata() -> &'static Crd {
         &CONFIG_MAP_API

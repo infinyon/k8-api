@@ -2,12 +2,15 @@ use serde::Serialize;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::K8Obj;
+use k8_obj_metadata::Spec;
 
 #[derive(Debug)]
-pub enum ApplyResult<S, P> {
+pub enum ApplyResult<S> 
+    where S: Spec
+{
     None,
-    Created(K8Obj<S, P>),
-    Patched(K8Obj<S, P>),
+    Created(K8Obj<S>),
+    Patched(K8Obj<S>),
 }
 
 #[allow(dead_code)]

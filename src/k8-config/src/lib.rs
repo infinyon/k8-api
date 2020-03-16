@@ -5,6 +5,7 @@ mod pod;
 
 pub use error::ConfigError;
 pub use config::KubeConfig;
+pub use config::UserDetail;
 pub use pod::PodConfig;
 
 use log::debug;

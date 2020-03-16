@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::io::Error as IoError;
+use std::sync::Arc;
 
 use log::debug;
 use log::trace;
@@ -28,8 +29,52 @@ use k8_obj_metadata::K8Obj;
 use k8_obj_metadata::K8Status;
 use k8_obj_metadata::K8Watch;
 
+
 use crate::DiffSpec;
 use crate::ApplyResult;
+
+#[derive(Clone)]
+pub enum NameSpace {
+    All,
+    Named(String)
+}
+
+impl NameSpace {
+    pub fn is_all(&self) -> bool {
+        match self {
+            Self::All => true,
+            _ => false
+        }
+    }
+
+    pub fn named(&self) -> &str {
+        match self {
+            Self::All => "all",
+            Self::Named(name) => &name
+        }
+    }
+}
+
+impl From<String> for NameSpace {
+    fn from(namespace: String) -> Self {
+        NameSpace::Named(namespace)
+    }
+}
+
+impl From<&str> for NameSpace {
+    fn from(namespace: &str) -> Self {
+        NameSpace::Named(namespace.to_owned())
+    }
+}
+
+#[derive(Default,Clone)]
+pub struct ListArg {
+    pub field_selector: Option<String>,
+    pub include_uninitialized: Option<bool>,
+    pub label_selector: Option<String>,
+}
+
+
 
 /// trait for metadata client
 pub trait MetadataClientError: Debug + Display {
@@ -42,19 +87,22 @@ pub trait MetadataClientError: Debug + Display {
 
 // For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
-pub type TokenStreamResult<S, P, E> = Result<Vec<Result<K8Watch<S, P>, E>>, E>;
+pub type TokenStreamResult<S,E> = Result<Vec<Result<K8Watch<S>, E>>, E>;
 
 pub fn as_token_stream_result<S, E>(
-    events: Vec<K8Watch<S, S::Status>>,
-) -> TokenStreamResult<S, S::Status, E>
+    events: Vec<K8Watch<S>>,
+) -> TokenStreamResult<S, E>
 where
     S: Spec,
+    S::Status: Serialize + DeserializeOwned,
+    S::Header: Serialize + DeserializeOwned
 {
     Ok(events.into_iter().map(|event| Ok(event)).collect())
 }
 
 #[async_trait]
 pub trait MetadataClient: Send + Sync {
+
     type MetadataClientError: MetadataClientError
         + Send
         + Display
@@ -66,34 +114,56 @@ pub trait MetadataClient: Send + Sync {
     async fn retrieve_item<S, M>(
         &self,
         metadata: &M,
-    ) -> Result<K8Obj<S, S::Status>, Self::MetadataClientError>
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        K8Obj<S, S::Status>: DeserializeOwned,
         S: Spec,
-        M: K8Meta<S> + Send + Sync;
+        M: K8Meta + Send + Sync;
 
-    async fn retrieve_items<S>(
+    /// retrieve all items a single chunk
+    /// this may cause client to hang if there are too many items
+    async fn retrieve_items<S,N>(
         &self,
-        namespace: &str,
-    ) -> Result<K8List<S, S::Status>, Self::MetadataClientError>
+        namespace: N
+    ) -> Result<K8List<S>, Self::MetadataClientError>
+        where
+            S: Spec,
+            N: Into<NameSpace> + Send + Sync {
+            
+        self.retrieve_items_with_option(namespace,None).await
+    }
+            
+    async fn retrieve_items_with_option<S,N>(
+        &self,
+        namespace: N,
+        option:  Option<ListArg>
+    ) -> Result<K8List<S>, Self::MetadataClientError>
+        where
+            S: Spec,
+            N: Into<NameSpace> + Send + Sync;   
+
+    /// returns stream of items in chunks
+    fn retrieve_items_in_chunks<'a,S,N>(
+        self: Arc<Self>,
+        namespace: N,
+        limit: u32,
+        option: Option<ListArg>
+    ) -> BoxStream<'a,K8List<S>>
     where
-        K8List<S, S::Status>: DeserializeOwned,
-        S: Spec;
+        S: Spec + 'static,
+        N: Into<NameSpace> + Send + Sync + 'static;
 
     async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, Self::MetadataClientError>
     where
         S: Spec,
-        M: K8Meta<S> + Send + Sync;
+        M: K8Meta + Send + Sync;
 
     /// create new object
     async fn create_item<S>(
         &self,
         value: InputK8Obj<S>,
-    ) -> Result<K8Obj<S, S::Status>, Self::MetadataClientError>
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        InputK8Obj<S>: Serialize + Debug,
-        K8Obj<S, S::Status>: DeserializeOwned,
-        S: Spec + Send;
+        S: Spec;
 
     /// apply object, this is similar to ```kubectl apply```
     /// for now, this doesn't do any optimization
@@ -102,19 +172,16 @@ pub trait MetadataClient: Send + Sync {
     async fn apply<S>(
         &self,
         value: InputK8Obj<S>,
-    ) -> Result<ApplyResult<S, S::Status>, Self::MetadataClientError>
+    ) -> Result<ApplyResult<S>, Self::MetadataClientError>
     where
-        InputK8Obj<S>: Serialize + Debug,
-        K8Obj<S, S::Status>: DeserializeOwned + Debug,
-        S: Spec + Serialize + Debug + Clone + Send,
-        S::Status: Send,
+        S: Spec,
         Self::MetadataClientError: From<serde_json::Error> + From<DiffError> + Send,
     {
-        debug!("applying '{}' changes", value.metadata.name);
-        trace!("applying {:#?}", value);
+        debug!("{}: applying '{}' changes", S::label(),value.metadata.name);
+        trace!("{}: applying {:#?}", S::label(),value);
         match self.retrieve_item(&value.metadata).await {
             Ok(item) => {
-                let mut old_spec = item.spec;
+                let mut old_spec: S = item.spec;
                 old_spec.make_same(&value.spec);
                 // we don't care about status
                 let new_spec = serde_json::to_value(DiffSpec::from(value.spec.clone()))?;
@@ -122,15 +189,15 @@ pub trait MetadataClient: Send + Sync {
                 let diff = old_spec.diff(&new_spec)?;
                 match diff {
                     Diff::None => {
-                        debug!("no diff detected, doing nothing");
+                        debug!("{}: no diff detected, doing nothing",S::label());
                         Ok(ApplyResult::None)
                     }
                     Diff::Patch(p) => {
                         let json_diff = serde_json::to_value(p)?;
-                        debug!("detected diff: old vs. new spec");
-                        trace!("new spec: {:#?}", &new_spec);
-                        trace!("old spec: {:#?}", &old_spec);
-                        trace!("new/old diff: {:#?}", json_diff);
+                        debug!("{}: detected diff: old vs. new spec",S::label());
+                        trace!("{}: new spec: {:#?}", S::label(),&new_spec);
+                        trace!("{}: old spec: {:#?}", S::label(), &old_spec);
+                        trace!("{}: new/old diff: {:#?}", S::label(), json_diff);
                         let patch_result = self.patch_spec(&value.metadata, &json_diff).await?;
                         Ok(ApplyResult::Patched(patch_result))
                     }
@@ -139,7 +206,7 @@ pub trait MetadataClient: Send + Sync {
             }
             Err(err) => {
                 if err.not_founded() {
-                    debug!("item '{}' not found, creating ...", value.metadata.name);
+                    debug!("{}: item '{}' not found, creating ...", S::label(),value.metadata.name);
                     let created_item = self.create_item(value.into()).await?;
                     Ok(ApplyResult::Created(created_item))
                 } else {
@@ -152,50 +219,43 @@ pub trait MetadataClient: Send + Sync {
     /// update status
     async fn update_status<S>(
         &self,
-        value: &UpdateK8ObjStatus<S, S::Status>,
-    ) -> Result<K8Obj<S, S::Status>, Self::MetadataClientError>
+        value: &UpdateK8ObjStatus<S>,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        UpdateK8ObjStatus<S, S::Status>: Serialize + Debug,
-        K8Obj<S, S::Status>: DeserializeOwned,
-        S: Spec + Send + Sync,
-        S::Status: Send + Sync;
+        S: Spec;
 
     /// patch existing with spec
     async fn patch_spec<S, M>(
         &self,
         metadata: &M,
         patch: &Value,
-    ) -> Result<K8Obj<S, S::Status>, Self::MetadataClientError>
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        K8Obj<S, S::Status>: DeserializeOwned,
-        S: Spec + Debug,
-        M: K8Meta<S> + Display + Send + Sync;
+        S: Spec,
+        M: K8Meta + Display + Send + Sync;
 
     /// stream items since resource versions
-    fn watch_stream_since<S>(
+    fn watch_stream_since<S,N>(
         &self,
-        namespace: &str,
+        namespace: N,
         resource_version: Option<String>,
-    ) -> BoxStream<'_, TokenStreamResult<S, S::Status, Self::MetadataClientError>>
+    ) -> BoxStream<'_, TokenStreamResult<S,Self::MetadataClientError>>
     where
-        K8Watch<S, S::Status>: DeserializeOwned,
-        S: Spec + Debug + Send + 'static,
-        S::Status: Debug + Send;
-
+        S: Spec + 'static,
+        N: Into<NameSpace>;
+        
     fn watch_stream_now<S>(
         &self,
         ns: String,
-    ) -> BoxStream<'_, TokenStreamResult<S, S::Status, Self::MetadataClientError>>
+    ) -> BoxStream<'_, TokenStreamResult<S,Self::MetadataClientError>>
     where
-        K8Watch<S, S::Status>: DeserializeOwned,
-        K8List<S, S::Status>: DeserializeOwned,
-        S: Spec + Debug + 'static + Send,
-        S::Status: Debug + Send,
+        S: Spec + 'static
+
     {
         let ft_stream = async move {
 
             let namespace = ns.as_ref();          
-            match self.retrieve_items(namespace).await {
+            match self.retrieve_items_with_option(namespace,None).await {
                 Ok(item_now_list) => {
                     let resource_version = item_now_list.metadata.resource_version;
 
@@ -222,12 +282,11 @@ pub trait MetadataClient: Send + Sync {
     /// Check if the object exists, return true or false.
     async fn exists<S, M>(&self, metadata: &M) -> Result<bool, Self::MetadataClientError>
     where
-        K8Obj<S, S::Status>: DeserializeOwned + Serialize + Debug + Clone,
-        S: Spec + Serialize + Debug,
-        M: K8Meta<S> + Display + Send + Sync,
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
     {
         debug!("check if '{}' exists", metadata);
-        match self.retrieve_item(metadata).await {
+        match self.retrieve_item::<S,M>(metadata).await {
             Ok(_) => Ok(true),
             Err(err) => {
                 if err.not_founded() {
@@ -239,3 +298,5 @@ pub trait MetadataClient: Send + Sync {
         }
     }
 }
+
+

@@ -65,7 +65,17 @@ pub struct User {
 #[serde(rename_all = "kebab-case")]
 pub struct UserDetail {
     pub client_certificate: Option<String>,
-    pub client_key: Option<String>
+    pub client_key: Option<String>,
+    pub exec: Option<Exec>
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Exec {
+    #[serde(rename = "apiVersion")]
+    pub api_version: String,
+    pub args: Vec<String>,
+    pub command: String,
 }
 
 

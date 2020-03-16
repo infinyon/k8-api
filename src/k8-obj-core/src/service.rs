@@ -6,8 +6,8 @@ use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-
-
+use k8_obj_metadata::DefaultHeader;
+use k8_obj_metadata::default_store_spec;
 
 const SERVICE_API: Crd = Crd {
     group: "core",
@@ -19,7 +19,7 @@ const SERVICE_API: Crd = Crd {
     },
 };
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceSpec {
     #[serde(rename = "clusterIP")]
@@ -38,6 +38,7 @@ pub struct ServiceSpec {
 impl Spec for ServiceSpec {
 
     type Status = ServiceStatus;
+    type Header = DefaultHeader;
 
     fn metadata() -> &'static Crd {
         &SERVICE_API
@@ -53,10 +54,10 @@ impl Spec for ServiceSpec {
 }
 
 
+default_store_spec!(ServiceSpec,ServiceStatus,"Service");
 
 
-
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ServicePort {
     pub name: Option<String>,
@@ -65,7 +66,7 @@ pub struct ServicePort {
     pub target_port: Option<u16>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase",default)]
 pub struct ServiceStatus {
     pub load_balancer: LoadBalancerStatus
@@ -87,7 +88,7 @@ pub enum LoadBalancerType {
     LoadBalancer
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq,Default, Clone)]
 #[serde(rename_all = "camelCase",default)]
 pub struct LoadBalancerStatus {
     pub ingress: Vec<LoadBalancerIngress>
@@ -95,9 +96,25 @@ pub struct LoadBalancerStatus {
 
 
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq,Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadBalancerIngress {
     pub hostname: Option<String>,
     pub ip: Option<String>
+}
+
+impl LoadBalancerIngress {
+
+    /// return either host or ip
+    pub fn host_or_ip(&self) -> Option<&str> {
+
+        if let Some(host) = &self.hostname {
+            Some(host)
+        } else if let Some(ip) = &self.ip {
+            Some(ip)
+        } else {
+            None
+        }
+    }
+
 }
