@@ -20,12 +20,12 @@ const SERVICE_API: Crd = Crd {
 };
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase",default)]
 pub struct ServiceSpec {
     #[serde(rename = "clusterIP")]
     pub cluster_ip: String,
     #[serde(rename = "externalIPs")]
-    pub external_ips: Option<Vec<String>>,
+    pub external_ips: Vec<String>,
     #[serde(rename = "loadBalancerIP")]
     pub load_balancer_ip: Option<String>,
     pub r#type: Option<LoadBalancerType>,
@@ -92,6 +92,17 @@ pub enum LoadBalancerType {
 #[serde(rename_all = "camelCase",default)]
 pub struct LoadBalancerStatus {
     pub ingress: Vec<LoadBalancerIngress>
+}
+
+impl LoadBalancerStatus {
+
+    /// find any ip or host
+    pub fn find_any_ip_or_host(&self) -> Option<&str> {
+
+        self.ingress.iter().find_map(|ingress| ingress.host_or_ip())
+
+    }
+
 }
 
 

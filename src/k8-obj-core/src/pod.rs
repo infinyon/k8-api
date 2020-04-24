@@ -32,9 +32,9 @@ impl Spec for PodSpec {
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase",default)]
 pub struct PodSpec {
-    pub volumes: Option<Vec<VolumeSpec>>,
+    pub volumes: Vec<VolumeSpec>,
     pub containers: Vec<ContainerSpec>,
     pub restart_policy: Option<String>, // TODO; should be enum
     pub service_account_name: Option<String>,
@@ -56,14 +56,16 @@ pub struct PodSecurityContext {
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase",default)]
 pub struct ContainerSpec {
     pub name: String,
+    pub args: Vec<String>,
+    pub command: Vec<String>,
     pub ports: Vec<ContainerPortSpec>,
     pub image: Option<String>,
     pub image_pull_policy: Option<String>, // TODO: should be enum
     pub volume_mounts: Vec<VolumeMount>,
-    pub env: Option<Vec<Env>>,
+    pub env: Vec<Env>,
     pub resource: Option<ResourceRequirements>,
     pub termination_mssage_path: Option<String>,
     pub termination_message_policy: Option<String>,
@@ -71,7 +73,7 @@ pub struct ContainerSpec {
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase",default)]
 pub struct ResourceRequirements {
     pub api_groups: Vec<String>,
     pub resource_names: Vec<String>,
@@ -138,7 +140,7 @@ pub struct PodStatus {
     #[serde(rename = "hostIP")]
     pub host_ip: String,
     #[serde(rename = "podIP")]
-    pub pod_ip: String,
+    pub pod_ip: Option<String>,
     pub start_time: String,
     pub container_statuses: Vec<ContainerStatus>,
 }
@@ -156,13 +158,13 @@ pub struct ContainerStatus {
     #[serde(rename = "imageID")]
     pub image_id: String,
     #[serde(rename = "containerID")]
-    pub container_id: String,
+    pub container_id: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerState {
-    pub running: ContainerStateRunning,
+    pub running: Option<ContainerStateRunning>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

@@ -21,7 +21,7 @@ const STATEFUL_API: Crd = Crd {
 };
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase",default)]
 pub struct StatefulSetSpec {
     pub pod_management_policy: Option<PodMangementPolicy>,
     pub replicas: Option<u16>,
@@ -94,7 +94,7 @@ pub struct VolumeRequest {
 pub struct StatefulSetStatus {
     pub replicas: u16,
     pub collision_count: Option<u32>,
-    pub conditions: Option<Vec<StatefulSetCondition>>,
+    pub conditions: Vec<StatefulSetCondition>,
     pub current_replicas: Option<u16>,
     pub current_revision: Option<String>,
     pub observed_generation: Option<u32>,

@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-client"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -39,7 +39,7 @@ serde_qs = "0.5.0"
 async-trait = "0.1.21"
 async-std = { version = "1.5.0", features = ["default","unstable"], optional = true }
 flv-future-aio = { version = "1.0.0", optional = true  }
-k8-obj-core = { version = "1.0.0", path = "../k8-obj-core"}
+k8-obj-core = { version = "1.1.0", path = "../k8-obj-core"}
 k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
 k8-metadata-client = { version = "1.0.0", path = "../k8-metadata-client"}
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
@@ -52,4 +52,4 @@ async-trait = "0.1.21"
 flv-future-aio = { version = "1.0.0", features=["fixture"]}
 flv-util = { version = "0.1.0", features=["fixture"]}
 k8-obj-app = { version = "1.0.0", path = "../k8-obj-app"}
-k8-obj-core = { version = "1.0.0", path = "../k8-obj-core"}
+k8-obj-core = { version = "1.1.0", path = "../k8-obj-core"}
