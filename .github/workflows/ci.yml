@@ -8,8 +8,8 @@ on:
 
 jobs:
 
-  smoke_test:
-    name: Smoke test
+  unit_test:
+    name: Unit test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,7 +32,7 @@ jobs:
       strategy:
         matrix:
           os: [ubuntu-latest]
-          rust: [stable]
+          rust: [stable,nightly,beta]
 
       steps:
       - uses: actions/checkout@v2
@@ -43,20 +43,20 @@ jobs:
           override: true
       - uses: manusa/actions-setup-minikube@v1.0.2
         with:
-          minikube version: 'v1.9.2'
-          kubernetes version: 'v1.18.2'
+            minikube version: 'v1.11.0'
+            kubernetes version: 'v1.18.3'
+            github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Minikube
         run: |
           kubectl get nodes
           kubectl config view
-          kubectl apply -f src/k8-client/tests/test.yaml
       - name: Build
         run: |
           make build-config-context
-      - name: mycube
+      - name: setup context
         run: |
           cargo run k8-ctx-util
           kubectl config view
-      - name: K8 Integration test
+      - name: K8 integration test
         run: make integration-test
 
