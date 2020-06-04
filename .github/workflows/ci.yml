@@ -48,7 +48,6 @@ jobs:
             github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Minikube
         run: |
-          minikube start
           kubectl get nodes
           kubectl config view
       - name: Build
