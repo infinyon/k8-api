@@ -8,12 +8,30 @@ on:
 
 jobs:
 
-  smoke_test:
+  unit_test:
+    name: Unit test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest,macOS-latest]
+        rust: [nightly, beta, stable]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install ${{ matrix.rust }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Run unit tests
+      run:  cargo test
+
+  k8_test:
       name: Kubernetes integration test
       runs-on: ${{ matrix.os }}
       strategy:
         matrix:
-          os: [ubuntu-latest,macOS-latest]
+          os: [ubuntu-latest]
           rust: [stable,nightly,beta]
 
       steps:
@@ -23,6 +41,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
+
       - name: Run unit tests
         run:  cargo test
       - uses: manusa/actions-setup-minikube@v1.0.2
