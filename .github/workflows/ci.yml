@@ -51,8 +51,6 @@ jobs:
           k8s-version: 1.18.3
       - name: Test Minikube
         run: |
-          minikube config set vm-driver kvm2
-          minikube config set kubernetes-version=1.18.3
           minikube start
           kubectl get nodes
           kubectl config view
