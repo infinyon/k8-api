@@ -44,15 +44,18 @@ jobs:
 
       - name: Run unit tests
         run:  cargo test
-      - uses: manusa/actions-setup-minikube@v1.0.2
+      - uses: actions/checkout@master
+      - uses: opsgang/ga-setup-minikube@v0.1.1
         with:
-          minikube version: 'v1.9.2'
-          kubernetes version: 'v1.18.2'
+          minikube-version: 1.11.0
+          k8s-version: 1.18.3
       - name: Test Minikube
         run: |
+          minikube config set vm-driver kvm2
+          minikube config set kubernetes-version=1.18.3
+          minikube start
           kubectl get nodes
           kubectl config view
-          kubectl apply -f src/k8-client/tests/test.yaml
       - name: Build
         run: |
           make build-config-context
