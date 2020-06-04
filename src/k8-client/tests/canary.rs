@@ -47,6 +47,22 @@ mod canary_test {
 
     }
 
-    
+    #[test_async]
+    async fn test_pods() -> Result<(), ClientError> {
+
+        use k8_obj_core::pod::PodSpec;
+
+        let client = K8Client::default().expect("cluster could not be configured");
+        let pod_items = client.retrieve_items::<PodSpec,_>("default").await.expect("pods should exist");
+
+        for pod in pod_items.items {
+            println!("pod: {:#?}",pod);
+        }
+
+        Ok(())
+
+    }
+
+
 
 }
