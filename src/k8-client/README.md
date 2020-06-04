@@ -7,15 +7,15 @@ Example of using the client:
 
 ```
 use k8_client::K8Client;
-use k8_client::pod::{PodSpec,PodStatus};
+use k8_obj_core::pod::{PodSpec,PodStatus};
 
 async fn main() {
 
     let client = K8Client::default().expect("cluster not initialized");
 
-    let pods = client.retrieve_item<PodSpec>().await.expect("pods should exist");
+    let pod_items = client.retrieve_items::<PodSpec,_>("default").await.expect("pods should exist");
 
-    for pod in pods {
+    for pod in pod_items.items {
         println!("pod: {:#?}",pod);
     }
 }

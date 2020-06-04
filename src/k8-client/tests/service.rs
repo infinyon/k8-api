@@ -9,7 +9,6 @@ mod integration_tests {
     use rand::{thread_rng, Rng};
 
     use flv_future_aio::test_async;
-    use k8_client::fixture::TEST_NS;
     use k8_client::ClientError;
     use k8_obj_metadata::InputK8Obj;
     use k8_obj_metadata::InputObjectMeta;
@@ -51,7 +50,7 @@ mod integration_tests {
             metadata: InputObjectMeta {
                 name: name.to_lowercase(),
                 labels,
-                namespace: TEST_NS.to_string(),
+                namespace: "default".to_owned(),
                 ..Default::default()
             },
             spec: service_spec,
@@ -64,15 +63,17 @@ mod integration_tests {
     #[test_async]
     async fn test_client_create_and_delete_service() -> Result<(), ClientError> {
         let new_item = new_service();
-        debug!("item: {:#?}", &new_item);
+        debug!("creating new service: {:#?}", &new_item);
         let client = create_client();
         let item = client.create_item::<ServiceSpec>(new_item).await.expect("service should be created");
+        
         debug!("deleting: {:#?}", item);
         let input_metadata: InputObjectMeta = item.metadata.into();
         client
             .delete_item::<ServiceSpec, _>(&input_metadata)
             .await.expect("delete should work");
         assert!(true, "passed");
+        
         Ok(())
     }
 

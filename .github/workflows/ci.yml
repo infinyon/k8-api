@@ -8,8 +8,8 @@ on:
 
 jobs:
 
-  smoke_test:
-    name: Smoke test
+  unit_test:
+    name: Unit test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -31,8 +31,8 @@ jobs:
       runs-on: ${{ matrix.os }}
       strategy:
         matrix:
-          os: [ubuntu-latest]
-          rust: [stable]
+          os: [ubuntu-latest,macOS-latest]
+          rust: [stable,nightly,beta]
 
       steps:
       - uses: actions/checkout@v2
@@ -53,10 +53,10 @@ jobs:
       - name: Build
         run: |
           make build-config-context
-      - name: mycube
+      - name: setup context
         run: |
           cargo run k8-ctx-util
           kubectl config view
-      - name: K8 Integration test
+      - name: K8 integration test
         run: make integration-test
 
