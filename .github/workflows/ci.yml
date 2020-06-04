@@ -41,14 +41,11 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
-
-      - name: Run unit tests
-        run:  cargo test
-      - uses: actions/checkout@master
-      - uses: opsgang/ga-setup-minikube@v0.1.1
+      - uses: manusa/actions-setup-minikube@v1.0.2
         with:
-          minikube-version: 1.11.0
-          k8s-version: 1.18.3
+            minikube version: 'v1.11.0'
+            kubernetes version: 'v1.18.3'
+            github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Minikube
         run: |
           minikube start
