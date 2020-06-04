@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  smoke_test:
+    name: Smoke test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest,macOS-latest]
+        rust: [nightly, beta, stable]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install ${{ matrix.rust }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Run unit tests
+      run:  cargo test
+
+  k8_test:
+      name: Kubernetes integration test
+      runs-on: ${{ matrix.os }}
+      strategy:
+        matrix:
+          os: [ubuntu-latest]
+          rust: [stable]
+
+      steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - uses: manusa/actions-setup-minikube@v1.0.2
+        with:
+          minikube version: 'v1.9.2'
+          kubernetes version: 'v1.18.2'
+      - name: Test Minikube
+        run: |
+          kubectl get nodes
+          kubectl config view
+          kubectl apply -f src/k8-client/tests/test.yaml
+      - name: Build
+        run: |
+          make build-config-context
+      - name: mycube
+        run: |
+          cargo run k8-ctx-util
+          kubectl config view
+      - name: K8 Integration test
+        run: make integration-test
+

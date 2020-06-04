@@ -1,16 +1,26 @@
+publish:
+	 cargo-publish-all
+
+
 build-hyper:
-	cd src/k8-client; make build-hyper
+	make -C src/k8-client build-hyper
 
 
 build-isahc:
-	cd src/k8-client; make build-isahc
+	make -C src/k8-client build-isahc
 
 
 test-hyper-service:
-	cd src/k8-client; make test-hyper-service
+	make -C src/k8-client test-hyper-service
 
 test-isahc:
-	cd src/k8-client; make test-isahc-secrets
+	make -C src/k8-client test-isahc-secrets
 	
 build-test:
-	cd src/k8-client; make build-test
+	make -C src/k8-client build-test
+
+integration-test:
+	make -C src/k8-client run-integration-test
+
+build-config-context:
+	cd src/k8-config;cargo build --features=context

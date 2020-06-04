@@ -1,4 +1,9 @@
- run-integration-test:
+MAKE_DIR = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+setup:
+	kubectl apply -f $(MAKE_DIR)/tests/test.yaml
+
+run-integration-test:
 	cargo test --features=k8
 
 # set up cluster roles 

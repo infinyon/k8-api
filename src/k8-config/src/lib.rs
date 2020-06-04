@@ -3,6 +3,9 @@ mod config;
 mod error;
 mod pod;
 
+#[cfg(feature = "context")]
+pub mod context;
+
 pub use error::ConfigError;
 pub use config::KubeConfig;
 pub use config::UserDetail;

@@ -66,12 +66,12 @@ mod integration_tests {
         let new_item = new_service();
         debug!("item: {:#?}", &new_item);
         let client = create_client();
-        let item = client.create_item::<ServiceSpec>(new_item).await?;
+        let item = client.create_item::<ServiceSpec>(new_item).await.expect("service should be created");
         debug!("deleting: {:#?}", item);
         let input_metadata: InputObjectMeta = item.metadata.into();
         client
             .delete_item::<ServiceSpec, _>(&input_metadata)
-            .await?;
+            .await.expect("delete should work");
         assert!(true, "passed");
         Ok(())
     }
