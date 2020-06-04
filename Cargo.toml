@@ -7,9 +7,6 @@ members = [
     "src/k8-diff",
     "src/k8-config",
     "src/k8-client",
-    "src/k8-obj-storage"
+    "src/k8-obj-storage",
+    "src/k8-ctx-util"
 ]
-
-
-#[patch.crates-io]
-#flv-future-aio = { path = "../flv-future/src/future-aio"}
