@@ -26,7 +26,7 @@ fn load_cert_auth() -> String {
 }
 
 pub struct Option {
-    ctx_name: String,
+    pub ctx_name: String,
 }
 
 impl Default for Option {
