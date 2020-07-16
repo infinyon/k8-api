@@ -94,6 +94,7 @@ pub struct VolumeRequest {
 pub struct StatefulSetStatus {
     pub replicas: u16,
     pub collision_count: Option<u32>,
+    #[serde(default)]
     pub conditions: Vec<StatefulSetCondition>,
     pub current_replicas: Option<u16>,
     pub current_revision: Option<String>,
@@ -117,6 +118,8 @@ pub enum StatusEnum {
 pub struct StatefulSetCondition {
     pub message: String,
     pub reason: StatusEnum,
+    pub status: String,
+    #[serde(rename = "type")]
     pub _type: String,
 }
 
