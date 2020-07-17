@@ -31,7 +31,7 @@ impl Spec for ConfigMapSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigMapSpec {}
 

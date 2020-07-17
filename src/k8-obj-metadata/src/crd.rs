@@ -3,14 +3,14 @@
 //!
 //! Interface to the CRD header definition in K8 key value store
 //!
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Crd {
     pub group: &'static str,
     pub version: &'static str,
     pub names: CrdNames,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct CrdNames {
     pub kind: &'static str,
     pub plural: &'static str,
