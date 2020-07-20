@@ -18,7 +18,7 @@ const API: Crd = Crd {
     },
 };
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NamespaceSpec {
 }
@@ -38,7 +38,7 @@ impl Spec for NamespaceSpec {
 default_store_spec!(NamespaceSpec,NamespaceStatus,"Namespace");
 
 
-#[derive(Deserialize, Serialize, PartialEq,Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase",default)]
 pub struct NamespaceStatus {
     pub phase: String

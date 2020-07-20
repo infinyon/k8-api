@@ -18,7 +18,7 @@ const STORAGE_API: Crd = Crd {
     },
 };
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageClassSpec {
 }
@@ -35,7 +35,7 @@ impl Spec for StorageClassSpec {
 }
 
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageClassHeader {
     pub allow_volume_expansion: Option<bool>,
@@ -46,7 +46,7 @@ pub struct StorageClassHeader {
 
 impl Header for StorageClassHeader{}
 
-#[derive(Deserialize, Serialize, Default,Debug, Clone)]
+#[derive(Deserialize, Serialize, Default,Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageClassStatus {
 }

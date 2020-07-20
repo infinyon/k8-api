@@ -259,6 +259,18 @@ impl From<ObjectMeta> for ItemMeta {
     }
 }
 
+impl K8Meta for UpdateItemMeta {
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn namespace(&self) -> &str {
+        &self.namespace
+    }
+    
+}
+
 /// used for updating item
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -336,7 +348,7 @@ pub struct StatusDetails {
     pub uid: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 #[serde(bound(serialize = "S: Serialize"))]
 #[serde(bound(deserialize = "S: DeserializeOwned"))]
@@ -493,7 +505,7 @@ impl From<ItemMeta> for InputObjectMeta {
 }
 
 /// name is optional for template
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase",default)]
 pub struct TemplateMeta {
     pub name:   Option<String>,
@@ -523,7 +535,7 @@ impl TemplateMeta {
 
 
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateSpec<S> {
     pub metadata: Option<TemplateMeta>,
@@ -619,7 +631,7 @@ impl LabelSelector {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Env {
     pub name: String,
@@ -647,13 +659,13 @@ impl Env {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvVarSource {
     field_ref: Option<ObjectFieldSelector>
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectFieldSelector {
     pub field_path: String

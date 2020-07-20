@@ -20,3 +20,10 @@ flv-future-aio = { version = "2.0.0" }
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
 k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
 
+[dev-dependencies]
+rand = "0.7.2"
+async-trait = "0.1.21"
+flv-future-aio = { version = "2.0.0", features=["fixture"]}
+flv-util = { version = "0.1.0", features=["fixture"]}
+k8-obj-app = { version = "1.0.0", path = "../k8-obj-app"}
+k8-obj-core = { version = "1.1.0", path = "../k8-obj-core"}

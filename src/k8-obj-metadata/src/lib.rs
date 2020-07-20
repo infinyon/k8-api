@@ -24,7 +24,7 @@ pub trait Status: Sized + Debug + Clone + Default + Serialize + DeserializeOwned
 pub trait Header: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync {}
 
 /// Kubernetes Spec
-pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync  {
+pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync + PartialEq  {
 
     type Status: Status;
 
@@ -59,7 +59,7 @@ pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned +
 
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 pub struct DefaultHeader{}
 
 impl Header for DefaultHeader{}
