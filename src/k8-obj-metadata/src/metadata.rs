@@ -259,6 +259,18 @@ impl From<ObjectMeta> for ItemMeta {
     }
 }
 
+impl K8Meta for UpdateItemMeta {
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn namespace(&self) -> &str {
+        &self.namespace
+    }
+    
+}
+
 /// used for updating item
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
