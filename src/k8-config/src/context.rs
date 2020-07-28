@@ -42,7 +42,7 @@ pub fn create_dns_context(option: Option) {
     const TEMPLATE: &'static str = r#"
 #!/bin/bash
 export IP=$(minikube ip)
-sudo sed -i '' '/minikubeCA/d' /etc/hosts
+sudo sed -i'' '/minikubeCA/d' /etc/hosts
 echo "$IP minikubeCA" | sudo tee -a  /etc/hosts
 cd ~
 kubectl config set-cluster {{ name }} --server=https://minikubeCA:8443 --certificate-authority={{ ca }}

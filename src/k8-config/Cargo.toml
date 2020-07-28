@@ -1,6 +1,6 @@
 [package]
 name = "k8-config"
-version = "1.1.1"
+version = "1.1.2"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 edition = "2018"
 description = "Read Kubernetes config"
