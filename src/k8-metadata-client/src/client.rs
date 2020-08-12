@@ -3,8 +3,8 @@ use std::fmt::Display;
 use std::io::Error as IoError;
 use std::sync::Arc;
 
-use log::debug;
-use log::trace;
+use tracing::debug;
+use tracing::trace;
 use futures::stream::BoxStream;
 use futures::stream::once;
 use futures::future::ready;

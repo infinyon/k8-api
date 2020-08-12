@@ -4,8 +4,8 @@
 #[cfg(not(feature = "k8_stream"))]
 mod canary_test {
 
-    use log::debug;
-    use log::info;
+    use tracing::debug;
+    use tracing::info;
 
     use flv_future_aio::test_async;
     use k8_client::ClientError;

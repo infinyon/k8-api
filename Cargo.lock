@@ -884,7 +884,6 @@ dependencies = [
  "k8-obj-app",
  "k8-obj-core",
  "k8-obj-metadata",
- "log",
  "openssl-sys",
  "pin-utils",
  "rand",
@@ -893,6 +892,7 @@ dependencies = [
  "serde_json",
  "serde_qs 0.5.2",
  "tokio",
+ "tracing",
  "webpki",
 ]
 
@@ -901,10 +901,10 @@ name = "k8-config"
 version = "1.1.1"
 dependencies = [
  "dirs",
- "log",
  "serde",
  "serde_yaml",
  "tera",
+ "tracing",
 ]
 
 [[package]]
@@ -918,9 +918,9 @@ dependencies = [
 name = "k8-diff"
 version = "0.1.0"
 dependencies = [
- "log",
  "serde",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]
@@ -933,11 +933,11 @@ dependencies = [
  "http 0.1.21",
  "k8-diff",
  "k8-obj-metadata",
- "log",
  "pin-utils",
  "serde",
  "serde_json",
  "serde_qs 0.5.2",
+ "tracing",
 ]
 
 [[package]]
@@ -947,10 +947,10 @@ dependencies = [
  "http 0.1.21",
  "k8-obj-core",
  "k8-obj-metadata",
- "log",
  "serde",
  "serde_json",
  "serde_qs 0.4.6",
+ "tracing",
 ]
 
 [[package]]
@@ -959,20 +959,20 @@ version = "1.1.0"
 dependencies = [
  "http 0.1.21",
  "k8-obj-metadata",
- "log",
  "serde",
  "serde_json",
  "serde_qs 0.4.6",
+ "tracing",
 ]
 
 [[package]]
 name = "k8-obj-metadata"
 version = "1.0.0"
 dependencies = [
- "log",
  "serde",
  "serde_json",
  "serde_qs 0.4.6",
+ "tracing",
 ]
 
 [[package]]
@@ -982,10 +982,10 @@ dependencies = [
  "http 0.1.21",
  "k8-obj-core",
  "k8-obj-metadata",
- "log",
  "serde",
  "serde_json",
  "serde_qs 0.4.6",
+ "tracing",
 ]
 
 [[package]]
@@ -1963,6 +1963,37 @@ name = "tower-service"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e987b6bf443f4b5b3b6f38704195592cca41c5bb7aedd3c3693c7081f8289860"
+
+[[package]]
+name = "tracing"
+version = "0.1.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d79ca061b032d6ce30c660fded31189ca0b9922bf483cd70759f13a2d86786c"
+dependencies = [
+ "cfg-if",
+ "tracing-attributes",
+ "tracing-core",
+]
+
+[[package]]
+name = "tracing-attributes"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fe233f4227389ab7df5b32649239da7ebe0b281824b4e84b342d04d3fd8c25e"
+dependencies = [
+ "proc-macro2",
+ "quote 1.0.3",
+ "syn 1.0.17",
+]
+
+[[package]]
+name = "tracing-core"
+version = "0.1.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db63662723c316b43ca36d833707cc93dff82a02ba3d7e354f342682cc8b3545"
+dependencies = [
+ "lazy_static",
+]
 
 [[package]]
 name = "try-lock"

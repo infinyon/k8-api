@@ -6,7 +6,7 @@ use std::task::Poll;
 use futures::io::AsyncRead;
 use futures::stream::Stream;
 use isahc::Body;
-use log::trace;
+use tracing::trace;
 use pin_utils::unsafe_pinned;
 
 const BUFFER_SIZE: usize = 1000;

@@ -3,9 +3,9 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 
-use log::debug;
-use log::error;
-use log::trace;
+use tracing::debug;
+use tracing::error;
+use tracing::trace;
 use futures::future::FutureExt;
 use futures::stream::Stream;
 use futures::stream::StreamExt;
@@ -420,9 +420,9 @@ mod list_stream {
     use std::mem::transmute;
     use std::mem::replace;
 
-    use log::trace;
-    use log::error;
-    use log::debug;
+    use tracing::trace;
+    use tracing::error;
+    use tracing::debug;
 
     use futures::Future;
     use futures::future::FutureExt;

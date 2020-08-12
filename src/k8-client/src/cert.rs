@@ -3,8 +3,8 @@ use std::io::Error as IoError;
 use std::io::ErrorKind;
 
 
-use log::debug;
-use log::trace;
+use tracing::debug;
+use tracing::trace;
 
 use k8_config::K8Config;
 use k8_config::PodConfig;

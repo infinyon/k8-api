@@ -11,7 +11,7 @@ pub use config::KubeConfig;
 pub use config::UserDetail;
 pub use pod::PodConfig;
 
-use log::debug;
+use tracing::debug;
 
 #[derive(Debug)]
 pub struct KubeContext {

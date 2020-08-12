@@ -8,9 +8,9 @@ use std::marker::PhantomData;
 use std::mem::transmute;
 use std::mem::replace;
 
-use log::trace;
-use log::error;
-use log::debug;
+use tracing::trace;
+use tracing::error;
+use tracing::debug;
 
 use futures::Future;
 use futures::Stream;

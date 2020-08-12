@@ -4,7 +4,7 @@ mod integration_tests {
 
     use std::collections::HashMap;
 
-    use log::debug;
+    use tracing::debug;
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
 

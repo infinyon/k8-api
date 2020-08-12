@@ -1,9 +1,9 @@
 use std::path::Path;
 use std::fs::read_to_string;
 
-use log::debug;
-use log::trace;
-use log::error;
+use tracing::debug;
+use tracing::trace;
+use tracing::error;
 
 const BASE_DIR: &'static str = "/var/run/secrets/kubernetes.io/serviceaccount";
 const API_SERVER: &'static str = "https://kubernetes.default.svc";

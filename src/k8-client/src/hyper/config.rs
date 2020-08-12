@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
 
-use log::debug;
+use tracing::debug;
 use hyper::Client;
 use hyper::client::connect::HttpConnector;
 use hyper_rustls::HttpsConnector;

@@ -6,7 +6,7 @@ use std::task::Poll;
 use std::mem;
 
 use futures::stream::Stream;
-use log::trace;
+use tracing::trace;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
 

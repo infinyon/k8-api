@@ -6,8 +6,8 @@ use std::task::Poll;
 use std::mem;
 
 use futures::stream::Stream;
-use log::trace;
-use log::error;
+use tracing::trace;
+use tracing::error;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
 use hyper::body::Bytes;

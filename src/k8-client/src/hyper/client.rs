@@ -3,9 +3,9 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 
-use log::debug;
-use log::error;
-use log::trace;
+use tracing::debug;
+use tracing::error;
+use tracing::trace;
 use bytes::buf::ext::BufExt;
 use futures::future::FutureExt;
 use futures::stream::Stream;

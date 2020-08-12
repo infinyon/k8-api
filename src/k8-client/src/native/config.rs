@@ -2,7 +2,7 @@
 use std::io::Error as IoError;
 use std::path::Path;
 
-use log::debug;
+use tracing::debug;
 use isahc::HttpClient;
 use isahc::HttpClientBuilder;
 use isahc::config::ClientCertificate;
