@@ -1,14 +1,14 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use k8_obj_metadata::LabelSelector;
-use k8_obj_metadata::TemplateSpec;
+use k8_obj_core::pod::PodSpec;
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::DefaultHeader;
+use k8_obj_metadata::LabelSelector;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-use k8_obj_core::pod::PodSpec;
-use k8_obj_metadata::DefaultHeader;
+use k8_obj_metadata::TemplateSpec;
 
 const STATEFUL_API: Crd = Crd {
     group: "apps",
@@ -21,7 +21,7 @@ const STATEFUL_API: Crd = Crd {
 };
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct StatefulSetSpec {
     pub pod_management_policy: Option<PodMangementPolicy>,
     pub replicas: Option<u16>,
@@ -30,11 +30,10 @@ pub struct StatefulSetSpec {
     pub service_name: String,
     pub template: TemplateSpec<PodSpec>,
     pub volume_claim_templates: Vec<TemplateSpec<PersistentVolumeClaim>>,
-    pub update_strategy: Option<StatefulSetUpdateStrategy>
+    pub update_strategy: Option<StatefulSetUpdateStrategy>,
 }
 
 impl Spec for StatefulSetSpec {
-
     type Status = StatefulSetStatus;
     type Header = DefaultHeader;
 
@@ -43,19 +42,17 @@ impl Spec for StatefulSetSpec {
     }
 }
 
-
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetUpdateStrategy {
     pub _type: String,
-    pub rolling_ipdate: Option<RollingUpdateStatefulSetStrategy>
-
+    pub rolling_ipdate: Option<RollingUpdateStatefulSetStrategy>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RollingUpdateStatefulSetStrategy {
-    partition: u32
+    partition: u32,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
@@ -89,7 +86,7 @@ pub struct VolumeRequest {
     pub storage: String,
 }
 
-#[derive(Deserialize, Serialize, Default,Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetStatus {
     pub replicas: u16,
@@ -104,7 +101,7 @@ pub struct StatefulSetStatus {
     pub updated_replicas: Option<u16>,
 }
 
-impl Status for StatefulSetStatus{}
+impl Status for StatefulSetStatus {}
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum StatusEnum {
@@ -122,7 +119,6 @@ pub struct StatefulSetCondition {
     #[serde(rename = "type")]
     pub _type: String,
 }
-
 
 /*
 #[cfg(test)]

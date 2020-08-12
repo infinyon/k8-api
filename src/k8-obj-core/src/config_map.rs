@@ -3,9 +3,9 @@ use serde::Serialize;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::DefaultHeader;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-use k8_obj_metadata::DefaultHeader;
 
 //
 // ConfigMap Object
@@ -19,10 +19,7 @@ const CONFIG_MAP_API: Crd = Crd {
     },
 };
 
-
-
 impl Spec for ConfigMapSpec {
-
     type Status = ConfigMapStatus;
     type Header = DefaultHeader;
 
@@ -39,4 +36,4 @@ pub struct ConfigMapSpec {}
 #[serde(rename_all = "camelCase")]
 pub struct ConfigMapStatus {}
 
-impl Status for ConfigMapStatus{}
+impl Status for ConfigMapStatus {}

@@ -1,9 +1,9 @@
-use std::path::Path;
 use std::fs::read_to_string;
+use std::path::Path;
 
 use tracing::debug;
-use tracing::trace;
 use tracing::error;
+use tracing::trace;
 
 const BASE_DIR: &'static str = "/var/run/secrets/kubernetes.io/serviceaccount";
 const API_SERVER: &'static str = "https://kubernetes.default.svc";
@@ -32,10 +32,7 @@ impl PodConfig {
         let namespace = read_file("namespace")?;
         let token = read_file("token")?;
 
-        Some(Self {
-            namespace,
-            token,
-        })
+        Some(Self { namespace, token })
     }
 
     pub fn api_path(&self) -> &'static str {
@@ -46,7 +43,6 @@ impl PodConfig {
     pub fn ca_path(&self) -> String {
         format!("{}/{}", BASE_DIR, "ca.crt")
     }
-
 }
 
 // read file
@@ -55,7 +51,7 @@ fn read_file(name: &str) -> Option<String> {
     match read_to_string(&full_path) {
         Ok(value) => Some(value),
         Err(err) => {
-            error!("no {} founded as pod in {}", name,full_path);
+            error!("no {} founded as pod in {}", name, full_path);
             trace!("unable to read pod: {} value: {}", name, err);
             None
         }

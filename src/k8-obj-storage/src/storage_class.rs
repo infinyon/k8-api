@@ -3,10 +3,9 @@ use serde::Serialize;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
-use k8_obj_metadata::Spec;
 use k8_obj_metadata::Header;
+use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-
 
 const STORAGE_API: Crd = Crd {
     group: "storage.k8s.io",
@@ -20,20 +19,17 @@ const STORAGE_API: Crd = Crd {
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct StorageClassSpec {
-}
+pub struct StorageClassSpec {}
 
 impl Spec for StorageClassSpec {
-
     type Status = StorageClassStatus;
     type Header = StorageClassHeader;
-    const NAME_SPACED: bool  = false;
+    const NAME_SPACED: bool = false;
 
     fn metadata() -> &'static Crd {
         &STORAGE_API
     }
 }
-
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -41,14 +37,13 @@ pub struct StorageClassHeader {
     pub allow_volume_expansion: Option<bool>,
     pub provisioner: String,
     pub reclaim_policy: String,
-    pub volume_binding_mode: String
+    pub volume_binding_mode: String,
 }
 
-impl Header for StorageClassHeader{}
+impl Header for StorageClassHeader {}
 
-#[derive(Deserialize, Serialize, Default,Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct StorageClassStatus {
-}
+pub struct StorageClassStatus {}
 
-impl Status for StorageClassStatus{}
+impl Status for StorageClassStatus {}

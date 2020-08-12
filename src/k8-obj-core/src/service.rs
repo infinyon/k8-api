@@ -2,12 +2,12 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
+use k8_obj_metadata::default_store_spec;
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::DefaultHeader;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-use k8_obj_metadata::DefaultHeader;
-use k8_obj_metadata::default_store_spec;
 
 const SERVICE_API: Crd = Crd {
     group: "core",
@@ -20,7 +20,7 @@ const SERVICE_API: Crd = Crd {
 };
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ServiceSpec {
     #[serde(rename = "clusterIP")]
     pub cluster_ip: String,
@@ -36,7 +36,6 @@ pub struct ServiceSpec {
 }
 
 impl Spec for ServiceSpec {
-
     type Status = ServiceStatus;
     type Header = DefaultHeader;
 
@@ -44,18 +43,14 @@ impl Spec for ServiceSpec {
         &SERVICE_API
     }
 
-
-    fn make_same(&mut self,other: &Self)  {
+    fn make_same(&mut self, other: &Self) {
         if other.cluster_ip == "" {
             self.cluster_ip = "".to_owned();
         }
     }
-
 }
 
-
-default_store_spec!(ServiceSpec,ServiceStatus,"Service");
-
+default_store_spec!(ServiceSpec, ServiceStatus, "Service");
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -67,17 +62,17 @@ pub struct ServicePort {
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ServiceStatus {
-    pub load_balancer: LoadBalancerStatus
+    pub load_balancer: LoadBalancerStatus,
 }
 
-impl Status for ServiceStatus{}
+impl Status for ServiceStatus {}
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum ExternalTrafficPolicy {
     Local,
-    Cluster
+    Cluster,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
@@ -85,40 +80,32 @@ pub enum LoadBalancerType {
     ExternalName,
     ClusterIP,
     NodePort,
-    LoadBalancer
+    LoadBalancer,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq,Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[serde(rename_all = "camelCase", default)]
 pub struct LoadBalancerStatus {
-    pub ingress: Vec<LoadBalancerIngress>
+    pub ingress: Vec<LoadBalancerIngress>,
 }
 
 impl LoadBalancerStatus {
-
     /// find any ip or host
     pub fn find_any_ip_or_host(&self) -> Option<&str> {
-
         self.ingress.iter().find_map(|ingress| ingress.host_or_ip())
-
     }
-
 }
 
-
-
-#[derive(Deserialize, Serialize, Debug, PartialEq,Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadBalancerIngress {
     pub hostname: Option<String>,
-    pub ip: Option<String>
+    pub ip: Option<String>,
 }
 
 impl LoadBalancerIngress {
-
     /// return either host or ip
     pub fn host_or_ip(&self) -> Option<&str> {
-
         if let Some(host) = &self.hostname {
             Some(host)
         } else if let Some(ip) = &self.ip {
@@ -127,5 +114,4 @@ impl LoadBalancerIngress {
             None
         }
     }
-
 }

@@ -16,14 +16,12 @@ impl Serialize for PatchObject {
             match val {
                 Diff::None => {}
                 Diff::Delete => {}
-                Diff::Patch(ref v) => { 
-                    map.serialize_entry(key, v)? 
-                },
+                Diff::Patch(ref v) => map.serialize_entry(key, v)?,
                 Diff::Replace(ref v) => {
                     map.serialize_entry(key, v)?;
                 }
-                Diff::Merge(ref v ) => {
-                    map.serialize_entry(key, v)?;   
+                Diff::Merge(ref v) => {
+                    map.serialize_entry(key, v)?;
                 }
             }
         }
@@ -100,5 +98,4 @@ mod test {
         let json_diff = serde_json::to_value(diff).unwrap();
         assert_eq!(json_diff, expected);
     }
-
 }

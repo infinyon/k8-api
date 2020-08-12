@@ -1,33 +1,33 @@
 // implementation of metadata client do nothing
 // it is used for testing where to satisfy metadata contract
-use std::io::Error as IoError;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
+use std::io::Error as IoError;
 use std::sync::Arc;
 
-use futures::stream::StreamExt;
-use futures::stream::BoxStream;
 use async_trait::async_trait;
+use futures::stream::BoxStream;
+use futures::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::K8Meta;
 use k8_obj_metadata::InputK8Obj;
-use k8_obj_metadata::UpdateK8ObjStatus;
 use k8_obj_metadata::K8List;
+use k8_obj_metadata::K8Meta;
 use k8_obj_metadata::K8Obj;
 use k8_obj_metadata::K8Status;
 use k8_obj_metadata::K8Watch;
+use k8_obj_metadata::Spec;
+use k8_obj_metadata::UpdateK8ObjStatus;
 
+use crate::ListArg;
 use crate::MetadataClient;
 use crate::MetadataClientError;
-use crate::TokenStreamResult;
 use crate::NameSpace;
-use crate::ListArg;
+use crate::TokenStreamResult;
 
 #[derive(Debug)]
 pub enum DoNothingError {
@@ -99,31 +99,29 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
-    async fn retrieve_items_with_option<S,N>(
+    async fn retrieve_items_with_option<S, N>(
         &self,
         _namespace: N,
-        _option: Option<ListArg>
+        _option: Option<ListArg>,
     ) -> Result<K8List<S>, Self::MetadataClientError>
     where
         S: Spec,
-        N: Into<NameSpace> + Send + Sync
+        N: Into<NameSpace> + Send + Sync,
     {
         Err(DoNothingError::NotFound) as Result<K8List<S>, Self::MetadataClientError>
     }
 
-    fn retrieve_items_in_chunks<'a,S,N>(
+    fn retrieve_items_in_chunks<'a, S, N>(
         self: Arc<Self>,
         _namespace: N,
         _limit: u32,
-        _option: Option<ListArg>
-    ) -> BoxStream<'a,K8List<S>>
+        _option: Option<ListArg>,
+    ) -> BoxStream<'a, K8List<S>>
     where
         S: Spec + 'static,
-        N: Into<NameSpace> + Send + Sync + 'static
+        N: Into<NameSpace> + Send + Sync + 'static,
     {
-
         futures::stream::empty().boxed()
-
     }
 
     async fn delete_item<S, M>(&self, _metadata: &M) -> Result<K8Status, Self::MetadataClientError>
@@ -166,13 +164,13 @@ impl MetadataClient for DoNothingClient {
     ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         K8Obj<S>: DeserializeOwned,
-        S: Spec + Send ,
+        S: Spec + Send,
         M: K8Meta + Display + Send + Sync,
     {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
-    fn watch_stream_since<S,N>(
+    fn watch_stream_since<S, N>(
         &self,
         _namespace: N,
         _resource_version: Option<String>,
@@ -182,7 +180,7 @@ impl MetadataClient for DoNothingClient {
         S: Spec + Send + 'static,
         S::Header: Send + 'static,
         S::Status: Send + 'static,
-        N: Into<NameSpace>
+        N: Into<NameSpace>,
     {
         futures::stream::empty().boxed()
     }

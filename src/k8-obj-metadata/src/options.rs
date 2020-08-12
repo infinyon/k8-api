@@ -37,7 +37,6 @@ pub struct Precondition {
 mod test {
 
     use super::ListOptions;
-    
 
     #[test]
     fn test_list_query() {
@@ -50,5 +49,4 @@ mod test {
         let qs = serde_qs::to_string(&opt).unwrap();
         assert_eq!(qs, "pretty=true&watch=true")
     }
-
 }
