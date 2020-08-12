@@ -6,6 +6,7 @@ use std::sync::Arc;
 use tracing::debug;
 use tracing::error;
 use tracing::trace;
+use tracing::instrument;
 use futures::future::FutureExt;
 use futures::stream::Stream;
 use futures::stream::StreamExt;
@@ -103,6 +104,7 @@ impl K8Client {
     }
 
     /// handle request. this is async function
+    #[instrument(skip(self, request))]
     async fn handle_request<B,T>(
         &self,
         mut request: Request<B>
@@ -116,44 +118,44 @@ impl K8Client {
         let mut resp = self.client.send_async(request).await?;
 
         let status = resp.status();
-        debug!("response status: {:#?}", status);
+        debug!(status = status.as_u16(), "response status");
 
         if status == StatusCode::NOT_FOUND {
             debug!("returning not found");
             return Err(ClientError::NotFound);
         }
 
-    
         resp.json().map_err(|err| {
             error!("error decoding raw stream : {}", resp.text().expect("text"));
             err.into()
         })
-        
-    
     }
 
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
-    fn stream_of_chunks<S>(&self,uri: Uri) -> impl Stream< Item = Vec<u8>> + '_
+    #[instrument(
+        skip(self, uri),
+        fields(uri = &*format!("{}", uri))
+    )]
+    fn stream_of_chunks<S>(&self, uri: Uri) -> impl Stream< Item = Vec<u8>> + '_
     where
         S: Spec,
         K8Watch<S>: DeserializeOwned,
     {
-        debug!("streaming: {}", uri);
-
+        debug!("streaming");
 
         let ft = async move {
 
             let mut request = match Request::get(uri).body(Body::empty()) {
                 Ok(req) => req,
                 Err(err) =>  {
-                    error!("error uri err: {}",err);
+                    error!("error uri err: {}", err);
                     return WatchStream::new(BodyStream::empty());
                 }
             };
 
             if let Err(err) = self.finish_request(&mut request) {
-                error!("error finish request: {}",err);
+                error!("error finish request: {}", err);
                 return  WatchStream::new(BodyStream::empty())
             };
 
@@ -164,11 +166,10 @@ impl K8Client {
                     WatchStream::new(BodyStream::new(response.into_body()))
                 },
                 Err(err) => {
-                    error!("error getting streaming: {}",err);
+                    error!("error getting streaming: {}", err);
                     WatchStream::new(BodyStream::empty())
                 }
             }
-        
         };
 
         ft.flatten_stream()
@@ -203,6 +204,11 @@ impl K8Client {
         })
     }
 
+    #[instrument(
+        name = "retrieve_items"
+        skip(self, namespace, options),
+        fields(spec = S::label())
+    )]
     pub async fn retrieve_items_inner<S,N>(
         &self,
         namespace: N,
@@ -212,11 +218,10 @@ impl K8Client {
         S: Spec,
         N: Into<NameSpace> + Send + Sync
     {
-       
         let uri = items_uri::<S>(self.hostname(), namespace.into(), options);
-        debug!("{}: retrieving items: {}", S::label(),uri);
+        debug!(uri = &*format!("{}", uri), "retrieving items");
         let items = self.handle_request(Request::get(uri).body(Body::empty())?).await?;
-        trace!("items retrieved: {:#?}",items);
+        trace!("items retrieved: {:#?}", items);
         Ok(items)
     }
 
@@ -231,6 +236,10 @@ impl MetadataClient for K8Client {
     type MetadataClientError = ClientError;    
 
     /// retrieval a single item
+    #[instrument(
+        skip(self, metadata),
+        fields(spec = S::label()),
+    )]
     async fn retrieve_item<S,M>(
         &self,
         metadata: &M
@@ -240,7 +249,7 @@ impl MetadataClient for K8Client {
         M: K8Meta + Send + Sync
     {
         let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
-        debug!("{}: retrieving item: {}", S::label(),uri);
+        debug!(uri = &*format!("{}", uri), "retrieving item");
 
         self.handle_request(Request::get(uri).body(Body::empty())?).await
     }
@@ -278,7 +287,14 @@ impl MetadataClient for K8Client {
 
     }
 
-
+    #[instrument(
+        skip(self, metadata),
+        fields(
+            spec = S::label(),
+            name = metadata.name(),
+            namespace = metadata.namespace(),
+        )
+    )]
     async fn delete_item<S,M>(
         &self,
         metadata: &M,
@@ -288,12 +304,20 @@ impl MetadataClient for K8Client {
         M: K8Meta + Send + Sync
     {
         let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
-        debug!("{}: delete item on url: {}", S::label(),uri);
+        debug!(uri = &*format!("{}", uri), "delete item");
 
         self.handle_request(Request::delete(uri).body(Body::empty())?).await
     }
 
     /// create new object
+    #[instrument(
+        skip(self, value),
+        fields(
+            spec = S::label(),
+            name = &*value.metadata.name,
+            namespace = &*value.metadata.namespace,
+        )
+    )]
     async fn create_item<S>(
         &self,
         value: InputK8Obj<S>
@@ -322,6 +346,14 @@ impl MetadataClient for K8Client {
     }
 
     /// update status
+    #[instrument(
+        skip(self, value),
+        fields(
+            spec = S::label(),
+            name = &*value.metadata.name,
+            namespace = &*value.metadata.namespace,
+        )
+    )]
     async fn update_status<S>(
         &self,
         value: &UpdateK8ObjStatus<S>,
@@ -335,10 +367,9 @@ impl MetadataClient for K8Client {
             &value.metadata.namespace,
             Some("/status"),
         );
-        debug!("updating '{}' status - uri: {}", value.metadata.name, uri);
+        debug!(uri = &*format!("{}", uri), "updating status");
         trace!("update: {:#?}", &value);
 
-        
         let bytes = serde_json::to_vec(&value)?;
         trace!(
             "update raw: {}",
@@ -353,6 +384,14 @@ impl MetadataClient for K8Client {
     }
 
     /// patch existing with spec
+    #[instrument(
+        skip(self, metadata, patch),
+        fields(
+            spec = S::label(),
+            name = metadata.name(),
+            namespace = metadata.namespace(),
+        )
+    )]
     async fn patch_spec<S,M>(
         &self,
         metadata: &M,
@@ -362,14 +401,12 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Display + Send + Sync
     {
-        debug!("patching item at '{}'", metadata);
+        debug!("patching item");
         trace!("patch json value: {:#?}", patch);
         let uri = item_uri::<S>(self.hostname(),metadata.name(),metadata.namespace(),None);
         let merge_type = PatchMergeType::for_spec(S::metadata());
 
-        
         let bytes = serde_json::to_vec(&patch)?;
-
         trace!("patch raw: {}", String::from_utf8_lossy(&bytes).to_string());
 
         let request = Request::patch(uri)
