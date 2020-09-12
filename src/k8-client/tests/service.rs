@@ -4,19 +4,19 @@ mod integration_tests {
 
     use std::collections::HashMap;
 
-    use log::debug;
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
+    use tracing::debug;
 
     use flv_future_aio::test_async;
     use k8_client::ClientError;
-    use k8_obj_metadata::InputK8Obj;
-    use k8_obj_metadata::InputObjectMeta;
     use k8_client::K8Client;
+    use k8_metadata_client::MetadataClient;
     use k8_obj_core::service::ServicePort;
     use k8_obj_core::service::ServiceSpec;
+    use k8_obj_metadata::InputK8Obj;
+    use k8_obj_metadata::InputObjectMeta;
     use k8_obj_metadata::Spec;
-    use k8_metadata_client::MetadataClient;
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
 
@@ -65,16 +65,19 @@ mod integration_tests {
         let new_item = new_service();
         debug!("creating new service: {:#?}", &new_item);
         let client = create_client();
-        let item = client.create_item::<ServiceSpec>(new_item).await.expect("service should be created");
-        
+        let item = client
+            .create_item::<ServiceSpec>(new_item)
+            .await
+            .expect("service should be created");
+
         debug!("deleting: {:#?}", item);
         let input_metadata: InputObjectMeta = item.metadata.into();
         client
             .delete_item::<ServiceSpec, _>(&input_metadata)
-            .await.expect("delete should work");
+            .await
+            .expect("delete should work");
         assert!(true, "passed");
-        
+
         Ok(())
     }
-
 }

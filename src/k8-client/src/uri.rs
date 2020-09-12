@@ -1,12 +1,10 @@
-
 use crate::http::Uri;
-
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::Spec;
 
-use k8_obj_metadata::options::ListOptions;
 use k8_metadata_client::NameSpace;
+use k8_obj_metadata::options::ListOptions;
 
 /// items uri
 pub fn item_uri<S>(host: &str, name: &str, namespace: &str, sub_resource: Option<&str>) -> Uri
@@ -19,7 +17,7 @@ where
         NameSpace::All
     };
     let crd = S::metadata();
-    let prefix = prefix_uri(crd, host, ns , None);
+    let prefix = prefix_uri(crd, host, ns, None);
     let uri_value = format!("{}/{}{}", prefix, name, sub_resource.unwrap_or(""));
     let uri: Uri = uri_value.parse().unwrap();
     uri
@@ -41,9 +39,6 @@ where
     uri
 }
 
-
-
-
 /// related to query parameters and uri
 ///
 ///
@@ -52,7 +47,8 @@ where
 /// if crd group is core then /api is used otherwise /apis + group
 
 pub fn prefix_uri<N>(crd: &Crd, host: &str, ns: N, options: Option<ListOptions>) -> String
-    where N: Into<NameSpace>
+where
+    N: Into<NameSpace>,
 {
     let namespace = ns.into();
     let version = crd.version;
@@ -73,30 +69,29 @@ pub fn prefix_uri<N>(crd: &Crd, host: &str, ns: N, options: Option<ListOptions>)
     };
 
     if namespace.is_all() {
-        format!(
-            "{}/{}/{}/{}{}",
-            host, api_prefix, version, plural, query
-        )
-        
+        format!("{}/{}/{}/{}{}", host, api_prefix, version, plural, query)
     } else {
         format!(
             "{}/{}/{}/namespaces/{}/{}{}",
-            host, api_prefix, version, namespace.named(), plural, query
+            host,
+            api_prefix,
+            version,
+            namespace.named(),
+            plural,
+            query
         )
     }
-    
 }
 
 #[cfg(test)]
 mod test {
 
-    use k8_obj_metadata::DEFAULT_NS;
     use k8_obj_metadata::Crd;
     use k8_obj_metadata::CrdNames;
+    use k8_obj_metadata::DEFAULT_NS;
 
     use super::prefix_uri;
     use super::ListOptions;
-    
 
     const G1: Crd = Crd {
         group: "test.com",
@@ -117,8 +112,6 @@ mod test {
             singular: "item",
         },
     };
-
-    
 
     #[test]
     fn test_api_prefix_group() {
@@ -159,10 +152,7 @@ mod test {
         let qs = serde_qs::to_string(&opt).unwrap();
         assert_eq!(qs, "pretty=true&watch=true")
     }
-
 }
-
-
 
 /*
 #[cfg(test)]

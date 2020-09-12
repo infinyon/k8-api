@@ -11,21 +11,25 @@ pub mod store;
 pub use self::crd::*;
 pub use self::metadata::*;
 
-
-use std::fmt::Debug;
-use serde::Serialize;
-use serde::Deserialize;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
+use serde::Serialize;
+use std::fmt::Debug;
 
+pub trait Status:
+    Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync
+{
+}
 
-
-pub trait Status: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync {}
-
-pub trait Header: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync {}
+pub trait Header:
+    Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync
+{
+}
 
 /// Kubernetes Spec
-pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send  + Sync  {
-
+pub trait Spec:
+    Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync
+{
     type Status: Status;
 
     type Header: Header;
@@ -54,12 +58,10 @@ pub trait Spec: Sized + Debug + Clone + Default + Serialize + DeserializeOwned +
 
     /// in case of applying, we have some fields that are generated
     /// or override.  So need to special logic to reset them so we can do proper comparison
-    fn make_same(&mut self,_other: &Self)  {
-    }
-
+    fn make_same(&mut self, _other: &Self) {}
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-pub struct DefaultHeader{}
+pub struct DefaultHeader {}
 
-impl Header for DefaultHeader{}
+impl Header for DefaultHeader {}

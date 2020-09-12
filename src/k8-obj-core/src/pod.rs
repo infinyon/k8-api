@@ -1,12 +1,12 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use k8_obj_metadata::Env;
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::DefaultHeader;
+use k8_obj_metadata::Env;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-use k8_obj_metadata::DefaultHeader;
 
 //
 // Pod Object
@@ -22,7 +22,6 @@ const POD_API: Crd = Crd {
 };
 
 impl Spec for PodSpec {
-
     type Status = PodStatus;
     type Header = DefaultHeader;
 
@@ -32,7 +31,7 @@ impl Spec for PodSpec {
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct PodSpec {
     pub volumes: Vec<VolumeSpec>,
     pub containers: Vec<ContainerSpec>,
@@ -43,7 +42,7 @@ pub struct PodSpec {
     pub termination_grace_period_seconds: Option<u16>,
     pub dns_policy: Option<String>,
     pub security_context: Option<PodSecurityContext>,
-    pub scheduler_name: Option<String>
+    pub scheduler_name: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
@@ -52,11 +51,11 @@ pub struct PodSecurityContext {
     pub fs_group: Option<u32>,
     pub run_as_group: Option<u32>,
     pub run_as_non_root: Option<bool>,
-    pub run_as_user: Option<u32>
+    pub run_as_user: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ContainerSpec {
     pub name: String,
     pub args: Vec<String>,
@@ -69,16 +68,16 @@ pub struct ContainerSpec {
     pub resource: Option<ResourceRequirements>,
     pub termination_mssage_path: Option<String>,
     pub termination_message_policy: Option<String>,
-    pub tty: Option<bool>
+    pub tty: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ResourceRequirements {
     pub api_groups: Vec<String>,
     pub resource_names: Vec<String>,
     pub resources: Vec<String>,
-    pub verbs: Vec<String>
+    pub verbs: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
@@ -98,8 +97,6 @@ impl ContainerPortSpec {
         }
     }
 }
-
-
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 pub struct VolumeSpec {
@@ -145,7 +142,7 @@ pub struct PodStatus {
     pub container_statuses: Vec<ContainerStatus>,
 }
 
-impl Status for PodStatus{}
+impl Status for PodStatus {}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

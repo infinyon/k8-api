@@ -6,8 +6,8 @@ use std::task::Poll;
 use futures::io::AsyncRead;
 use futures::stream::Stream;
 use isahc::Body;
-use log::trace;
 use pin_utils::unsafe_pinned;
+use tracing::trace;
 
 const BUFFER_SIZE: usize = 1000;
 
@@ -118,4 +118,3 @@ impl Stream for BodyStream {
         }
     }
 }
-

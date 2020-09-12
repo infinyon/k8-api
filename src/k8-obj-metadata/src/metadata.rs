@@ -1,26 +1,20 @@
-use std::collections::HashMap;
 use std::collections::BTreeMap;
-use std::marker::PhantomData;
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Debug;
+use std::marker::PhantomData;
 
-
+use serde::de::DeserializeOwned;
 use serde::de::Deserializer;
 use serde::Deserialize;
 use serde::Serialize;
-use serde::de::DeserializeOwned;
-
 
 use crate::Spec;
-
 
 pub const DEFAULT_NS: &'static str = "default";
 pub const TYPE_OPAQUE: &'static str = "Opaque";
 
-
-
 pub trait K8Meta {
-
     /// resource name
     fn name(&self) -> &str;
 
@@ -29,9 +23,7 @@ pub trait K8Meta {
 }
 
 pub trait LabelProvider: Sized {
-
-
-    fn set_label_map(self, labels: HashMap<String,String>) -> Self;
+    fn set_label_map(self, labels: HashMap<String, String>) -> Self;
 
     /// helper for setting list of labels
     fn set_labels<T: ToString>(self, labels: Vec<(T, T)>) -> Self {
@@ -41,13 +33,12 @@ pub trait LabelProvider: Sized {
         }
         self.set_label_map(label_map)
     }
-
 }
 
 /// metadata associated with object when returned
 /// here name and namespace must be populated
 #[derive(Deserialize, Serialize, PartialEq, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ObjectMeta {
     // mandatory fields
     pub name: String,
@@ -63,20 +54,17 @@ pub struct ObjectMeta {
     pub deletion_grace_period_seconds: Option<u32>,
     pub labels: HashMap<String, String>,
     pub owner_references: Vec<OwnerReferences>,
-    pub annotations: HashMap<String,String>
+    pub annotations: HashMap<String, String>,
 }
 
 impl LabelProvider for ObjectMeta {
-
-    fn set_label_map(mut self, labels: HashMap<String,String>) -> Self {
+    fn set_label_map(mut self, labels: HashMap<String, String>) -> Self {
         self.labels = labels;
         self
     }
 }
 
-
 impl K8Meta for ObjectMeta {
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -84,14 +72,13 @@ impl K8Meta for ObjectMeta {
     fn namespace(&self) -> &str {
         &self.namespace
     }
-    
 }
 
-
 impl ObjectMeta {
-
-    pub fn new<S>(name: S,name_space: S) -> Self 
-    where S: Into<String> {
+    pub fn new<S>(name: S, name_space: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
             name: name.into(),
             namespace: name_space.into(),
@@ -110,7 +97,10 @@ impl ObjectMeta {
     }
 
     /// create with name and default namespace
-    pub fn named<S>(name: S) -> Self where S: Into<String>{
+    pub fn named<S>(name: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
             name: name.into(),
             ..Default::default()
@@ -120,7 +110,6 @@ impl ObjectMeta {
     /// create owner references point to this metadata
     /// if name or uid doesn't exists return none
     pub fn make_owner_reference<S: Spec>(&self) -> OwnerReferences {
-           
         OwnerReferences {
             api_version: S::api_version(),
             kind: S::kind(),
@@ -129,7 +118,6 @@ impl ObjectMeta {
             controller: Some(true),
             ..Default::default()
         }
-
     }
 
     pub fn namespace(&self) -> &str {
@@ -137,8 +125,7 @@ impl ObjectMeta {
     }
 
     /// create child references that points to this
-    pub fn make_child_input_metadata<S: Spec>(&self,childname: String) -> InputObjectMeta {
-
+    pub fn make_child_input_metadata<S: Spec>(&self, childname: String) -> InputObjectMeta {
         let mut owner_refs: Vec<OwnerReferences> = vec![];
         owner_refs.push(self.make_owner_reference::<S>());
 
@@ -148,12 +135,9 @@ impl ObjectMeta {
             owner_references: owner_refs,
             ..Default::default()
         }
-
     }
 
-
     pub fn as_input(&self) -> InputObjectMeta {
-        
         InputObjectMeta {
             name: self.name.clone(),
             namespace: self.namespace.clone(),
@@ -172,12 +156,10 @@ impl ObjectMeta {
         UpdateItemMeta {
             name: self.name.clone(),
             namespace: self.namespace.clone(),
-            resource_version: self.resource_version.clone()
+            resource_version: self.resource_version.clone(),
         }
     }
 }
-
-
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -189,23 +171,19 @@ pub struct InputObjectMeta {
 }
 
 impl LabelProvider for InputObjectMeta {
-
-    fn set_label_map(mut self, labels: HashMap<String,String>) -> Self {
+    fn set_label_map(mut self, labels: HashMap<String, String>) -> Self {
         self.labels = labels;
         self
     }
 }
 
-
 impl fmt::Display for InputObjectMeta {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}",self.name,self.namespace)
+        write!(f, "{}:{}", self.name, self.namespace)
     }
 }
 
-
 impl K8Meta for InputObjectMeta {
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -213,11 +191,7 @@ impl K8Meta for InputObjectMeta {
     fn namespace(&self) -> &str {
         &self.namespace
     }
-    
 }
-
-
-
 
 impl InputObjectMeta {
     // shorthand to create just with name and metadata
@@ -240,7 +214,6 @@ impl From<ObjectMeta> for InputObjectMeta {
     }
 }
 
-
 /// used for retrieving,updating and deleting item
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -249,12 +222,11 @@ pub struct ItemMeta {
     pub namespace: String,
 }
 
-
 impl From<ObjectMeta> for ItemMeta {
     fn from(meta: ObjectMeta) -> Self {
         Self {
             name: meta.name,
-            namespace: meta.namespace
+            namespace: meta.namespace,
         }
     }
 }
@@ -268,18 +240,15 @@ pub struct UpdateItemMeta {
     pub resource_version: String,
 }
 
-
 impl From<ObjectMeta> for UpdateItemMeta {
     fn from(meta: ObjectMeta) -> Self {
         Self {
             name: meta.name,
             namespace: meta.namespace,
-            resource_version: meta.resource_version
+            resource_version: meta.resource_version,
         }
     }
 }
-
-
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -340,7 +309,10 @@ pub struct StatusDetails {
 #[serde(rename_all = "camelCase")]
 #[serde(bound(serialize = "S: Serialize"))]
 #[serde(bound(deserialize = "S: DeserializeOwned"))]
-pub struct K8Obj<S> where S: Spec {
+pub struct K8Obj<S>
+where
+    S: Spec,
+{
     #[serde(default = "S::api_version")]
     pub api_version: String,
     #[serde(default = "S::kind")]
@@ -355,16 +327,15 @@ pub struct K8Obj<S> where S: Spec {
     pub status: S::Status,
 }
 
-
-
-
-impl <S> K8Obj<S>
-    where 
-        S: Spec
+impl<S> K8Obj<S>
+where
+    S: Spec,
 {
-
     #[allow(dead_code)]
-    pub fn new<N>(name: N,spec: S) -> Self where N: Into<String> {
+    pub fn new<N>(name: N, spec: S) -> Self
+    where
+        N: Into<String>,
+    {
         Self {
             api_version: S::api_version(),
             kind: S::kind(),
@@ -375,13 +346,12 @@ impl <S> K8Obj<S>
     }
 
     #[allow(dead_code)]
-    pub fn set_status(mut self,status: S::Status) -> Self {
+    pub fn set_status(mut self, status: S::Status) -> Self {
         self.status = status;
         self
     }
 
-    pub fn as_status_update(&self,status: S::Status) -> UpdateK8ObjStatus<S>  {
-
+    pub fn as_status_update(&self, status: S::Status) -> UpdateK8ObjStatus<S> {
         UpdateK8ObjStatus {
             api_version: S::api_version(),
             kind: S::kind(),
@@ -392,10 +362,10 @@ impl <S> K8Obj<S>
     }
 }
 
-impl <S> K8Obj<S>
-    where S: Spec
+impl<S> K8Obj<S>
+where
+    S: Spec,
 {
-
     pub fn as_input(&self) -> InputK8Obj<S> {
         K8SpecObj {
             api_version: self.api_version.clone(),
@@ -405,13 +375,12 @@ impl <S> K8Obj<S>
             ..Default::default()
         }
     }
-
 }
 
 /// For creating, only need spec
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8SpecObj<S,M> {
+pub struct K8SpecObj<S, M> {
     pub api_version: String,
     pub kind: String,
     pub metadata: M,
@@ -420,10 +389,14 @@ pub struct K8SpecObj<S,M> {
     pub data: BTreeMap<String, String>,
 }
 
-impl <S,M> K8SpecObj<S,M> 
-    where S: Spec
+impl<S, M> K8SpecObj<S, M>
+where
+    S: Spec,
 {
-    pub fn new(spec: S,metadata: M) -> Self where M: Default {
+    pub fn new(spec: S, metadata: M) -> Self
+    where
+        M: Default,
+    {
         Self {
             api_version: S::api_version(),
             kind: S::kind(),
@@ -434,28 +407,27 @@ impl <S,M> K8SpecObj<S,M>
     }
 }
 
-pub type InputK8Obj<S> = K8SpecObj<S,InputObjectMeta>;
-pub type UpdateK8Obj<S> = K8SpecObj<S,ItemMeta>;
-
+pub type InputK8Obj<S> = K8SpecObj<S, InputObjectMeta>;
+pub type UpdateK8Obj<S> = K8SpecObj<S, ItemMeta>;
 
 /// Used for updating k8obj
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateK8ObjStatus<S> 
-    where S: Spec
+pub struct UpdateK8ObjStatus<S>
+where
+    S: Spec,
 {
     pub api_version: String,
     pub kind: String,
     pub metadata: UpdateItemMeta,
     pub status: S::Status,
-    pub data: PhantomData<S>
+    pub data: PhantomData<S>,
 }
 
-
-impl <S>UpdateK8ObjStatus<S> 
-    where S: Spec
+impl<S> UpdateK8ObjStatus<S>
+where
+    S: Spec,
 {
-
     pub fn new(status: S::Status, metadata: UpdateItemMeta) -> Self {
         Self {
             api_version: S::api_version(),
@@ -467,8 +439,10 @@ impl <S>UpdateK8ObjStatus<S>
     }
 }
 
-
-impl <S>From<UpdateK8Obj<S>> for InputK8Obj<S> where S: Default {
+impl<S> From<UpdateK8Obj<S>> for InputK8Obj<S>
+where
+    S: Default,
+{
     fn from(update: UpdateK8Obj<S>) -> Self {
         Self {
             api_version: update.api_version,
@@ -479,8 +453,6 @@ impl <S>From<UpdateK8Obj<S>> for InputK8Obj<S> where S: Default {
         }
     }
 }
-
-
 
 impl From<ItemMeta> for InputObjectMeta {
     fn from(update: ItemMeta) -> Self {
@@ -494,34 +466,32 @@ impl From<ItemMeta> for InputObjectMeta {
 
 /// name is optional for template
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase",default)]
+#[serde(rename_all = "camelCase", default)]
 pub struct TemplateMeta {
-    pub name:   Option<String>,
+    pub name: Option<String>,
     pub creation_timestamp: Option<String>,
     pub labels: HashMap<String, String>,
 }
 
-
 impl LabelProvider for TemplateMeta {
-
-    fn set_label_map(mut self, labels: HashMap<String,String>) -> Self {
+    fn set_label_map(mut self, labels: HashMap<String, String>) -> Self {
         self.labels = labels;
         self
     }
 }
 
 impl TemplateMeta {
-
     /// create with name and default namespace
-    pub fn named<S>(name: S) -> Self where S: Into<String>{
+    pub fn named<S>(name: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
             name: Some(name.into()),
             ..Default::default()
         }
     }
 }
-
-
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -530,11 +500,11 @@ pub struct TemplateSpec<S> {
     pub spec: S,
 }
 
-impl <S>TemplateSpec<S> {
+impl<S> TemplateSpec<S> {
     pub fn new(spec: S) -> Self {
         TemplateSpec {
             metadata: None,
-            spec
+            spec,
         }
     }
 }
@@ -543,21 +513,20 @@ impl <S>TemplateSpec<S> {
 #[serde(rename_all = "camelCase")]
 #[serde(bound(serialize = "K8Obj<S>: Serialize"))]
 #[serde(bound(deserialize = "K8Obj<S>: DeserializeOwned"))]
-pub struct K8List<S> 
-    where 
-        S: Spec
+pub struct K8List<S>
+where
+    S: Spec,
 {
     pub api_version: String,
     pub items: Vec<K8Obj<S>>,
     pub kind: String,
-    pub metadata: ListMetadata 
+    pub metadata: ListMetadata,
 }
 
-impl <S> K8List<S> 
-    where 
-        S: Spec, 
+impl<S> K8List<S>
+where
+    S: Spec,
 {
-
     #[allow(dead_code)]
     pub fn new() -> Self {
         K8List {
@@ -567,13 +536,11 @@ impl <S> K8List<S>
             metadata: ListMetadata {
                 _continue: None,
                 resource_version: S::api_version(),
-                self_link: "".to_owned()
-            }
+                self_link: "".to_owned(),
+            },
         }
     }
 }
-
-
 
 pub trait DeserializeWith: Sized {
     fn deserialize_with<'de, D>(de: D) -> Result<Self, D::Error>
@@ -585,15 +552,14 @@ pub trait DeserializeWith: Sized {
 #[serde(tag = "type", content = "object")]
 #[serde(bound(serialize = "K8Obj<S>: Serialize"))]
 #[serde(bound(deserialize = "K8Obj<S>: DeserializeOwned"))]
-pub enum K8Watch<S> 
-    where S:Spec
+pub enum K8Watch<S>
+where
+    S: Spec,
 {
     ADDED(K8Obj<S>),
     MODIFIED(K8Obj<S>),
     DELETED(K8Obj<S>),
 }
-
-
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -624,7 +590,7 @@ impl LabelSelector {
 pub struct Env {
     pub name: String,
     pub value: Option<String>,
-    pub value_from: Option<EnvVarSource>
+    pub value_from: Option<EnvVarSource>,
 }
 
 impl Env {
@@ -632,17 +598,19 @@ impl Env {
         Env {
             name: name.into(),
             value: Some(value.into()),
-            value_from: None
+            value_from: None,
         }
     }
 
-    pub fn key_field_ref<T: Into<String>>(name: T,field_path: T) -> Self {
+    pub fn key_field_ref<T: Into<String>>(name: T, field_path: T) -> Self {
         Env {
             name: name.into(),
             value: None,
-            value_from: Some(EnvVarSource{
-                field_ref: Some(ObjectFieldSelector{ field_path: field_path.into()})
-            })
+            value_from: Some(EnvVarSource {
+                field_ref: Some(ObjectFieldSelector {
+                    field_path: field_path.into(),
+                }),
+            }),
         }
     }
 }
@@ -650,13 +618,13 @@ impl Env {
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvVarSource {
-    field_ref: Option<ObjectFieldSelector>
+    field_ref: Option<ObjectFieldSelector>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectFieldSelector {
-    pub field_path: String
+    pub field_path: String,
 }
 
 #[cfg(test)]
@@ -667,7 +635,8 @@ mod test {
 
     #[test]
     fn test_metadata_label() {
-        let metadata = ObjectMeta::default().set_labels(vec![("app".to_owned(), "test".to_owned())]);
+        let metadata =
+            ObjectMeta::default().set_labels(vec![("app".to_owned(), "test".to_owned())]);
 
         let maps = metadata.labels;
         assert_eq!(maps.len(), 1);
@@ -680,5 +649,4 @@ mod test {
         assert_eq!(env.name, "lang");
         assert_eq!(env.value, Some("english".to_owned()));
     }
-
 }

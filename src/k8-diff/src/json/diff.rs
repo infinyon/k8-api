@@ -1,17 +1,15 @@
 use serde_json::Value;
 
-
+use super::JsonDiff;
+use super::PatchObject;
 use crate::Changes;
 use crate::Diff;
 use crate::DiffError;
-use super::PatchObject;
-use super::JsonDiff;
 
 impl Changes for Value {
-
     type Replace = Value;
     type Patch = PatchObject;
-    
+
     fn diff(&self, new: &Self) -> Result<JsonDiff, DiffError> {
         if *self == *new {
             return Ok(Diff::None);
@@ -75,5 +73,4 @@ mod test {
         assert!(diff_replicas.is_replace());
         assert_eq!(*diff_replicas.as_replace_ref(), 3);
     }
-
 }

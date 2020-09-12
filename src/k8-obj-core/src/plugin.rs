@@ -3,9 +3,9 @@ use serde::Serialize;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
+use k8_obj_metadata::DefaultHeader;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
-use k8_obj_metadata::DefaultHeader;
 
 const CREDENTIAL_API: Crd = Crd {
     group: "client.authentication.k8s.io",
@@ -17,15 +17,11 @@ const CREDENTIAL_API: Crd = Crd {
     },
 };
 
-
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct ExecCredentialSpec {
-}
-
+pub struct ExecCredentialSpec {}
 
 impl Spec for ExecCredentialSpec {
-
     type Status = ExecCredentialStatus;
     type Header = DefaultHeader;
 
@@ -34,13 +30,11 @@ impl Spec for ExecCredentialSpec {
     }
 }
 
-
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecCredentialStatus {
     pub expiration_timestamp: String,
-    pub token: String
+    pub token: String,
 }
 
-
-impl Status for ExecCredentialStatus{}
+impl Status for ExecCredentialStatus {}

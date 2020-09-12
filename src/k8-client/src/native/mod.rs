@@ -1,8 +1,7 @@
 mod client;
-mod wstream;
 mod config;
 mod stream;
-
+mod wstream;
 
 pub use client::K8Client;
 pub mod http {

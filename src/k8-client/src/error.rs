@@ -1,7 +1,6 @@
-use std::io::Error as IoError;
 use std::env;
 use std::fmt;
-
+use std::io::Error as IoError;
 
 #[cfg(feature = "native")]
 use isahc::Error as IsahcError;
@@ -12,9 +11,8 @@ use hyper::error::Error as HyperError;
 use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
 
-
-use k8_diff::DiffError;
 use k8_config::ConfigError;
+use k8_diff::DiffError;
 
 use k8_metadata_client::MetadataClientError;
 
@@ -37,8 +35,6 @@ pub enum ClientError {
     NotFound,
 }
 
-
-
 impl From<IoError> for ClientError {
     fn from(error: IoError) -> Self {
         Self::IoError(error)
@@ -51,7 +47,6 @@ impl From<env::VarError> for ClientError {
     }
 }
 
-
 impl From<serde_json::Error> for ClientError {
     fn from(error: serde_json::Error) -> Self {
         Self::JsonError(error)
@@ -63,7 +58,6 @@ impl From<DiffError> for ClientError {
         Self::DiffError(error)
     }
 }
-
 
 #[cfg(feature = "native")]
 impl From<IsahcError> for ClientError {
@@ -84,7 +78,6 @@ impl From<HyperError> for ClientError {
         Self::HyperError(error)
     }
 }
-
 
 impl From<InvalidHeaderValue> for ClientError {
     fn from(error: InvalidHeaderValue) -> Self {
@@ -108,18 +101,17 @@ impl fmt::Display for ClientError {
             Self::NotFound => write!(f, "not found"),
             Self::DiffError(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
-            Self::K8ConfigError(err) => write!(f,"{}",err),
-            Self::InvalidHttpHeader(err) => write!(f,"{}",err),
+            Self::K8ConfigError(err) => write!(f, "{}", err),
+            Self::InvalidHttpHeader(err) => write!(f, "{}", err),
             #[cfg(feature = "native")]
-            Self::IsahcError(err) => write!(f,"{}",err),
+            Self::IsahcError(err) => write!(f, "{}", err),
             #[cfg(feature = "hyper2")]
-            Self::HyperError(err) => write!(f,"{}",err)
+            Self::HyperError(err) => write!(f, "{}", err),
         }
     }
 }
 
 impl MetadataClientError for ClientError {
-
     fn patch_error() -> Self {
         Self::PatchError
     }
@@ -127,8 +119,7 @@ impl MetadataClientError for ClientError {
     fn not_founded(&self) -> bool {
         match self {
             Self::NotFound => true,
-            _ => false
+            _ => false,
         }
-    }    
-
+    }
 }

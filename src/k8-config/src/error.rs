@@ -3,20 +3,19 @@ use std::io::Error as StdIoError;
 
 use serde_yaml::Error as SerdYamlError;
 
-
 #[derive(Debug)]
 pub enum ConfigError {
     IoError(StdIoError),
     SerdeError(SerdYamlError),
-    NoCurrentContext
+    NoCurrentContext,
 }
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::IoError(err) => write!(f, "{}", err),
-            Self::SerdeError(err) => write!(f,"{}",err),
-            Self::NoCurrentContext => write!(f,"no current context")
+            Self::SerdeError(err) => write!(f, "{}", err),
+            Self::NoCurrentContext => write!(f, "no current context"),
         }
     }
 }
