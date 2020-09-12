@@ -8,14 +8,16 @@ pub enum ConfigError {
     IoError(StdIoError),
     SerdeError(SerdYamlError),
     NoCurrentContext,
+    Other(String),
 }
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::IoError(err) => write!(f, "{}", err),
-            Self::SerdeError(err) => write!(f, "{}", err),
+            Self::SerdeError(err) => write!(f, "{}",err),
             Self::NoCurrentContext => write!(f, "no current context"),
+            Self::Other(err) => write!(f, "{}", err),
         }
     }
 }

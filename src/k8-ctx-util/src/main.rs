@@ -1,9 +1,17 @@
+use k8_config::ConfigError;
+use k8_config::context::MinikubeContext;
+
 /// Performs following
 ///     add minikube IP address to /etc/host
 ///     create new kubectl cluster and context which uses minikube name
-fn main() {
-    use k8_config::context::create_dns_context;
-    use k8_config::context::Option;
+fn main()  {
+    if let Err(e) = run() {
+        println!("{}", e);
+    }
+}
 
-    create_dns_context(Option::default())
+fn run() -> Result<(), ConfigError> {
+    let context = MinikubeContext::try_from_system()?;
+    context.save()?;
+    Ok(())
 }
