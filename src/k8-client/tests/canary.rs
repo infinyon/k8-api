@@ -5,7 +5,7 @@ mod canary_test {
     use tracing::debug;
     use tracing::info;
 
-    use flv_future_aio::test_async;
+    use fluvio_future::test_async;
     use k8_client::ClientError;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
