@@ -6,6 +6,7 @@ use isahc::config::ClientCertificate;
 use isahc::config::PrivateKey;
 use isahc::HttpClient;
 use isahc::HttpClientBuilder;
+use isahc::config::Configurable;
 use tracing::debug;
 
 use crate::cert::ConfigBuilder;

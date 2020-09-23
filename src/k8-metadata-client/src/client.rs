@@ -4,11 +4,11 @@ use std::io::Error as IoError;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures::future::ready;
-use futures::future::FutureExt;
-use futures::stream::once;
-use futures::stream::BoxStream;
-use futures::stream::StreamExt;
+use futures_util::future::ready;
+use futures_util::future::FutureExt;
+use futures_util::stream::once;
+use futures_util::stream::BoxStream;
+use futures_util::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json;

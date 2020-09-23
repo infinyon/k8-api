@@ -3,18 +3,20 @@ mod error;
 mod list_stream;
 mod uri;
 
-#[cfg(feature = "native")]
+
 mod native;
-#[cfg(feature = "native")]
 pub use native::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
 
+/*
 #[cfg(feature = "hyper2")]
 mod hyper;
 #[cfg(feature = "hyper2")]
 pub use crate::hyper::*;
+*/
+
 
 #[cfg(feature = "k8")]
 pub mod fixture;

@@ -2,11 +2,9 @@ use std::env;
 use std::fmt;
 use std::io::Error as IoError;
 
-#[cfg(feature = "native")]
+
 use isahc::Error as IsahcError;
 
-#[cfg(feature = "hyper2")]
-use hyper::error::Error as HyperError;
 
 use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
@@ -26,10 +24,7 @@ pub enum ClientError {
     DiffError(DiffError),
     HttpError(HttpError),
     InvalidHttpHeader(InvalidHeaderValue),
-    #[cfg(feature = "native")]
     IsahcError(IsahcError),
-    #[cfg(feature = "hyper2")]
-    HyperError(HyperError),
     K8ConfigError(ConfigError),
     PatchError,
     NotFound,
@@ -59,7 +54,7 @@ impl From<DiffError> for ClientError {
     }
 }
 
-#[cfg(feature = "native")]
+
 impl From<IsahcError> for ClientError {
     fn from(error: IsahcError) -> Self {
         Self::IsahcError(error)
@@ -72,12 +67,7 @@ impl From<HttpError> for ClientError {
     }
 }
 
-#[cfg(feature = "hyper2")]
-impl From<HyperError> for ClientError {
-    fn from(error: HyperError) -> Self {
-        Self::HyperError(error)
-    }
-}
+
 
 impl From<InvalidHeaderValue> for ClientError {
     fn from(error: InvalidHeaderValue) -> Self {
@@ -103,10 +93,7 @@ impl fmt::Display for ClientError {
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
             Self::InvalidHttpHeader(err) => write!(f, "{}", err),
-            #[cfg(feature = "native")]
             Self::IsahcError(err) => write!(f, "{}", err),
-            #[cfg(feature = "hyper2")]
-            Self::HyperError(err) => write!(f, "{}", err),
         }
     }
 }

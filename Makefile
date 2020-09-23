@@ -22,5 +22,8 @@ build-test:
 integration-test:
 	make -C src/k8-client run-integration-test
 
+set-minikube-context:
+	cargo run --bin k8-ctx-util
+
 build-config-context:
 	cd src/k8-config;cargo build --features=context

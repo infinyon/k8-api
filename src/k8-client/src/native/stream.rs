@@ -3,8 +3,8 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures::io::AsyncRead;
-use futures::stream::Stream;
+use futures_util::io::AsyncRead;
+use futures_util::stream::Stream;
 use isahc::Body;
 use pin_utils::unsafe_pinned;
 use tracing::trace;
@@ -72,7 +72,7 @@ impl Stream for BodyStream {
                             return Poll::Ready(None);
                         }
                         Ok(bytes_read) => {
-                            buf.split_off(bytes_read); // discard unread bytes
+                            let _ = buf.split_off(bytes_read); // discard unread bytes
                             total_bytes += bytes_read;
                             trace!("bytes read: {}", bytes_read);
                             if bytes_read == 0 {
