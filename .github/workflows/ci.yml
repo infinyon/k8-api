@@ -51,6 +51,9 @@ jobs:
       - name: Install Minikube on Mac
         if: startsWith(matrix.os, 'macOS')
         run:  brew install minikube
+      - name: Setup Minikube for Mac
+        if: startsWith(matrix.os, 'macOS')
+        run:  minikube start
       - name: Test Minikube
         run: |
           kubectl get nodes
