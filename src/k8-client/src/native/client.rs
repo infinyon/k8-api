@@ -2,17 +2,12 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::http::header::HeaderValue;
-use crate::http::header::ACCEPT;
-use crate::http::header::AUTHORIZATION;
-use crate::http::header::CONTENT_TYPE;
-use crate::http::status::StatusCode;
-use crate::http::Uri;
+
 use async_trait::async_trait;
-use futures::future::FutureExt;
-use futures::stream::BoxStream;
-use futures::stream::Stream;
-use futures::stream::StreamExt;
+use futures_util::future::FutureExt;
+use futures_util::stream::BoxStream;
+use futures_util::stream::Stream;
+use futures_util::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde_json;
 use serde_json::Value;
@@ -40,6 +35,12 @@ use k8_obj_metadata::K8Watch;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::UpdateK8ObjStatus;
 
+use crate::http::header::HeaderValue;
+use crate::http::header::ACCEPT;
+use crate::http::header::AUTHORIZATION;
+use crate::http::header::CONTENT_TYPE;
+use crate::http::status::StatusCode;
+use crate::http::Uri;
 use super::stream::BodyStream;
 use super::wstream::WatchStream;
 use crate::uri::item_uri;
@@ -65,7 +66,7 @@ impl K8Client {
         Self::new(config)
     }
 
-    #[cfg(feature = "native")]
+    
     pub fn new(config: K8Config) -> Result<Self, ClientError> {
         let helper = IsahcBuilder::new(config)?;
         let host = helper.host();
@@ -423,9 +424,9 @@ mod list_stream {
     use tracing::error;
     use tracing::trace;
 
-    use futures::future::FutureExt;
-    use futures::Future;
-    use futures::Stream;
+    use futures_util::future::FutureExt;
+    use futures_util::future::Future;
+    use futures_util::stream::Stream;
     use pin_utils::unsafe_pinned;
     use pin_utils::unsafe_unpinned;
 
@@ -571,13 +572,13 @@ mod list_stream {
                                 } else {
                                     debug!("{} no more continue, marking as done", S::label());
                                     // we are done
-                                    replace(&mut self.as_mut().done, true);
+                                    let _ = replace(&mut self.as_mut().done, true);
                                     return Poll::Ready(Some(list));
                                 }
                             }
                             Err(err) => {
                                 error!("{}: error in list stream: {}", S::label(), err);
-                                replace(&mut self.as_mut().done, true);
+                                let _ = replace(&mut self.as_mut().done, true);
                                 return Poll::Ready(None);
                             }
                         }

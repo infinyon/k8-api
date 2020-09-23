@@ -9,9 +9,9 @@ use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
-use futures::future::FutureExt;
-use futures::Future;
-use futures::Stream;
+use futures_util::future::FutureExt;
+use futures_util::future::Future;
+use futures_util::stream::Stream;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
 
@@ -158,13 +158,13 @@ where
                             } else {
                                 debug!("{} no more continue, marking as done", S::label());
                                 // we are done
-                                replace(&mut self.as_mut().done, true);
+                                let _ = replace(&mut self.as_mut().done, true);
                                 return Poll::Ready(Some(list));
                             }
                         }
                         Err(err) => {
                             error!("{}: error in list stream: {}", S::label(), err);
-                            replace(&mut self.as_mut().done, true);
+                            let _ = replace(&mut self.as_mut().done, true);
                             return Poll::Ready(None);
                         }
                     }

@@ -4,7 +4,7 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures::stream::Stream;
+use futures_util::stream::Stream;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;
 use tracing::trace;
@@ -81,7 +81,7 @@ where
             }
         }
 
-        mem::replace(self.as_mut().done(), done);
+        let _ = mem::replace(self.as_mut().done(), done);
 
         if last_buffer.len() > 0 {
             trace!("no more inner, buffer len: {}", last_buffer.len());
@@ -92,7 +92,7 @@ where
                 let remainder = last_buffer.split_off(i + 1);
                 // need to truncate last one since it contains remainder
                 last_buffer.truncate(last_buffer.len() - 1);
-                mem::replace(self.as_mut().buffer(), remainder);
+                let _ = mem::replace(self.as_mut().buffer(), remainder);
                 return Poll::Ready(Some(last_buffer));
             } else {
                 trace!("no separator");
@@ -100,11 +100,11 @@ where
                     trace!("since we are done, returning last buffer");
                     return Poll::Ready(Some(last_buffer));
                 }
-                mem::replace(self.as_mut().buffer(), last_buffer);
+                let _ = mem::replace(self.as_mut().buffer(), last_buffer);
             }
         } else {
             trace!("no buffer, swapping pending");
-            mem::replace(self.as_mut().buffer(), last_buffer);
+            let _ = mem::replace(self.as_mut().buffer(), last_buffer);
         }
 
         if done {
@@ -123,8 +123,8 @@ mod test {
     use std::io::Error as IoError;
 
     use super::super::stream::BodyStream;
-    use flv_future_aio::test_async;
-    use futures::stream::StreamExt;
+    use fluvio_future::test_async;
+    use futures_util::stream::StreamExt;
     use isahc::Body;
 
     use super::WatchStream;
