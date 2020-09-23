@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest,macOS-latest]
-        rust: [beta, stable]
+        rust: [stable]
 
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
       strategy:
         matrix:
           os: [ubuntu-latest,macOS-latest]
-          rust: [stable,beta]
+          rust: [stable]
 
       steps:
       - uses: actions/checkout@v2
