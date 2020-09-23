@@ -7,8 +7,8 @@ use std::io::Error as IoError;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures::stream::BoxStream;
-use futures::stream::StreamExt;
+use futures_util::stream::BoxStream;
+use futures_util::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
@@ -121,7 +121,7 @@ impl MetadataClient for DoNothingClient {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static,
     {
-        futures::stream::empty().boxed()
+        futures_util::stream::empty().boxed()
     }
 
     async fn delete_item<S, M>(&self, _metadata: &M) -> Result<K8Status, Self::MetadataClientError>
@@ -182,6 +182,6 @@ impl MetadataClient for DoNothingClient {
         S::Status: Send + 'static,
         N: Into<NameSpace>,
     {
-        futures::stream::empty().boxed()
+        futures_util::stream::empty().boxed()
     }
 }
