@@ -17,6 +17,7 @@ use k8_metadata_client::MetadataClientError;
 
 // For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
+#[non_exhaustive]
 #[derive(Debug)]
 pub enum ClientError {
     IoError(IoError),
