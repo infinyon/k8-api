@@ -23,8 +23,8 @@ test-hyper-service:
 test-hyper-secrets:
 	cargo test test_client_secrets --features="hyper2","k8"
 
-test-isahc-secrets:
-	cargo test test_client_secrets --features="native","k8"
+test-secrets:
+	cargo test test_client_secrets --features=k8
 
 build-test:
 	cargo test --no-run --features="hyper2","k8"

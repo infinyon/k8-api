@@ -8,6 +8,7 @@ use isahc::Error as IsahcError;
 
 use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
+use crate::http::status::StatusCode;
 
 use k8_config::ConfigError;
 use k8_diff::DiffError;
@@ -16,6 +17,7 @@ use k8_metadata_client::MetadataClientError;
 
 // For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
+#[non_exhaustive]
 #[derive(Debug)]
 pub enum ClientError {
     IoError(IoError),
@@ -27,7 +29,7 @@ pub enum ClientError {
     IsahcError(IsahcError),
     K8ConfigError(ConfigError),
     PatchError,
-    NotFound,
+    Client(StatusCode)
 }
 
 impl From<IoError> for ClientError {
@@ -68,7 +70,6 @@ impl From<HttpError> for ClientError {
 }
 
 
-
 impl From<InvalidHeaderValue> for ClientError {
     fn from(error: InvalidHeaderValue) -> Self {
         Self::InvalidHttpHeader(error)
@@ -81,6 +82,12 @@ impl From<ConfigError> for ClientError {
     }
 }
 
+impl From<StatusCode> for ClientError  {
+    fn from(code: StatusCode) -> Self {
+        Self::Client(code)
+    }
+}
+
 impl fmt::Display for ClientError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -88,7 +95,7 @@ impl fmt::Display for ClientError {
             Self::HttpError(err) => write!(f, "{}", err),
             Self::EnvError(err) => write!(f, "{}", err),
             Self::JsonError(err) => write!(f, "{}", err),
-            Self::NotFound => write!(f, "not found"),
+            Self::Client(status) => write!(f, "client error: {}",status),
             Self::DiffError(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
@@ -105,7 +112,7 @@ impl MetadataClientError for ClientError {
 
     fn not_founded(&self) -> bool {
         match self {
-            Self::NotFound => true,
+            Self::Client(status) => status == &StatusCode::NOT_FOUND,
             _ => false,
         }
     }

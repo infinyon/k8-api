@@ -39,7 +39,6 @@ use crate::http::header::HeaderValue;
 use crate::http::header::ACCEPT;
 use crate::http::header::AUTHORIZATION;
 use crate::http::header::CONTENT_TYPE;
-use crate::http::status::StatusCode;
 use crate::http::Uri;
 use super::stream::BodyStream;
 use super::wstream::WatchStream;
@@ -111,15 +110,15 @@ impl K8Client {
         let status = resp.status();
         debug!(status = status.as_u16(), "response status");
 
-        if status == StatusCode::NOT_FOUND {
-            debug!("returning not found");
-            return Err(ClientError::NotFound);
+        if status.is_success() {
+            resp.json().map_err(|err| {
+                error!("error decoding raw stream : {}", resp.text().expect("text"));
+                err.into()
+            })
+        } else {
+            Err(ClientError::Client(status))
         }
-
-        resp.json().map_err(|err| {
-            error!("error decoding raw stream : {}", resp.text().expect("text"));
-            err.into()
-        })
+        
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
