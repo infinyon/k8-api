@@ -1,35 +1,21 @@
-use std::fmt;
-use std::io::Error as StdIoError;
+use std::io::Error as IoError;
+use serde_yaml::Error as YamlError;
+use thiserror::Error;
 
-use serde_yaml::Error as SerdYamlError;
-
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ConfigError {
-    IoError(StdIoError),
-    SerdeError(SerdYamlError),
+    #[error("IO error: {source}")]
+    IoError {
+        #[from]
+        source: IoError,
+    },
+    #[error("Yaml error: {source}")]
+    YamlError {
+        #[from]
+        source: YamlError,
+    },
+    #[error("No current kubernetes context")]
     NoCurrentContext,
+    #[error("Unknown error: {0}")]
     Other(String),
-}
-
-impl fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::IoError(err) => write!(f, "{}", err),
-            Self::SerdeError(err) => write!(f, "{}",err),
-            Self::NoCurrentContext => write!(f, "no current context"),
-            Self::Other(err) => write!(f, "{}", err),
-        }
-    }
-}
-
-impl From<StdIoError> for ConfigError {
-    fn from(error: StdIoError) -> Self {
-        Self::IoError(error)
-    }
-}
-
-impl From<SerdYamlError> for ConfigError {
-    fn from(error: SerdYamlError) -> Self {
-        Self::SerdeError(error)
-    }
 }
