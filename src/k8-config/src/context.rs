@@ -5,9 +5,10 @@ use std::net::IpAddr;
 use std::process::{Command, Stdio};
 use std::os::unix::fs::OpenOptionsExt;
 
-use tracing::debug;
+use tracing::{debug, instrument};
 use serde::Deserialize;
 use crate::ConfigError;
+use cmd_ext::CmdExt as _;
 
 pub use v1::*;
 
@@ -75,6 +76,7 @@ impl MinikubeContext {
     /// let context = MinikubeContext::try_from_system().unwrap();
     /// context.save().unwrap();
     /// ```
+    #[instrument(skip(self))]
     pub fn save(&self) -> Result<(), ConfigError> {
         // Check if the detected minikube IP matches the /etc/hosts entry
         if !self.profile.matches_hostfile()? {
@@ -87,6 +89,7 @@ impl MinikubeContext {
     }
 
     /// Updates the `kubectl` context to use the current settings
+    #[instrument(skip(self))]
     fn update_kubectl_context(&self) -> Result<(), ConfigError> {
         Command::new("kubectl")
             .args(&["config", "set-cluster", &self.name])
@@ -94,6 +97,7 @@ impl MinikubeContext {
             .arg(&format!("--certificate-authority={}", load_cert_auth()))
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
+            .debug()
             .status()?;
 
         Command::new("kubectl")
@@ -102,12 +106,14 @@ impl MinikubeContext {
             .arg(&format!("--cluster={}", &self.name))
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
+            .debug()
             .status()?;
 
         Command::new("kubectl")
             .args(&["config", "use-context", &self.name])
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
+            .debug()
             .status()?;
 
         Ok(())
@@ -146,6 +152,7 @@ echo "$IP minikubeCA" | sudo tee -a  /etc/hosts
         Command::new(tmp_file)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
+            .debug()
             .status()?;
 
         Ok(())
@@ -194,9 +201,11 @@ struct MinikubeProfile {
 
 impl MinikubeProfile {
     /// Gets minikube's current profile
+    #[instrument]
     fn load() -> Result<MinikubeProfile, ConfigError> {
         let output = Command::new("minikube")
             .args(&["profile", "list", "-o", "json"])
+            .debug()
             .output()?;
         let output_string = String::from_utf8(output.stdout)
             .map_err(|e| ConfigError::Other(format!("`minikube profile list -o json` did not give UTF-8: {}", e)))?;
@@ -230,6 +239,7 @@ impl MinikubeProfile {
     ///
     /// Returns `Err(_)` when there is an error detecting the current Minikube ip address
     /// or if there is an error reading the hosts file.
+    #[instrument(err)]
     fn matches_hostfile(&self) -> Result<bool, ConfigError> {
         // Check if the /etc/hosts file matches the active node IP
         let matches = get_host_entry("minikubeCA")?
@@ -240,6 +250,7 @@ impl MinikubeProfile {
 }
 
 /// Gets the current entry for a given host in `/etc/hosts` if there is one
+#[instrument(err)]
 fn get_host_entry(hostname: &str) -> Result<std::option::Option<IpAddr>, ConfigError> {
     // Get all of the host entries
     let hosts = hostfile::parse_hostfile()
@@ -266,6 +277,7 @@ pub mod v1 {
     use tracing::debug;
     use tera::Context;
     use tera::Tera;
+    use super::cmd_ext::CmdExt as _;
 
     pub use crate::K8Config;
 
@@ -350,8 +362,26 @@ kubectl config use-context {{ name }}
 
         debug!("script {}", render);
 
-        let output = Command::new(tmp_file).output().expect("cluster command");
+        let output = Command::new(tmp_file)
+            .debug()
+            .output()
+            .expect("cluster command");
         io::stdout().write_all(&output.stdout).unwrap();
         io::stderr().write_all(&output.stderr).unwrap();
     }
+}
+
+mod cmd_ext {
+    use std::fmt::Debug;
+    use std::process::Command;
+    use tracing::debug;
+
+    pub trait CmdExt: Debug {
+        fn debug(&mut self) -> &mut Self {
+            debug!("> {}", format!("{:?}", self).replace("\"", ""));
+            self
+        }
+    }
+
+    impl CmdExt for Command {}
 }

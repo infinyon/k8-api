@@ -1,3 +1,4 @@
+use thiserror::Error;
 mod json;
 
 pub trait Changes {
@@ -7,8 +8,9 @@ pub trait Changes {
     fn diff(&self, new: &Self) -> Result<Diff<Self::Replace, Self::Patch>, DiffError>;
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum DiffError {
+    #[error("JSON value types are different")]
     DiffValue, // json values are different
 }
 
