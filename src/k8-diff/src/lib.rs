@@ -1,5 +1,7 @@
 mod json;
 
+use std::fmt;
+
 pub trait Changes {
     type Replace;
     type Patch;
@@ -11,6 +13,14 @@ pub trait Changes {
 pub enum DiffError {
     DiffValue, // json values are different
 }
+
+impl std::fmt::Display for DiffError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "JSON value types are different")
+    }
+}
+
+impl std::error::Error for DiffError {}
 
 // use Option as inspiration
 #[derive(Debug)]

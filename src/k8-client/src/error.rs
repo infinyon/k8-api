@@ -1,19 +1,16 @@
 use std::env;
 use std::fmt;
 use std::io::Error as IoError;
-
+use std::error::Error;
 
 use isahc::Error as IsahcError;
-
+use k8_config::ConfigError;
+use k8_diff::DiffError;
+use k8_metadata_client::MetadataClientError;
 
 use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
 use crate::http::status::StatusCode;
-
-use k8_config::ConfigError;
-use k8_diff::DiffError;
-
-use k8_metadata_client::MetadataClientError;
 
 // For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
@@ -30,6 +27,23 @@ pub enum ClientError {
     K8ConfigError(ConfigError),
     PatchError,
     Client(StatusCode)
+}
+
+impl std::error::Error for ClientError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::IoError(err) => Some(err),
+            Self::EnvError(err) => Some(err),
+            Self::JsonError(err) => Some(err),
+            Self::DiffError(err) => Some(err),
+            Self::HttpError(err) => Some(err),
+            Self::InvalidHttpHeader(err) => Some(err),
+            Self::IsahcError(err) => Some(err),
+            Self::K8ConfigError(err) => Some(err),
+            Self::Client(_) => None,
+            Self::PatchError => None,
+        }
+    }
 }
 
 impl From<IoError> for ClientError {
