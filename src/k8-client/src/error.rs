@@ -69,7 +69,7 @@ pub enum ClientError {
 #[derive(Error, Debug)]
 #[error("Status code {status}")]
 pub struct StatusError {
-    status: StatusCode,
+    pub status: StatusCode,
 }
 
 impl StatusError {
