@@ -856,6 +856,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs 0.5.2",
+ "thiserror",
  "tracing",
  "tracing-futures",
  "webpki",
@@ -888,6 +889,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "thiserror",
  "tracing",
 ]
 
@@ -1806,7 +1808,7 @@ checksum = "bd80fc12f73063ac132ac92aceea36734f04a1d93c1240c6944e23a3b8841793"
 dependencies = [
  "proc-macro2",
  "quote 1.0.7",
- "syn 1.0.40",
+ "syn 1.0.41",
 ]
 
 [[package]]

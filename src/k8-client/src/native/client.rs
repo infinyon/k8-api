@@ -49,6 +49,7 @@ use crate::SharedK8Client;
 
 use super::config::IsahcBuilder;
 use list_stream::ListStream;
+use crate::error::StatusError;
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
@@ -116,9 +117,8 @@ impl K8Client {
                 err.into()
             })
         } else {
-            Err(ClientError::Client(status))
+            Err(StatusError::new(status).into())
         }
-        
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel

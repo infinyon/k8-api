@@ -37,7 +37,7 @@ k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
 k8-metadata-client = { version = "1.0.0", path = "../k8-metadata-client"}
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
 k8-config = { version = "1.0.0", path = "../k8-config"}
-
+thiserror = "1.0.20"
 
 [dev-dependencies]
 rand = "0.7.2"
