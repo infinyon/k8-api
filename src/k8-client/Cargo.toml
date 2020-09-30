@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-client"
-version = "2.0.0"
+version = "2.1.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -37,7 +37,7 @@ k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
 k8-metadata-client = { version = "1.0.0", path = "../k8-metadata-client"}
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
 k8-config = { version = "1.0.0", path = "../k8-config"}
-thiserror = "1.0.20"
+
 
 [dev-dependencies]
 rand = "0.7.2"

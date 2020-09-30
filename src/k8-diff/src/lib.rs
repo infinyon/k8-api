@@ -1,5 +1,6 @@
-use thiserror::Error;
 mod json;
+
+use std::fmt;
 
 pub trait Changes {
     type Replace;
@@ -8,11 +9,18 @@ pub trait Changes {
     fn diff(&self, new: &Self) -> Result<Diff<Self::Replace, Self::Patch>, DiffError>;
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum DiffError {
-    #[error("JSON value types are different")]
     DiffValue, // json values are different
 }
+
+impl std::fmt::Display for DiffError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "JSON value types are different")
+    }
+}
+
+impl std::error::Error for DiffError {}
 
 // use Option as inspiration
 #[derive(Debug)]

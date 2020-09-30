@@ -1,20 +1,14 @@
 use std::io::Error as IoError;
-use serde_yaml::Error as YamlError;
+use serde_yaml::Error as SerdeYamlError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ConfigError {
-    #[error("IO error: {source}")]
-    IoError {
-        #[from]
-        source: IoError,
-    },
-    #[error("Yaml error: {source}")]
-    YamlError {
-        #[from]
-        source: YamlError,
-    },
-    #[error("No current kubernetes context")]
+    #[error("IO error: {0}")]
+    IoError(#[from] IoError),
+    #[error("Yaml error: {0}")]
+    SerdeError(#[from] SerdeYamlError),
+    #[error("No active Kubernetes context")]
     NoCurrentContext,
     #[error("Unknown error: {0}")]
     Other(String),

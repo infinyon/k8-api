@@ -105,7 +105,7 @@ mod integration_tests {
         // do another update status which leads to conflict.
         let err = client.update_status(&status_update2).await.expect_err("update");
         match err {
-            ClientError::Client { source } => assert_eq!(source.status ,StatusCode::CONFLICT),
+            ClientError::Client(status) => assert_eq!(status,StatusCode::CONFLICT),
             _ => assert!(false)
         }
         
