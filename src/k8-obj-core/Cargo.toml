@@ -10,9 +10,5 @@ license = "Apache-2.0"
 
 
 [dependencies]
-tracing = "0.1.19"
 serde = { version ="1.0.103", features = ['derive'] }
-serde_json = "1.0.27"
-serde_qs = "0.4.1"
-http = { version = "0.1.15" }
 k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
