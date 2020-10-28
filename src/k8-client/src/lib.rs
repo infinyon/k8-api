@@ -3,19 +3,14 @@ mod error;
 mod list_stream;
 mod uri;
 
-
-mod native;
-pub use native::*;
+#[cfg(feature = "isahc_rustls")]
+mod isahc_rustls;
+#[cfg(feature = "isahc_rustls")]
+pub use isahc_rustls::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
 
-/*
-#[cfg(feature = "hyper2")]
-mod hyper;
-#[cfg(feature = "hyper2")]
-pub use crate::hyper::*;
-*/
 
 
 #[cfg(feature = "k8")]
