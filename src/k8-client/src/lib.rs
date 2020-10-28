@@ -8,6 +8,11 @@ mod isahc_rustls;
 #[cfg(feature = "isahc_rustls")]
 pub use isahc_rustls::*;
 
+#[cfg(feature = "http_native")]
+mod http_native;
+#[cfg(feature = "http_native")]
+pub use http_native::*;
+
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
 
