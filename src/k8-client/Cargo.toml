@@ -14,7 +14,7 @@ default = ["isahc_rustls"]
 k8 = []
 k8_stream = ["k8"]
 isahc_rustls = ["isahc","curl/mesalink","openssl-sys/vendored","webpki","rustls"]
-
+http_native = ["http-client/hyper_client"]
 
 [dependencies]
 tracing = "0.1.19"
@@ -28,6 +28,7 @@ curl = { version = "0.4.33", optional = true }
 openssl-sys = { version = "0.9.0", features = ["vendored"], optional = true  }
 webpki = { version = "0.21.0", optional = true}
 rustls = { version = "0.18.0", optional = true }
+http-client = { version = "6.2.0", optional = true }
 pin-utils = "0.1.0"
 serde = { version ="1.0.103", features = ['derive'] }
 serde_json = "1.0.40"
