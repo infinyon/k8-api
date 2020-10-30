@@ -6,8 +6,7 @@ setup:
 run-integration-test:
 	cargo test --features=k8
 
-run-integration-test-hyper:
-	cargo test  --features=k8,hyper_native
+
 
 # set up cluster roles 
 set-anonymous:
@@ -17,8 +16,7 @@ set-anonymous:
 build:
 	cargo build
 
-build-isahc:
-	cargo build --features="isahc"	
+
 
 test-hyper-service:
 	cargo test test_client_get_services --features="hyper2","k8"
