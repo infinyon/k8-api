@@ -47,9 +47,9 @@ use super::wstream::WatchStream;
 use crate::uri::item_uri;
 use crate::uri::items_uri;
 use crate::ClientError;
-use crate::list_stream::ListStream;
 
 
+use super::ListStream;
 use super::HyperClient;
 use super::HyperConfigBuilder;
 

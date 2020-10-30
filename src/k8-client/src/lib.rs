@@ -1,11 +1,10 @@
 mod cert;
 mod error;
-mod list_stream;
 mod uri;
 
 
-mod hyper;
-pub use self::hyper::*;
+mod client;
+pub use self::client::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
