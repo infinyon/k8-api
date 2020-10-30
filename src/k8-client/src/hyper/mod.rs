@@ -1,8 +1,9 @@
 mod client;
-mod config;
+mod config_native;
 mod wstream;
 
 pub use client::K8Client;
+use config_native::*;
 
 pub mod http {
     pub use ::http::header;

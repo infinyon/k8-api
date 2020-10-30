@@ -3,15 +3,9 @@ mod error;
 mod list_stream;
 mod uri;
 
-#[cfg(feature = "isahc_rustls")]
-mod isahc_rustls;
-#[cfg(feature = "isahc_rustls")]
-pub use isahc_rustls::*;
 
-#[cfg(feature = "http_native")]
-mod http_native;
-#[cfg(feature = "http_native")]
-pub use http_native::*;
+mod hyper;
+pub use self::hyper::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
@@ -21,7 +15,6 @@ pub use k8_config::K8Config;
 #[cfg(feature = "k8")]
 pub mod fixture;
 
-use cert::*;
 
 pub mod metadata {
     pub use k8_metadata_client::*;

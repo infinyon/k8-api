@@ -6,13 +6,16 @@ setup:
 run-integration-test:
 	cargo test --features=k8
 
+run-integration-test-hyper:
+	cargo test  --features=k8,hyper_native
+
 # set up cluster roles 
 set-anonymous:
 	 create clusterrolebinding cluster-system-anonymous --clusterrole=cluster-admin --user=system:anonymous	 
 
 
 build-hyper:
-	cargo build --features="hyper2"
+	cargo build --features hyper_native
 
 build-isahc:
 	cargo build --features="isahc"	

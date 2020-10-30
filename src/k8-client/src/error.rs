@@ -3,10 +3,12 @@ use std::fmt;
 use std::io::Error as IoError;
 use std::error::Error;
 
-use isahc::Error as IsahcError;
+use hyper::Error as HyperError;
+
 use k8_config::ConfigError;
 use k8_diff::DiffError;
 use k8_metadata_client::MetadataClientError;
+
 
 use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
@@ -23,10 +25,11 @@ pub enum ClientError {
     DiffError(DiffError),
     HttpError(HttpError),
     InvalidHttpHeader(InvalidHeaderValue),
-    IsahcError(IsahcError),
     K8ConfigError(ConfigError),
     PatchError,
-    Client(StatusCode)
+    HyperError(HyperError),
+    Client(StatusCode),
+    Other(String)
 }
 
 impl std::error::Error for ClientError {
@@ -38,10 +41,11 @@ impl std::error::Error for ClientError {
             Self::DiffError(err) => Some(err),
             Self::HttpError(err) => Some(err),
             Self::InvalidHttpHeader(err) => Some(err),
-            Self::IsahcError(err) => Some(err),
             Self::K8ConfigError(err) => Some(err),
+            Self::HyperError(err) => Some(err),
             Self::Client(_) => None,
             Self::PatchError => None,
+            Self::Other(_) => None
         }
     }
 }
@@ -71,6 +75,7 @@ impl From<DiffError> for ClientError {
 }
 
 
+#[cfg(feature = "isahc_rustls")]
 impl From<IsahcError> for ClientError {
     fn from(error: IsahcError) -> Self {
         Self::IsahcError(error)
@@ -102,6 +107,12 @@ impl From<StatusCode> for ClientError  {
     }
 }
 
+impl From<HyperError> for ClientError {
+    fn from(error: HyperError) -> Self {
+        Self::HyperError(error)
+    }
+}
+
 impl fmt::Display for ClientError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -111,10 +122,12 @@ impl fmt::Display for ClientError {
             Self::JsonError(err) => write!(f, "{}", err),
             Self::Client(status) => write!(f, "client error: {}",status),
             Self::DiffError(err) => write!(f, "{:#?}", err),
+            Self::InvalidHttpHeader(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
             Self::InvalidHttpHeader(err) => write!(f, "{}", err),
-            Self::IsahcError(err) => write!(f, "{}", err),
+            Self::HyperError(err) => write!(f,"{}",err),
+            Self::Other(msg) => write!(f, "{}", msg),
         }
     }
 }

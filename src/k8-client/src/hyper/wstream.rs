@@ -5,7 +5,7 @@ use std::task::Context;
 use std::task::Poll;
 
 use bytes::BytesMut;
-use futures::stream::Stream;
+use futures_util::stream::Stream;
 use hyper::body::Bytes;
 use hyper::error::Error;
 use pin_utils::unsafe_pinned;

@@ -18,18 +18,14 @@ pub trait ConfigBuilder: Sized {
 
     fn build(self) -> Result<Self::Client, ClientError>;
 
-    fn load_ca_certificate<P>(self, ca_path: P) -> Result<Self, IoError>
-    where
-        P: AsRef<Path>;
+    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>;
 
     // load client certificate (crt) and private key
-    fn load_client_certificate<P>(
+    fn load_client_certificate(
         self,
-        client_crt_path: P,
-        client_key_path: P,
-    ) -> Result<Self, IoError>
-    where
-        P: AsRef<Path>;
+        client_crt_path: impl AsRef<Path>,
+        client_key_path: impl AsRef<Path>,
+    ) -> Result<Self, IoError>;
 }
 
 /// Build Client
