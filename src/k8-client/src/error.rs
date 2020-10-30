@@ -14,7 +14,6 @@ use crate::http::header::InvalidHeaderValue;
 use crate::http::Error as HttpError;
 use crate::http::status::StatusCode;
 
-// For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
 #[non_exhaustive]
 #[derive(Debug)]
@@ -75,12 +74,6 @@ impl From<DiffError> for ClientError {
 }
 
 
-#[cfg(feature = "isahc_rustls")]
-impl From<IsahcError> for ClientError {
-    fn from(error: IsahcError) -> Self {
-        Self::IsahcError(error)
-    }
-}
 
 impl From<HttpError> for ClientError {
     fn from(error: HttpError) -> Self {
@@ -125,7 +118,6 @@ impl fmt::Display for ClientError {
             Self::InvalidHttpHeader(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
-            Self::InvalidHttpHeader(err) => write!(f, "{}", err),
             Self::HyperError(err) => write!(f,"{}",err),
             Self::Other(msg) => write!(f, "{}", msg),
         }

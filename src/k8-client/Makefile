@@ -14,8 +14,8 @@ set-anonymous:
 	 create clusterrolebinding cluster-system-anonymous --clusterrole=cluster-admin --user=system:anonymous	 
 
 
-build-hyper:
-	cargo build --features hyper_native
+build:
+	cargo build
 
 build-isahc:
 	cargo build --features="isahc"	

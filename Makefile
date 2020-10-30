@@ -2,9 +2,11 @@ publish:
 	 cargo-publish-all
 
 
-build-hyper:
-	make -C src/k8-client build-hyper
+build-k8-client:
+	make -C src/k8-client build
 
+integration-test-k8-client:
+	make -C src/k8-client run-integration-test
 
 build-isahc:
 	make -C src/k8-client build-isahc
@@ -19,8 +21,7 @@ test-isahc:
 build-test:
 	make -C src/k8-client build-test
 
-integration-test:
-	make -C src/k8-client run-integration-test
+
 
 set-minikube-context:
 	cargo run --bin k8-ctx-util

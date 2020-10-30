@@ -79,7 +79,7 @@ where
                                     }
                                     Err(err) => {
                                         error!("error getting chunk: {}", err);
-                                        mem::replace(self.as_mut().done(), true);
+                                        *self.as_mut().done() = true;
                                         return Poll::Ready(None);
                                     }
                                 }
@@ -94,7 +94,7 @@ where
             }
         }
 
-        mem::replace(self.as_mut().done(), done);
+        *(self.as_mut().done()) = done;
 
         if last_buffer.len() > 0 {
             trace!("no more inner, buffer len: {}", last_buffer.len());
@@ -105,7 +105,7 @@ where
                 let remainder = last_buffer.split_off(i + 1);
                 // need to truncate last one since it contains remainder
                 last_buffer.truncate(last_buffer.len() - 1);
-                mem::replace(&mut self.as_mut().buffer, remainder);
+                *(self.as_mut().buffer()) = remainder;
                 return Poll::Ready(Some(last_buffer.freeze()));
             } else {
                 trace!("no separator");
@@ -113,11 +113,11 @@ where
                     trace!("since we are done, returning last buffer");
                     return Poll::Ready(Some(last_buffer.freeze()));
                 }
-                mem::replace(&mut self.as_mut().buffer, last_buffer);
+                *(self.as_mut().buffer()) = last_buffer;
             }
         } else {
             trace!("no buffer, swapping pending");
-            mem::replace(&mut self.as_mut().buffer, last_buffer);
+            *(self.as_mut().buffer()) =last_buffer;
         }
 
         if done {
