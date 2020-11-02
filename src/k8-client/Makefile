@@ -8,6 +8,7 @@ run-integration-test:
 
 run-test-service-changes:
 	- kubectl get services --no-headers=true | awk '/testservice/{print $1}' | xargs  kubectl delete service
+	sleep 1
 	cargo test --features=k8 test_service_changes
 
 # set up cluster roles 

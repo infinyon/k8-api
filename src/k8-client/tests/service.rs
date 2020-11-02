@@ -5,9 +5,12 @@ mod integration_tests {
     use std::time::Duration;
 
     use tracing::debug;
+    use tracing::trace;
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
     use once_cell::sync::Lazy;
+    use futures_util::future::join;
+    use futures_util::StreamExt;
 
     use fluvio_future::test_async;
     use fluvio_future::timer::sleep;
@@ -16,10 +19,12 @@ mod integration_tests {
     use k8_metadata_client::{ MetadataClient, ApplyResult};
     use k8_obj_core::service::ServicePort;
     use k8_obj_core::service::ServiceSpec;
-    use k8_obj_metadata::{ InputK8Obj, InputObjectMeta, Spec};
+    use k8_obj_metadata::{ InputK8Obj, InputObjectMeta, Spec, K8Watch};
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
     const PORT: u16 = 9002;
+    const ITER: u16 = 10;
+    const NS: &str = "default";
   
     const DELAY: Duration = Duration::from_millis(50);
 
@@ -72,8 +77,11 @@ mod integration_tests {
     /// create, update and delete random services
     async fn generate_services_data(client: &K8Client) {
 
+        // wait to allow test to retrieve first in order to version
+        sleep(DELAY).await;
+
         // go thru create, update spec and delete
-        for i in 0..10 {
+        for i in 0..ITER {
         
             let new_item = new_service(i);
 
@@ -96,7 +104,7 @@ mod integration_tests {
                 ..Default::default()
             };
 
-            debug!("updated item: {:#?}",update_item);
+            trace!("updated item: {:#?}",update_item);
             // apply new changes
             debug!("updating service: {}",i);
             let updates = client.apply(update_item).await.expect("apply");
@@ -124,6 +132,37 @@ mod integration_tests {
     // verify client
     async fn verify_client(client: &K8Client) {
 
+        // there should be only 1 service (kubernetes)
+        let services = client.retrieve_items::<ServiceSpec, _>(NS).await.expect("services");
+        assert_eq!(services.items.len(),1);
+
+    
+        let version = services.metadata.resource_version.clone();
+        debug!("using version: {} ",version);
+
+        let mut service_streams = client.watch_stream_since::<ServiceSpec,_>(NS, Some(version));
+
+        for i in 0..ITER  {
+            
+            debug!("checking service: {}",i);
+            let mut add_events = service_streams.next().await.expect("events").expect("events");
+            assert_eq!(add_events.len(),1);
+            let add_event = add_events.pop().unwrap();
+             //  debug!("events:{:#?}",events);
+            assert!(matches!(add_event.expect("ok"),K8Watch::ADDED(_)));
+            
+            let mut update_events = service_streams.next().await.expect("events").expect("events");
+            let update_event = update_events.pop().unwrap();
+            assert!(matches!(update_event.expect("ok"),K8Watch::MODIFIED(_)));
+
+            let mut delete_events = service_streams.next().await.expect("events").expect("events");
+            let delete_event= delete_events.pop().unwrap();
+            assert!(matches!(delete_event.expect("ok"),K8Watch::DELETED(_)));
+
+        }
+
+
+
     }
 
     #[test_async]
@@ -131,7 +170,7 @@ mod integration_tests {
         
         let client = create_client();
         
-        generate_services_data(&client).await;
+        join(generate_services_data(&client),verify_client(&client)).await;
 
         Ok(())
     }
