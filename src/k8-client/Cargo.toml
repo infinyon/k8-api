@@ -12,7 +12,6 @@ readme = "README.md"
 [features]
 default = ["native_tls"]
 k8 = []
-k8_stream = ["k8"]
 native_tls = ["fluvio-future/native2_tls"]
 
 [dependencies]
@@ -41,6 +40,7 @@ k8-config = { version = "1.0.0", path = "../k8-config"}
 
 [dev-dependencies]
 rand = "0.7.2"
+once_cell = "1.4.1"
 async-trait = "0.1.21"
 fluvio-future = { version = "0.1.7", features=["fixture"]}
 flv-util = { version = "0.5.0", features=["fixture"]}

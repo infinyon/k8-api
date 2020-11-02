@@ -6,7 +6,9 @@ setup:
 run-integration-test:
 	cargo test --features=k8
 
-
+run-test-service-changes:
+	- kubectl get services --no-headers=true | awk '/testservice/{print $1}' | xargs  kubectl delete service
+	cargo test --features=k8 test_service_changes
 
 # set up cluster roles 
 set-anonymous:

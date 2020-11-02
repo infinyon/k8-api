@@ -353,7 +353,7 @@ impl MetadataClient for K8Client {
 
         let bytes = serde_json::to_vec(&patch)?;
 
-        trace!("patch raw: {}", String::from_utf8_lossy(&bytes).to_string());
+        trace!("patch uri: {}, raw: {}", uri,String::from_utf8_lossy(&bytes).to_string());
 
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")
