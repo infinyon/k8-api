@@ -61,6 +61,6 @@ jobs:
       - name: Set minikube context
         run: |
           make set-minikube-context
-      - name: K8 integration test
-        run: make integration-test
+      - name: K8 client integration test
+        run: make k8-client-integration-test
 
