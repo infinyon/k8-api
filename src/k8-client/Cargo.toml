@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-client"
-version = "2.1.0"
+version = "3.0.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -10,28 +10,29 @@ categories = ["api-bindings","asynchronous","encoding","network-programming"]
 readme = "README.md"
 
 [features]
+default = ["native_tls"]
 k8 = []
-k8_stream = ["k8"]
-
+native_tls = ["fluvio-future/native2_tls"]
+rust_tls = ["rustls","fluvio-future/tls"]
 
 [dependencies]
+cfg-if = "1.0"
 tracing = "0.1.19"
 tracing-futures = "0.2.4"
 bytes = "0.5.6"
 base64 = { version = "0.12.0" }
-futures-util = { version = "0.3.5"}
+futures-util = { version = "0.3.5", features = ["io"]}
 rand = { version = "0.7.3" }
-isahc = { version = "0.9.9", features = ["json","static-curl"]}
-curl = { version = "0.4.33", features = ["mesalink"] }
-openssl-sys = { version = "0.9.0", features = ["vendored"] }
-webpki = { version = "0.21.0" }
-rustls = { version = "0.18.0" }
+rustls = { version = "0.18.0", optional = true }
+hyper = { version = "0.13.8", default-features=false, features=["stream"] }
+http = { version = "0.2" }
+tokio = { version = "0.2.11" }
 pin-utils = "0.1.0"
 serde = { version ="1.0.103", features = ['derive'] }
 serde_json = "1.0.40"
 serde_qs = "0.5.0"
 async-trait = "0.1.21"
-fluvio-future = { version = "0.1.0"}
+fluvio-future = { version = "0.1.7", features = ["net"]}
 k8-obj-core = { version = "1.1.0", path = "../k8-obj-core"}
 k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
 k8-metadata-client = { version = "1.0.0", path = "../k8-metadata-client"}
@@ -41,8 +42,9 @@ k8-config = { version = "1.0.0", path = "../k8-config"}
 
 [dev-dependencies]
 rand = "0.7.2"
+once_cell = "1.4.1"
 async-trait = "0.1.21"
-fluvio-future = { version = "0.1.0", features=["fixture"]}
+fluvio-future = { version = "0.1.7", features=["fixture"]}
 flv-util = { version = "0.5.0", features=["fixture"]}
 k8-obj-app = { version = "1.0.0", path = "../k8-obj-app"}
 k8-obj-core = { version = "1.1.0", path = "../k8-obj-core"}

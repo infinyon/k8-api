@@ -58,9 +58,8 @@ jobs:
         run: |
           kubectl get nodes
           kubectl config view
-      - name: Set minikube context
-        run: |
-          make set-minikube-context
-      - name: K8 integration test
-        run: make integration-test
+      - name: K8 client integration test native
+        run: make k8-client-integration-test-native
+      - name: K8 client integration test with rustls
+        run: make k8-client-integration-test-rustls
 

@@ -2,28 +2,17 @@ publish:
 	 cargo-publish-all
 
 
-build-hyper:
-	make -C src/k8-client build-hyper
+k8-client-build:
+	make -C src/k8-client build
+
+k8-client-integration-test-native:
+	make -C src/k8-client run-integration-test-native
 
 
-build-isahc:
-	make -C src/k8-client build-isahc
-
-
-test-hyper-service:
-	make -C src/k8-client test-hyper-service
-
-test-isahc:
-	make -C src/k8-client test-isahc-secrets
-	
-build-test:
-	make -C src/k8-client build-test
-
-integration-test:
-	make -C src/k8-client run-integration-test
-
-set-minikube-context:
+k8-client-integration-test-rustls:
 	cargo run --bin k8-ctx-util
+	make -C src/k8-client run-integration-test-rustls
 
-build-config-context:
-	cd src/k8-config;cargo build --features=context
+k8-client-run-test-service-changes:
+	make -C src/k8-client run-test-service-changes
+	

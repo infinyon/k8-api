@@ -4,12 +4,12 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use bytes::buf::ext::BufExt;
-use futures::future::FutureExt;
-use futures::stream::empty;
-use futures::stream::BoxStream;
-use futures::stream::Stream;
-use futures::stream::StreamExt;
-use futures::stream::TryStreamExt;
+use futures_util::future::FutureExt;
+use futures_util::stream::empty;
+use futures_util::stream::BoxStream;
+use futures_util::stream::Stream;
+use futures_util::stream::StreamExt;
+use futures_util::stream::TryStreamExt;
 use hyper::body::aggregate;
 use hyper::body::Bytes;
 use hyper::header::HeaderValue;
@@ -18,7 +18,6 @@ use hyper::header::AUTHORIZATION;
 use hyper::header::CONTENT_TYPE;
 use hyper::Body;
 use hyper::Request;
-use hyper::StatusCode;
 use hyper::Uri;
 use serde::de::DeserializeOwned;
 use serde_json;
@@ -43,18 +42,21 @@ use k8_obj_metadata::K8Watch;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::UpdateK8ObjStatus;
 
-use super::config::HyperBuilder;
-use super::config::HyperHttpsClient;
+
 use super::wstream::WatchStream;
 use crate::uri::item_uri;
 use crate::uri::items_uri;
 use crate::ClientError;
-use crate::ListStream;
+
+
+use super::ListStream;
+use super::HyperClient;
+use super::HyperConfigBuilder;
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
 pub struct K8Client {
-    client: HyperHttpsClient,
+    client: HyperClient,
     host: String,
     token: Option<String>,
 }
@@ -67,7 +69,7 @@ impl K8Client {
     }
 
     pub fn new(config: K8Config) -> Result<Self, ClientError> {
-        let helper = HyperBuilder::new(config)?;
+        let helper = HyperConfigBuilder::new(config)?;
         let host = helper.host();
         let token = helper.token();
         let client = helper.build()?;
@@ -108,24 +110,34 @@ impl K8Client {
         let status = resp.status();
         debug!("response status: {:#?}", status);
 
+        if status.is_success() {
+
+            let body = aggregate(resp).await?;
+
+            serde_json::from_reader(body.reader()).map_err(|err| {
+                error!("json error: {}", err);
+                //let v = body.bytes();
+                //let raw = String::from_utf8_lossy(&v).to_string();
+                //error!("raw: {}", err);
+                /*
+                let v: serde_json::Value = serde_json::from_slice(&body).expect("this shoud parse");
+                trace!("json struct: {:#?}", v);
+                */
+                err.into()
+            })
+
+        } else {
+            Err(ClientError::Client(status))
+        }
+
+        /*
         if status.as_u16() == StatusCode::NOT_FOUND {
             debug!("returning not found");
             return Err(ClientError::NotFound);
         }
+        */
 
-        let body = aggregate(resp).await?;
-
-        serde_json::from_reader(body.reader()).map_err(|err| {
-            error!("json error: {}", err);
-            //let v = body.bytes();
-            //let raw = String::from_utf8_lossy(&v).to_string();
-            //error!("raw: {}", err);
-            /*
-            let v: serde_json::Value = serde_json::from_slice(&body).expect("this shoud parse");
-            trace!("json struct: {:#?}", v);
-            */
-            err.into()
-        })
+        
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
@@ -226,7 +238,7 @@ impl MetadataClient for K8Client {
     async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>, ClientError>
     where
         S: Spec,
-        M: K8Meta<S> + Send + Sync,
+        M: K8Meta + Send + Sync,
     {
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: retrieving item: {}", S::label(), uri);
@@ -268,7 +280,7 @@ impl MetadataClient for K8Client {
     async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, ClientError>
     where
         S: Spec,
-        M: K8Meta<S> + Send + Sync,
+        M: K8Meta + Send + Sync,
     {
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: delete item on url: {}", S::label(), uri);
@@ -332,7 +344,7 @@ impl MetadataClient for K8Client {
     async fn patch_spec<S, M>(&self, metadata: &M, patch: &Value) -> Result<K8Obj<S>, ClientError>
     where
         S: Spec,
-        M: K8Meta<S> + Display + Send + Sync,
+        M: K8Meta + Display + Send + Sync,
     {
         debug!("patching item at '{}'", metadata);
         trace!("patch json value: {:#?}", patch);
@@ -341,7 +353,7 @@ impl MetadataClient for K8Client {
 
         let bytes = serde_json::to_vec(&patch)?;
 
-        trace!("patch raw: {}", String::from_utf8_lossy(&bytes).to_string());
+        trace!("patch uri: {}, raw: {}", uri,String::from_utf8_lossy(&bytes).to_string());
 
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")

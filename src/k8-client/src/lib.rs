@@ -1,27 +1,19 @@
 mod cert;
 mod error;
-mod list_stream;
 mod uri;
 
 
-mod native;
-pub use native::*;
+mod client;
+pub use self::client::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
 
-/*
-#[cfg(feature = "hyper2")]
-mod hyper;
-#[cfg(feature = "hyper2")]
-pub use crate::hyper::*;
-*/
 
 
 #[cfg(feature = "k8")]
 pub mod fixture;
 
-use cert::*;
 
 pub mod metadata {
     pub use k8_metadata_client::*;
