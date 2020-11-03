@@ -187,10 +187,10 @@ impl ConfigBuilder for HyperClientBuilder {
         })
     }
 
-    fn load_client_certificate(
+    fn load_client_certificate<P: AsRef<Path>>(
         self,
-        client_crt_path: impl AsRef<Path>,
-        client_key_path: impl AsRef<Path>,
+        client_crt_path: P,
+        client_key_path: P
     ) -> Result<Self, IoError>
     {
         let identity = IdentityBuilder::from_x509(

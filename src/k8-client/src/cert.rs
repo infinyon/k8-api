@@ -21,10 +21,10 @@ pub trait ConfigBuilder: Sized {
     fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>;
 
     // load client certificate (crt) and private key
-    fn load_client_certificate(
+    fn load_client_certificate<P: AsRef<Path>>(
         self,
-        client_crt_path: impl AsRef<Path>,
-        client_key_path: impl AsRef<Path>,
+        client_crt_path: P,
+        client_key_path: P
     ) -> Result<Self, IoError>;
 }
 

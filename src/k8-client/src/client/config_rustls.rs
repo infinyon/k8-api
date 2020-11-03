@@ -154,17 +154,15 @@ impl ConfigBuilder for HyperClientBuilder {
 
     fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>
     {
-        self.0.load_ca_cert(ca_path)?;
-        Ok(Self(self.0))
+        Ok(Self(self.0.load_ca_cert(ca_path)?))
     }
 
-    fn load_client_certificate(
+    fn load_client_certificate<P: AsRef<Path>>(
         self,
-        client_crt_path: impl AsRef<Path>,
-        client_key_path: impl AsRef<Path>,
+        client_crt_path: P,
+        client_key_path: P
     ) -> Result<Self, IoError>
     {
-        self.0.load_client_certs(client_crt_path, client_key_path)?;
-        Ok(Self(self.0))
+        Ok(Self(self.0.load_client_certs(client_crt_path,client_key_path )?))
     }
 }
