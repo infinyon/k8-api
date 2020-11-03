@@ -3,8 +3,11 @@ MAKE_DIR = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 setup:
 	kubectl apply -f $(MAKE_DIR)/tests/test.yaml
 
-run-integration-test:
-	cargo test --features=k8
+run-integration-test-native:
+	cargo test --features k8,native_tls
+
+run-integration-test-rustls:
+	cargo test --no-default-features --features k8,rust_tls
 
 run-test-service-changes:
 	- kubectl get services --no-headers=true | awk '/testservice/{print $1}' | xargs  kubectl delete service
@@ -14,6 +17,10 @@ run-test-service-changes:
 # set up cluster roles 
 set-anonymous:
 	 create clusterrolebinding cluster-system-anonymous --clusterrole=cluster-admin --user=system:anonymous	 
+
+
+
+
 
 
 build:
