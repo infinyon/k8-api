@@ -39,11 +39,20 @@ build-test:
 	cargo test --no-run --features="hyper2","k8"
 
 
-build-hello-minikube:
+build-hello-minikube:	clean-hello
 	cargo build --bin hello --target $(TARGET_LINUX)
 	echo "Building hello musl image with version: $(DOCKER_TAG)"
 	export CARGO_PROFILE=$(if $(RELEASE),release,debug); \
 	export MINIKUBE_DOCKER_ENV=true; \
 	export DOCKER_TAG=$(DOCKER_TAG); \
 	k8-test/build.sh
+	kubectl apply -f k8-test/service.yaml
+	kubectl apply -f k8-test/role.yaml
+	kubectl apply -f k8-test/role-binding.yaml
 	kubectl apply -f k8-test/hello-deploy.yaml
+
+clean-hello:
+	-e kubectl delete -f k8-test/hello-deploy.yaml
+	-e kubectl delete -f k8-test/service.yaml
+	-e kubectl delete -f k8-test/role.yaml
+	-e kubectl delete -f k8-test/role-binding.yaml

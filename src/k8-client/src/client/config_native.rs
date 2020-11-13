@@ -165,13 +165,17 @@ impl ConfigBuilder for HyperClientBuilder {
             None => return Err(ClientError::Other("no ca cert".to_string()))
         };
 
-        let client_identity = match self.client_identity {
-            Some(builder) => builder,
-            None => return Err(ClientError::Other("no client identity".to_string()))
+        let connector_builder = match self.client_identity {
+            Some(builder) => {
+                ConnectorBuilder::identity(builder)?
+                    .add_root_certificate(ca_cert)?
+            },
+            None => {
+                ConnectorBuilder::anonymous()
+                .add_root_certificate(ca_cert)?
+            }
         };
 
-        let connector_builder = ConnectorBuilder::identity(client_identity)?
-            .add_root_certificate(ca_cert)?;
         let connector = connector_builder.build();
         Ok(Client::builder()
             .executor(FluvioHyperExecutor)
@@ -193,6 +197,10 @@ impl ConfigBuilder for HyperClientBuilder {
         client_key_path: P
     ) -> Result<Self, IoError>
     {
+        debug!("loading client crt from: {:#?}",client_crt_path.as_ref());
+        debug!("loading client key from: {:#?}",client_key_path.as_ref());
+
+
         let identity = IdentityBuilder::from_x509(
             X509PemBuilder::from_path(client_crt_path)?,
             PrivateKeyBuilder::from_path(client_key_path)?

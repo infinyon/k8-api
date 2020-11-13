@@ -87,6 +87,7 @@ where
     }
 
     fn configure_in_cluster(builder: B, pod: &PodConfig) -> Result<B, IoError> {
+        debug!("configure as pod in cluster");
         let path = pod.ca_path();
         debug!("loading ca at: {}", path);
         builder.load_ca_certificate(path)

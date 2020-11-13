@@ -12,12 +12,13 @@ spec:
       labels:
         app: k8-test
     spec:
+      serviceAccountName: hello
       containers:
         - name: hello
           image: k8-hello:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: RUST_LOG
-              value: DEBUG
+              value: debug
           command: ["/hello"]
   
