@@ -24,7 +24,7 @@ pub trait ConfigBuilder: Sized {
     fn load_client_certificate<P: AsRef<Path>>(
         self,
         client_crt_path: P,
-        client_key_path: P
+        client_key_path: P,
     ) -> Result<Self, IoError>;
 }
 

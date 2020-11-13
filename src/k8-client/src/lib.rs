@@ -2,18 +2,14 @@ mod cert;
 mod error;
 mod uri;
 
-
 mod client;
 pub use self::client::*;
 
 pub use self::error::ClientError;
 pub use k8_config::K8Config;
 
-
-
 #[cfg(feature = "k8")]
 pub mod fixture;
-
 
 pub mod metadata {
     pub use k8_metadata_client::*;

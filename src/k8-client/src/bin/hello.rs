@@ -8,7 +8,10 @@ use k8_obj_core::service::ServiceSpec;
 
 async fn test_client_get_services() -> Result<(), ClientError> {
     let client = K8Client::default().expect("cluster could not be configured");
-    let services = client.retrieve_items::<ServiceSpec, _>("default").await.expect("items retrieved");
+    let services = client
+        .retrieve_items::<ServiceSpec, _>("default")
+        .await
+        .expect("items retrieved");
     debug!("service: {} has been retrieved", services.items.len());
 
     let kubernetes_service = services
@@ -21,7 +24,7 @@ async fn test_client_get_services() -> Result<(), ClientError> {
 
 /// run in the K8 as pod
 /// same as canary
-/// 
+///
 fn main() {
     fluvio_future::subscriber::init_tracer(None);
     run_block_on(test_client_get_services()).expect("success");

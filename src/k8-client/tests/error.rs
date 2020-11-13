@@ -9,12 +9,12 @@ mod integration_tests {
     use tracing::debug;
 
     use fluvio_future::test_async;
+    use k8_client::http::status::StatusCode;
     use k8_client::ClientError;
     use k8_client::K8Client;
-    use k8_client::http::status::StatusCode;
     use k8_metadata_client::MetadataClient;
     use k8_obj_core::service::ServicePort;
-    use k8_obj_core::service::{ ServiceSpec, LoadBalancerIngress};
+    use k8_obj_core::service::{LoadBalancerIngress, ServiceSpec};
     use k8_obj_metadata::InputK8Obj;
     use k8_obj_metadata::InputObjectMeta;
     use k8_obj_metadata::Spec;
@@ -73,7 +73,7 @@ mod integration_tests {
 
         let initial_version = item.metadata.resource_version.clone();
         debug!("client resource_version: {}", initial_version);
-        
+
         // update status
         let mut new_status = item.status.clone();
         let ingress = LoadBalancerIngress {
@@ -100,22 +100,25 @@ mod integration_tests {
 
         debug!("updated resource_version: {}", updated_version);
 
-        assert_ne!(updated_version,initial_version);
+        assert_ne!(updated_version, initial_version);
 
         // do another update status which leads to conflict.
-        let err = client.update_status(&status_update2).await.expect_err("update");
+        let err = client
+            .update_status(&status_update2)
+            .await
+            .expect_err("update");
         match err {
-            ClientError::Client(status) => assert_eq!(status,StatusCode::CONFLICT),
-            _ => assert!(false)
+            ClientError::Client(status) => assert_eq!(status, StatusCode::CONFLICT),
+            _ => assert!(false),
         }
-        
+
         // clean up
         let input_metadata: InputObjectMeta = updated_item.metadata.into();
         client
             .delete_item::<ServiceSpec, _>(&input_metadata)
             .await
             .expect("delete should work");
-        
+
         Ok(())
     }
 }

@@ -1,10 +1,9 @@
 mod client;
 
-mod wstream;
 mod list_stream;
+mod wstream;
 
 pub use client::K8Client;
-
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "native_tls")] {
@@ -39,11 +38,9 @@ mod executor {
 
     pub(crate) struct FluvioHyperExecutor;
 
-    impl<F: Future + Send + 'static> Executor<F> for  FluvioHyperExecutor
-    {
+    impl<F: Future + Send + 'static> Executor<F> for FluvioHyperExecutor {
         fn execute(&self, fut: F) {
             spawn(async { drop(fut.await) });
         }
     }
-
 }
