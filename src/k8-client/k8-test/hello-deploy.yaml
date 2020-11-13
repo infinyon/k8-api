@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8-test
+  template:
+    metadata:
+      labels:
+        app: k8-test
+    spec:
+      containers:
+        - name: hello
+          image: k8-hello:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: RUST_LOG
+              value: DEBUG
+          command: ["/hello"]
+  

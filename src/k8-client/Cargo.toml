@@ -9,10 +9,14 @@ license = "Apache-2.0"
 categories = ["api-bindings","asynchronous","encoding","network-programming"]
 readme = "README.md"
 
+[[bin]]
+name = "hello"
+path = "src/bin/hello.rs"
+
 [features]
 default = ["native_tls"]
 k8 = []
-native_tls = ["fluvio-future/native2_tls"]
+native_tls = ["fluvio-future/native2_tls","openssl/vendored"]
 rust_tls = ["rustls","fluvio-future/tls"]
 
 [dependencies]
@@ -23,6 +27,7 @@ bytes = "0.5.6"
 base64 = { version = "0.12.0" }
 futures-util = { version = "0.3.5", features = ["io"]}
 rand = { version = "0.7.3" }
+openssl = { version = "0.10.30", optional = true }
 rustls = { version = "0.18.0", optional = true }
 hyper = { version = "0.13.8", default-features=false, features=["stream"] }
 http = { version = "0.2" }
