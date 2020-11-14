@@ -1,5 +1,5 @@
-use std::io::Error as IoError;
 use serde_yaml::Error as SerdeYamlError;
+use std::io::Error as IoError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

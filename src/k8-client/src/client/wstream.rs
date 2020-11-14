@@ -117,7 +117,7 @@ where
             }
         } else {
             trace!("no buffer, swapping pending");
-            *(self.as_mut().buffer()) =last_buffer;
+            *(self.as_mut().buffer()) = last_buffer;
         }
 
         if done {

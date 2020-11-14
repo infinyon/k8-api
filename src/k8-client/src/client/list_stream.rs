@@ -9,8 +9,8 @@ use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
-use futures_util::future::FutureExt;
 use futures_util::future::Future;
+use futures_util::future::FutureExt;
 use futures_util::stream::Stream;
 use pin_utils::unsafe_pinned;
 use pin_utils::unsafe_unpinned;

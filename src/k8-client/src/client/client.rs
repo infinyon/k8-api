@@ -42,16 +42,14 @@ use k8_obj_metadata::K8Watch;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::UpdateK8ObjStatus;
 
-
 use super::wstream::WatchStream;
 use crate::uri::item_uri;
 use crate::uri::items_uri;
 use crate::ClientError;
 
-
-use super::ListStream;
 use super::HyperClient;
 use super::HyperConfigBuilder;
+use super::ListStream;
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
@@ -111,7 +109,6 @@ impl K8Client {
         debug!("response status: {:#?}", status);
 
         if status.is_success() {
-
             let body = aggregate(resp).await?;
 
             serde_json::from_reader(body.reader()).map_err(|err| {
@@ -125,7 +122,6 @@ impl K8Client {
                 */
                 err.into()
             })
-
         } else {
             Err(ClientError::Client(status))
         }
@@ -136,8 +132,6 @@ impl K8Client {
             return Err(ClientError::NotFound);
         }
         */
-
-        
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
@@ -353,7 +347,11 @@ impl MetadataClient for K8Client {
 
         let bytes = serde_json::to_vec(&patch)?;
 
-        trace!("patch uri: {}, raw: {}", uri,String::from_utf8_lossy(&bytes).to_string());
+        trace!(
+            "patch uri: {}, raw: {}",
+            uri,
+            String::from_utf8_lossy(&bytes).to_string()
+        );
 
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")

@@ -1,13 +1,13 @@
 use std::env;
-use std::io::Write;
 use std::fs::OpenOptions;
+use std::io::Write;
 use std::net::IpAddr;
-use std::process::{Command, Stdio};
 use std::os::unix::fs::OpenOptionsExt;
+use std::process::{Command, Stdio};
 
-use tracing::debug;
-use serde::Deserialize;
 use crate::ConfigError;
+use serde::Deserialize;
+use tracing::debug;
 
 pub use v1::*;
 
@@ -90,7 +90,10 @@ impl MinikubeContext {
     fn update_kubectl_context(&self) -> Result<(), ConfigError> {
         Command::new("kubectl")
             .args(&["config", "set-cluster", &self.name])
-            .arg(&format!("--server=https://minikubeCA:{}", self.profile.port()))
+            .arg(&format!(
+                "--server=https://minikubeCA:{}",
+                self.profile.port()
+            ))
             .arg(&format!("--certificate-authority={}", load_cert_auth()))
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
@@ -115,7 +118,8 @@ impl MinikubeContext {
 
     /// Updates the `/etc/hosts` file by rewriting the line with `minikubeCA`
     fn update_hosts(&self) -> Result<(), ConfigError> {
-        let render = format!(r#"
+        let render = format!(
+            r#"
 #!/bin/bash
 # Get IP from context, if available
 export IP={ip}
@@ -123,7 +127,9 @@ export IP={ip}
 export IP="${{IP:-$(minikube ip)}}"
 sudo sed -i'' -e '/minikubeCA/d' /etc/hosts
 echo "$IP minikubeCA" | sudo tee -a  /etc/hosts
-"#, ip = &self.profile.ip());
+"#,
+            ip = &self.profile.ip()
+        );
 
         let tmp_file = env::temp_dir().join("flv_minikube.sh");
 
@@ -198,14 +204,32 @@ impl MinikubeProfile {
         let output = Command::new("minikube")
             .args(&["profile", "list", "-o", "json"])
             .output()?;
-        let output_string = String::from_utf8(output.stdout)
-            .map_err(|e| ConfigError::Other(format!("`minikube profile list -o json` did not give UTF-8: {}", e)))?;
-        let profiles: MinikubeProfileWrapper = serde_json::from_str(&output_string)
-            .map_err(|e| ConfigError::Other(format!("`minikube profile list -o json` did not give valid JSON: {}", e)))?;
-        let profile_json = profiles.valid.into_iter().next()
+        let output_string = String::from_utf8(output.stdout).map_err(|e| {
+            ConfigError::Other(format!(
+                "`minikube profile list -o json` did not give UTF-8: {}",
+                e
+            ))
+        })?;
+        let profiles: MinikubeProfileWrapper =
+            serde_json::from_str(&output_string).map_err(|e| {
+                ConfigError::Other(format!(
+                    "`minikube profile list -o json` did not give valid JSON: {}",
+                    e
+                ))
+            })?;
+        let profile_json = profiles
+            .valid
+            .into_iter()
+            .next()
             .ok_or(ConfigError::Other("no valid minikube profiles".to_string()))?;
-        let node = profile_json.config.nodes.into_iter().next()
-            .ok_or(ConfigError::Other("Minikube has no active nodes".to_string()))?;
+        let node = profile_json
+            .config
+            .nodes
+            .into_iter()
+            .next()
+            .ok_or(ConfigError::Other(
+                "Minikube has no active nodes".to_string(),
+            ))?;
         let profile = MinikubeProfile {
             name: profile_json.name,
             node,
@@ -245,7 +269,8 @@ fn get_host_entry(hostname: &str) -> Result<std::option::Option<IpAddr>, ConfigE
     let hosts = hostfile::parse_hostfile()
         .map_err(|e| ConfigError::Other(format!("failed to get /etc/hosts entries: {}", e)))?;
     // Try to find a host entry with the given hostname
-    let minikube_entry = hosts.into_iter()
+    let minikube_entry = hosts
+        .into_iter()
         .find(|entry| entry.names.iter().any(|name| name == hostname));
     Ok(minikube_entry.map(|entry| entry.ip))
 }
@@ -263,9 +288,9 @@ pub mod v1 {
     use std::os::unix::fs::OpenOptionsExt;
     use std::process::Command;
 
-    use tracing::debug;
     use tera::Context;
     use tera::Tera;
+    use tracing::debug;
 
     pub use crate::K8Config;
 

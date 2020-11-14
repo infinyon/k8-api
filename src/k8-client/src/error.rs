@@ -1,7 +1,7 @@
 use std::env;
+use std::error::Error;
 use std::fmt;
 use std::io::Error as IoError;
-use std::error::Error;
 
 use hyper::Error as HyperError;
 
@@ -9,11 +9,9 @@ use k8_config::ConfigError;
 use k8_diff::DiffError;
 use k8_metadata_client::MetadataClientError;
 
-
 use crate::http::header::InvalidHeaderValue;
-use crate::http::Error as HttpError;
 use crate::http::status::StatusCode;
-
+use crate::http::Error as HttpError;
 
 #[non_exhaustive]
 #[derive(Debug)]
@@ -28,7 +26,7 @@ pub enum ClientError {
     PatchError,
     HyperError(HyperError),
     Client(StatusCode),
-    Other(String)
+    Other(String),
 }
 
 impl std::error::Error for ClientError {
@@ -44,7 +42,7 @@ impl std::error::Error for ClientError {
             Self::HyperError(err) => Some(err),
             Self::Client(_) => None,
             Self::PatchError => None,
-            Self::Other(_) => None
+            Self::Other(_) => None,
         }
     }
 }
@@ -73,14 +71,11 @@ impl From<DiffError> for ClientError {
     }
 }
 
-
-
 impl From<HttpError> for ClientError {
     fn from(error: HttpError) -> Self {
         Self::HttpError(error)
     }
 }
-
 
 impl From<InvalidHeaderValue> for ClientError {
     fn from(error: InvalidHeaderValue) -> Self {
@@ -94,7 +89,7 @@ impl From<ConfigError> for ClientError {
     }
 }
 
-impl From<StatusCode> for ClientError  {
+impl From<StatusCode> for ClientError {
     fn from(code: StatusCode) -> Self {
         Self::Client(code)
     }
@@ -113,12 +108,12 @@ impl fmt::Display for ClientError {
             Self::HttpError(err) => write!(f, "{}", err),
             Self::EnvError(err) => write!(f, "{}", err),
             Self::JsonError(err) => write!(f, "{}", err),
-            Self::Client(status) => write!(f, "client error: {}",status),
+            Self::Client(status) => write!(f, "client error: {}", status),
             Self::DiffError(err) => write!(f, "{:#?}", err),
             Self::InvalidHttpHeader(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
-            Self::HyperError(err) => write!(f,"{}",err),
+            Self::HyperError(err) => write!(f, "{}", err),
             Self::Other(msg) => write!(f, "{}", msg),
         }
     }
