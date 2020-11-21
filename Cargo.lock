@@ -490,9 +490,9 @@ dependencies = [
 
 [[package]]
 name = "fluvio-future"
-version = "0.1.7"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecd6e5839de09e94633050f1b7f9ddc8fb595d196c230c76fe7e9f6f6c0755ef"
+checksum = "41a052e79661f925020455863a680f16687bc5de1924d59dc925b208e51df468"
 dependencies = [
  "async-io",
  "async-native-tls",
@@ -505,7 +505,7 @@ dependencies = [
  "log",
  "native-tls",
  "openssl",
- "pin-project 0.4.27",
+ "pin-project 1.0.1",
  "rustls",
  "thiserror",
  "tracing",
@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "3.0.1"
+version = "3.0.2"
 dependencies = [
  "async-trait",
  "base64",

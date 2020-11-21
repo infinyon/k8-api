@@ -17,7 +17,7 @@ use hyper::Client;
 use tokio::io::{AsyncRead, AsyncWrite};
 
 use fluvio_future::net::TcpStream;
-use fluvio_future::tls::{ConnectorBuilder, DefaultClientTlsStream, TlsConnector};
+use fluvio_future::rust_tls::{ConnectorBuilder, DefaultClientTlsStream, TlsConnector};
 
 use super::executor::FluvioHyperExecutor;
 use crate::cert::{ClientConfigBuilder, ConfigBuilder};
