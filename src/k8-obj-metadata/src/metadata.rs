@@ -55,6 +55,7 @@ pub struct ObjectMeta {
     pub labels: HashMap<String, String>,
     pub owner_references: Vec<OwnerReferences>,
     pub annotations: HashMap<String, String>,
+    pub finalizers: Vec<String>
 }
 
 impl LabelProvider for ObjectMeta {
@@ -168,6 +169,7 @@ pub struct InputObjectMeta {
     pub labels: HashMap<String, String>,
     pub namespace: String,
     pub owner_references: Vec<OwnerReferences>,
+    pub finalizers: Vec<String>
 }
 
 impl LabelProvider for InputObjectMeta {

@@ -17,20 +17,11 @@ use serde_json::Value;
 use tracing::debug;
 use tracing::trace;
 
-use k8_diff::Changes;
-use k8_diff::Diff;
-use k8_diff::DiffError;
-use k8_obj_metadata::InputK8Obj;
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::K8Meta;
-use k8_obj_metadata::K8Obj;
-use k8_obj_metadata::K8Status;
-use k8_obj_metadata::K8Watch;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::UpdateK8ObjStatus;
+use k8_diff::{ Changes, Diff, DiffError};
+use k8_obj_metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus };
+use k8_obj_metadata::options::DeleteOptions;
 
-use crate::ApplyResult;
-use crate::DiffSpec;
+use crate::{ ApplyResult, DiffSpec };
 
 #[derive(Clone)]
 pub enum NameSpace {
@@ -146,10 +137,20 @@ pub trait MetadataClient: Send + Sync {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static;
 
-    async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(&self, metadata: &M, option: Option<DeleteOptions>) -> Result<K8Status, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
+
+
+    async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Send + Sync {
+
+        self.delete_item_with_option::<S,M>(metadata, None).await
+
+    }
 
     /// create new object
     async fn create_item<S>(

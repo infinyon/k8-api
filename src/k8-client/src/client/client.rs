@@ -27,29 +27,16 @@ use tracing::error;
 use tracing::trace;
 
 use k8_config::K8Config;
-use k8_metadata_client::ListArg;
-use k8_metadata_client::MetadataClient;
-use k8_metadata_client::NameSpace;
-use k8_metadata_client::PatchMergeType;
-use k8_metadata_client::TokenStreamResult;
-use k8_obj_metadata::options::ListOptions;
-use k8_obj_metadata::InputK8Obj;
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::K8Meta;
-use k8_obj_metadata::K8Obj;
-use k8_obj_metadata::K8Status;
-use k8_obj_metadata::K8Watch;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::UpdateK8ObjStatus;
+use k8_metadata_client::{ ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult };
+use k8_obj_metadata::options::{ ListOptions, DeleteOptions };
+use k8_obj_metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
 
 use super::wstream::WatchStream;
-use crate::uri::item_uri;
-use crate::uri::items_uri;
+use crate::uri::{ item_uri, items_uri};
 use crate::ClientError;
 
-use super::HyperClient;
-use super::HyperConfigBuilder;
-use super::ListStream;
+use super::{ HyperClient, HyperConfigBuilder, ListStream };
+
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
@@ -222,6 +209,8 @@ impl K8Client {
         trace!("items retrieved: {:#?}", items);
         Ok(items)
     }
+
+    
 }
 
 #[async_trait]
@@ -271,15 +260,27 @@ impl MetadataClient for K8Client {
         ListStream::new(namespace.into(), limit, option, self.clone()).boxed()
     }
 
-    async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, ClientError>
+    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<K8Status, ClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
     {
+        
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: delete item on url: {}", S::label(), uri);
 
-        self.handle_request(Request::delete(uri).body(Body::empty())?)
+        let body = if let Some(option_value) = option {
+            let bytes = serde_json::to_vec(&option_value)?;
+            trace!(
+                "delete raw : {}",
+                String::from_utf8_lossy(&bytes).to_string()
+            );
+
+            bytes.into()
+        } else {
+            Body::empty()
+        };
+        self.handle_request(Request::delete(uri).body(body)?)
             .await
     }
 

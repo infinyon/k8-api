@@ -60,6 +60,4 @@ jobs:
           kubectl config view
       - name: K8 client integration test native
         run: make k8-client-integration-test-native
-     # - name: K8 client integration test with rustls
-     #   run: make k8-client-integration-test-rustls
 

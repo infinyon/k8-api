@@ -16,16 +16,37 @@ pub struct ListOptions {
     pub watch: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteOptions {
-    pub api_version: Option<String>,
+    pub kind: &'static str,
+    pub api_version: &'static str,
+    pub pretty: Option<bool>,
+    pub dry_run: Option<String>,
     pub grace_period_seconds: Option<u64>,
-    pub kind: Option<String>,
-    pub orphan_dependents: Option<String>,
-    pub preconditions: Vec<Precondition>,
-    pub propagation_policy: Option<String>,
+    pub propagation_policy: Option<PropogationPolicy>,
 }
+
+impl Default for DeleteOptions {
+
+    fn default() -> Self {
+        Self { 
+            kind: "DeleteOptions",
+            api_version: "v1",
+            pretty: None,
+            dry_run: None,
+            grace_period_seconds: None,
+            propagation_policy: None
+        }
+    }
+}
+#[derive(Serialize)]
+pub enum PropogationPolicy {
+    Orphan,
+    Background,
+    Foreground
+}
+
 
 #[derive(Serialize, Default)]
 #[serde(rename_all = "camelCase")]

@@ -37,10 +37,14 @@ mod integration_tests {
         rng.sample_iter(&Alphanumeric).take(5).collect()
     });
 
-    /// create new service item
     fn new_service(item_id: u16) -> InputK8Obj<ServiceSpec> {
         let name = format!("testservice{}{}", item_id, *PREFIX);
+        new_service_with_name(name)
+    }
 
+    /// create new service item
+    fn new_service_with_name(name: String) -> InputK8Obj<ServiceSpec> {
+        
         let mut labels = HashMap::new();
         labels.insert("app".to_owned(), SPU_DEFAULT_NAME.to_owned());
         let mut selector = HashMap::new();
@@ -177,4 +181,38 @@ mod integration_tests {
 
         Ok(())
     }
+
+    
+
+    
+    #[test_async]
+    async fn test_service_delete_with_option() -> Result<(), ClientError> {
+        use k8_obj_metadata::options::{ DeleteOptions, PropogationPolicy };
+
+        let client = create_client();
+       
+        let new_item = new_service_with_name("testservice".to_owned());
+      //  new_item.metadata.finalizers = vec!["my-finalizer.example.com".to_owned()];
+
+        
+        let created_item = client
+               .create_item::<ServiceSpec>(new_item)
+               .await
+               .expect("service should be created");
+
+         
+        client
+            .delete_item_with_option::<ServiceSpec, _>(&created_item.metadata,Some(DeleteOptions {
+                propagation_policy: Some(PropogationPolicy::Foreground),
+                ..Default::default()
+            }))
+            .await
+            .expect("delete should work");
+
+        assert!(true);
+
+        Ok(())
+        
+    }
+
 }
