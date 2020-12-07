@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use bytes::Buf;
+use bytes::buf::ext::BufExt;
 use futures_util::future::FutureExt;
 use futures_util::stream::empty;
 use futures_util::stream::BoxStream;
@@ -89,6 +89,8 @@ impl K8Client {
     where
         T: DeserializeOwned,
     {
+        use std::io::Read;
+
         self.finish_request(&mut request)?;
 
         let resp = self.client.request(request).await?;
@@ -97,13 +99,12 @@ impl K8Client {
         debug!("response status: {:#?}", status);
 
         if status.is_success() {
-            let body = aggregate(resp).await?;
-
-            let v = body.bytes();
-            serde_json::from_slice(v).map_err(|err| {
-                error!("json error: {}", err);               
-                error!("raw: {}", String::from_utf8_lossy(v));
-                
+            let mut reader = (aggregate(resp).await?).reader();
+            let mut buffer = Vec::new();
+            reader.read_to_end(&mut buffer)?;
+            serde_json::from_slice(&buffer).map_err(|err| {
+                error!("json error: {}", err);     
+                error!("source: {}",String::from_utf8_lossy(&buffer));           
                 err.into()
             })
         } else {

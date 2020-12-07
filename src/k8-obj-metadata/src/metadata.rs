@@ -297,8 +297,9 @@ pub struct K8Status<S> where S: Spec {
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    pub spec: S,
-    pub status: S::Status,
+    pub spec: Option<S>,
+    #[serde(deserialize_with = "StatusEnum::deserialize_with")]
+    pub status: StatusEnum,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
