@@ -18,13 +18,12 @@ use pin_utils::unsafe_unpinned;
 use k8_metadata_client::ListArg;
 use k8_metadata_client::NameSpace;
 
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::Spec;
-
+use crate::core::metadata::{ K8List, Spec };
+use crate::core::metadata::options::ListOptions;
 use crate::ClientError;
 use crate::K8Client;
 use crate::SharedK8Client;
-use k8_obj_metadata::options::ListOptions;
+
 
 pub struct ListStream<'a, S>
 where

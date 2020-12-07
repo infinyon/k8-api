@@ -18,5 +18,5 @@ serde_qs = "0.5.0"
 async-trait = "0.1.21"
 http = { version = "0.1.15" }
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
-k8-obj-metadata = { version = "1.1.0", path = "../k8-obj-metadata" }
+k8-obj-metadata = { version = "2.0.0", path = "../k8-obj-metadata" }
 

@@ -17,9 +17,8 @@ mod integration_tests {
 
     use k8_client::{ClientError, K8Client};
     use k8_metadata_client::{ApplyResult, MetadataClient};
-    use k8_obj_core::service::ServicePort;
-    use k8_obj_core::service::ServiceSpec;
-    use k8_obj_metadata::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
+    use k8_obj_core::service::{ServicePort,ServiceSpec};
+    use k8_obj_core::metadata::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
     const PORT: u16 = 9002;
@@ -187,7 +186,7 @@ mod integration_tests {
     
     #[test_async]
     async fn test_service_delete_with_option() -> Result<(), ClientError> {
-        use k8_obj_metadata::options::{ DeleteOptions, PropogationPolicy };
+        use k8_obj_core::metadata::options::{ DeleteOptions, PropogationPolicy };
 
         let client = create_client();
        

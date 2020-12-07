@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use bytes::buf::ext::BufExt;
+use bytes::Buf;
 use futures_util::future::FutureExt;
 use futures_util::stream::empty;
 use futures_util::stream::BoxStream;
@@ -28,13 +28,14 @@ use tracing::trace;
 
 use k8_config::K8Config;
 use k8_metadata_client::{ ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult };
-use k8_obj_metadata::options::{ ListOptions, DeleteOptions };
-use k8_obj_metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
+use crate::core::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
+use crate::core::metadata::options::{ ListOptions, DeleteOptions };
 
-use super::wstream::WatchStream;
 use crate::uri::{ item_uri, items_uri};
 use crate::ClientError;
 
+
+use super::wstream::WatchStream;
 use super::{ HyperClient, HyperConfigBuilder, ListStream };
 
 
@@ -98,15 +99,11 @@ impl K8Client {
         if status.is_success() {
             let body = aggregate(resp).await?;
 
-            serde_json::from_reader(body.reader()).map_err(|err| {
-                error!("json error: {}", err);
-                //let v = body.bytes();
-                //let raw = String::from_utf8_lossy(&v).to_string();
-                //error!("raw: {}", err);
-                /*
-                let v: serde_json::Value = serde_json::from_slice(&body).expect("this shoud parse");
-                trace!("json struct: {:#?}", v);
-                */
+            let v = body.bytes();
+            serde_json::from_slice(v).map_err(|err| {
+                error!("json error: {}", err);               
+                error!("raw: {}", String::from_utf8_lossy(v));
+                
                 err.into()
             })
         } else {
@@ -260,7 +257,7 @@ impl MetadataClient for K8Client {
         ListStream::new(namespace.into(), limit, option, self.clone()).boxed()
     }
 
-    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<K8Status, ClientError>
+    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<K8Status<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -273,7 +270,7 @@ impl MetadataClient for K8Client {
             let bytes = serde_json::to_vec(&option_value)?;
             trace!(
                 "delete raw : {}",
-                String::from_utf8_lossy(&bytes).to_string()
+                String::from_utf8_lossy(&bytes)
             );
 
             bytes.into()

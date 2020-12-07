@@ -930,9 +930,7 @@ dependencies = [
  "k8-config",
  "k8-diff",
  "k8-metadata-client",
- "k8-obj-app",
  "k8-obj-core",
- "k8-obj-metadata",
  "once_cell",
  "openssl",
  "pin-utils",
@@ -995,11 +993,10 @@ dependencies = [
 
 [[package]]
 name = "k8-obj-app"
-version = "1.1.1"
+version = "2.0.0"
 dependencies = [
  "http 0.1.21",
  "k8-obj-core",
- "k8-obj-metadata",
  "serde",
  "serde_json",
  "serde_qs 0.4.6",
@@ -1008,7 +1005,7 @@ dependencies = [
 
 [[package]]
 name = "k8-obj-core"
-version = "1.1.0"
+version = "2.0.0"
 dependencies = [
  "http 0.1.21",
  "k8-obj-metadata",
@@ -1020,7 +1017,7 @@ dependencies = [
 
 [[package]]
 name = "k8-obj-metadata"
-version = "1.1.0"
+version = "2.0.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1030,10 +1027,9 @@ dependencies = [
 
 [[package]]
 name = "k8-obj-storage"
-version = "1.1.0"
+version = "2.0.0"
 dependencies = [
  "http 0.1.21",
- "k8-obj-core",
  "k8-obj-metadata",
  "serde",
  "serde_json",

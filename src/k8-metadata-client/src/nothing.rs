@@ -14,8 +14,8 @@ use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use k8_obj_metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
-use k8_obj_metadata::options::DeleteOptions;
+use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
+use crate::metadata::options::DeleteOptions;
 
 use crate::{ ListArg, MetadataClient, MetadataClientError, NameSpace, TokenStreamResult} ;
 
@@ -114,12 +114,12 @@ impl MetadataClient for DoNothingClient {
         futures_util::stream::empty().boxed()
     }
 
-    async fn delete_item_with_option<S, M>(&self, _metadata: &M, _options: Option<DeleteOptions>) -> Result<K8Status, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(&self, _metadata: &M, _options: Option<DeleteOptions>) -> Result<K8Status<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        Err(DoNothingError::NotFound) as Result<K8Status, Self::MetadataClientError>
+        Err(DoNothingError::NotFound) as Result<K8Status<S>, Self::MetadataClientError>
     }
 
     async fn create_item<S>(

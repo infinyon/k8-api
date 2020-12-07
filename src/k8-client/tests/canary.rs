@@ -11,7 +11,7 @@ mod canary_test {
     use k8_metadata_client::MetadataClient;
     use k8_metadata_client::NameSpace;
     use k8_obj_core::service::ServiceSpec;
-    use k8_obj_metadata::K8Obj;
+    use k8_obj_core::metadata::K8Obj;
 
     // get services to find kubernetes api
     #[test_async]
@@ -35,7 +35,7 @@ mod canary_test {
         let client = K8Client::default().expect("cluster could not be configured");
         let secrets = client
             .retrieve_items::<SecretSpec, _>(NameSpace::All)
-            .await?;
+            .await.expect("item retrieve");
 
         let system_secrets: Vec<K8Obj<SecretSpec>> = secrets
             .items

@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 /// goes as query parameter
-#[derive(Serialize, Default)]
+#[derive(Serialize, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ListOptions {
     pub pretty: Option<bool>,
@@ -16,14 +16,18 @@ pub struct ListOptions {
     pub watch: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize,Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteOptions {
     pub kind: &'static str,
     pub api_version: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub pretty: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dry_run: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub grace_period_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub propagation_policy: Option<PropogationPolicy>,
 }
 
@@ -40,7 +44,7 @@ impl Default for DeleteOptions {
         }
     }
 }
-#[derive(Serialize)]
+#[derive(Serialize,Debug)]
 pub enum PropogationPolicy {
     Orphan,
     Background,

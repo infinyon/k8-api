@@ -288,15 +288,17 @@ impl DeserializeWith for StatusEnum {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8Status {
+#[serde(bound(deserialize = "S: DeserializeOwned"))]
+pub struct K8Status<S> where S: Spec {
     pub api_version: String,
+    pub metadata: ObjectMeta,
     pub code: Option<u16>,
     pub details: Option<StatusDetails>,
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    #[serde(deserialize_with = "StatusEnum::deserialize_with")]
-    pub status: StatusEnum,
+    pub spec: S,
+    pub status: S::Status,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -520,9 +522,9 @@ where
     S: Spec,
 {
     pub api_version: String,
-    pub items: Vec<K8Obj<S>>,
     pub kind: String,
     pub metadata: ListMetadata,
+    pub items: Vec<K8Obj<S>>
 }
 
 impl<S> K8List<S>
