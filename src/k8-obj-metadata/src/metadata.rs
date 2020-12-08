@@ -289,7 +289,7 @@ pub enum StatusEnum {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-#[serde(bound(deserialize = "S: Deserializer<'de>"))]
+#[serde(bound(deserialize = "S: DeserializeOwned"))]
 pub struct DeleteStatus<S>
     where S:Spec
  {
@@ -300,7 +300,7 @@ pub struct DeleteStatus<S>
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    #[serde(bound(deserialize = "DeleteResponse<S>: Deserializer<'de>"))]
+    #[serde(bound(deserialize = "DeleteResponse<S>: DeserializeOwned"))]
     pub status: DeleteResponse<S>
 }
 
