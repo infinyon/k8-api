@@ -4,10 +4,10 @@ use std::fmt;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use serde::de::DeserializeOwned;
-use serde::de::Deserializer;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::{ self, Deserializer, DeserializeOwned };
+
 
 use crate::Spec;
 
@@ -112,7 +112,7 @@ impl ObjectMeta {
     /// if name or uid doesn't exists return none
     pub fn make_owner_reference<S: Spec>(&self) -> OwnerReferences {
         OwnerReferences {
-            api_version: S::api_version(),
+            api_version: "V1".to_owned(),
             kind: S::kind(),
             name: self.name.clone(),
             uid: self.uid.clone(),
@@ -256,40 +256,43 @@ impl From<ObjectMeta> for UpdateItemMeta {
 #[serde(rename_all = "camelCase")]
 pub struct OwnerReferences {
     pub api_version: String,
-    pub block_owner_deletion: Option<bool>,
+    #[serde(default)]
+    pub block_owner_deletion: bool,
     pub controller: Option<bool>,
     pub kind: String,
     pub name: String,
     pub uid: String,
 }
 
+/*
+impl Default for OwnerReferences {
+
+    fn default() -> Self {
+        Self { 
+            api_version: "v1".to_owned(),
+            block_owner_deletion: None,
+            controller: None,
+            kind: ""
+        }
+    }
+}*/
+
+/// Default status implementation
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 pub enum StatusEnum {
+    #[serde(rename = "Success")]
     SUCCESS,
+    #[serde(rename = "Failure")]
     FAILURE,
 }
 
-impl DeserializeWith for StatusEnum {
-    fn deserialize_with<'de, D>(de: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(de)?;
-
-        match s.as_ref() {
-            "Success" => Ok(StatusEnum::SUCCESS),
-            "Failure" => Ok(StatusEnum::FAILURE),
-            _ => Err(serde::de::Error::custom(
-                "error trying to deserialize status type",
-            )),
-        }
-    }
-}
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-#[serde(bound(deserialize = "S: DeserializeOwned"))]
-pub struct K8Status<S> where S: Spec {
+#[serde(bound(deserialize = "S: Deserializer<'de>"))]
+pub struct DeleteStatus<S>
+    where S:Spec
+ {
     pub api_version: String,
     pub metadata: ObjectMeta,
     pub code: Option<u16>,
@@ -297,10 +300,75 @@ pub struct K8Status<S> where S: Spec {
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    pub spec: Option<S>,
-    #[serde(deserialize_with = "StatusEnum::deserialize_with")]
-    pub status: StatusEnum,
+    #[serde(bound(deserialize = "DeleteResponse<S>: Deserializer<'de>"))]
+    pub status: DeleteResponse<S>
 }
+
+
+#[derive(Debug, Clone)]
+pub enum DeleteResponse<S>
+    where S: Spec
+{
+    OkStatus(StatusEnum),
+    OkValue(S::Status)
+}
+
+
+
+impl<'de, S> Deserialize<'de> for DeleteResponse<S>
+    where
+        S: Spec
+{
+
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>,
+    {
+        use serde::de::{ Visitor, MapAccess};
+
+        struct StatusVisitor<S: Spec>(PhantomData<fn() -> S>);
+
+        impl<'de,S> Visitor<'de> for StatusVisitor<S>
+            where 
+                S: Spec,
+                DeleteResponse<S>: Deserialize<'de>,
+        {
+            type Value = DeleteResponse<S>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("string or json")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                match value {
+                    "Success" => Ok(DeleteResponse::OkStatus(StatusEnum::SUCCESS)),
+                    "Failure" => Ok(DeleteResponse::OkStatus(StatusEnum::FAILURE)),
+                    _ => Err(de::Error::custom(format!("unrecognized status: {}",value)))
+                }
+
+
+            }
+
+            fn visit_map<M>(self, map: M) -> Result<Self::Value, M::Error>
+            where
+                M: MapAccess<'de>,
+            {
+                Deserialize::deserialize(de::value::MapAccessDeserializer::new(map))
+            }
+        }
+
+        deserializer.deserialize_any(StatusVisitor(PhantomData))
+    }
+
+}
+
+
+/*
+#[serde(deserialize_with = "StatusEnum::deserialize_with")]
+    pub status: StatusEnum,
+*/
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct StatusDetails {

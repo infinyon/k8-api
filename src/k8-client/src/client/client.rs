@@ -28,7 +28,7 @@ use tracing::trace;
 
 use k8_config::K8Config;
 use k8_metadata_client::{ ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult };
-use crate::core::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus};
+use crate::core::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use crate::core::metadata::options::{ ListOptions, DeleteOptions };
 
 use crate::uri::{ item_uri, items_uri};
@@ -102,6 +102,7 @@ impl K8Client {
             let mut reader = (aggregate(resp).await?).reader();
             let mut buffer = Vec::new();
             reader.read_to_end(&mut buffer)?;
+            trace!("success response: {}",String::from_utf8_lossy(&buffer));  
             serde_json::from_slice(&buffer).map_err(|err| {
                 error!("json error: {}", err);     
                 error!("source: {}",String::from_utf8_lossy(&buffer));           
@@ -258,7 +259,7 @@ impl MetadataClient for K8Client {
         ListStream::new(namespace.into(), limit, option, self.clone()).boxed()
     }
 
-    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<K8Status<S>, ClientError>
+    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<DeleteStatus<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -278,7 +279,10 @@ impl MetadataClient for K8Client {
         } else {
             Body::empty()
         };
-        self.handle_request(Request::delete(uri).body(body)?)
+        let request = Request::delete(uri)
+            .header(ACCEPT, "application/json")
+            .body(body)?;
+        self.handle_request(request)
             .await
     }
 

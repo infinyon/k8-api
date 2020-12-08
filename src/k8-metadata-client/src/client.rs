@@ -18,7 +18,7 @@ use tracing::debug;
 use tracing::trace;
 
 use k8_diff::{ Changes, Diff, DiffError};
-use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, K8Status, K8Watch, Spec, UpdateK8ObjStatus };
+use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus };
 use crate::metadata::options::DeleteOptions;
 
 use crate::{ ApplyResult, DiffSpec };
@@ -137,13 +137,13 @@ pub trait MetadataClient: Send + Sync {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static;
 
-    async fn delete_item_with_option<S, M>(&self, metadata: &M, option: Option<DeleteOptions>) -> Result<K8Status<S>, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(&self, metadata: &M, option: Option<DeleteOptions>) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
 
 
-    async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status<S>, Self::MetadataClientError>
+    async fn delete_item<S, M>(&self, metadata: &M) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync {
