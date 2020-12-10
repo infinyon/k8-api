@@ -264,6 +264,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
+        use crate::core::metadata::DeletedStatus;
         
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: delete item on url: {}", S::label(), uri);
@@ -282,8 +283,19 @@ impl MetadataClient for K8Client {
         let request = Request::delete(uri)
             .header(ACCEPT, "application/json")
             .body(body)?;
-        self.handle_request(request)
-            .await
+        let values: serde_json::Map<String, serde_json::Value> = self.handle_request(request).await?;
+        if let Some(kind) = values.get("kind") {
+            if kind == "Status" {
+                let status: DeletedStatus = serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                Ok(DeleteStatus::Deleted(status))
+            } else {
+                let status: K8Obj<S> = serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                Ok(DeleteStatus::ForegroundDelete(status))
+            }
+        } else {
+            Err(ClientError::Other(format!("missing kind: {:#?}",values)))
+        }
+        
     }
 
     /// create new object
@@ -298,8 +310,9 @@ impl MetadataClient for K8Client {
 
         let bytes = serde_json::to_vec(&value)?;
 
-        trace!(
-            "create raw: {}",
+        println!(
+            "create {} raw: {}",
+            S::label(),
             String::from_utf8_lossy(&bytes).to_string()
         );
 
@@ -322,7 +335,7 @@ impl MetadataClient for K8Client {
             Some("/status"),
         );
         debug!("updating '{}' status - uri: {}", value.metadata.name, uri);
-        trace!("update: {:#?}", &value);
+        trace!("update status: {:#?}", &value);
 
         let bytes = serde_json::to_vec(&value)?;
         trace!(

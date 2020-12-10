@@ -200,6 +200,7 @@ mod integration_tests {
                .expect("service should be created");
 
          
+        
         client
             .delete_item_with_option::<ServiceSpec, _>(&created_item.metadata,Some(DeleteOptions {
                 propagation_policy: Some(PropogationPolicy::Foreground),
@@ -207,6 +208,7 @@ mod integration_tests {
             }))
             .await
             .expect("delete should work");
+        
             
 
         assert!(true);
