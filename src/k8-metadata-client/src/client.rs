@@ -20,6 +20,7 @@ use tracing::trace;
 use k8_diff::{ Changes, Diff, DiffError};
 use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus };
 use crate::metadata::options::DeleteOptions;
+use crate::diff::PatchMergeType;
 
 use crate::{ ApplyResult, DiffSpec };
 
@@ -223,15 +224,21 @@ pub trait MetadataClient: Send + Sync {
     where
         S: Spec;
 
-    /// patch existing with spec
-    async fn patch_spec<S, M>(
-        &self,
-        metadata: &M,
-        patch: &Value,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    /// patch existing spec
+    async fn patch_spec<S, M>(&self, metadata: &M, patch: &Value) -> Result<K8Obj<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        self.patch(metadata, patch,PatchMergeType::for_spec(S::metadata())).await
+    }
+
+    /// patch object with arbitrary patch
+    async fn patch<S, M>(&self, metadata: &M, patch: &Value, merge_type: PatchMergeType) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync;
+    
 
     /// stream items since resource versions
     fn watch_stream_since<S, N>(

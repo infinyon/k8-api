@@ -210,6 +210,9 @@ impl K8Client {
     }
 
     
+
+
+    
 }
 
 #[async_trait]
@@ -350,8 +353,9 @@ impl MetadataClient for K8Client {
         self.handle_request(request).await
     }
 
+
     /// patch existing with spec
-    async fn patch_spec<S, M>(&self, metadata: &M, patch: &Value) -> Result<K8Obj<S>, ClientError>
+    async fn patch<S, M>(&self, metadata: &M, patch: &Value, merge_type: PatchMergeType) -> Result<K8Obj<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -359,8 +363,7 @@ impl MetadataClient for K8Client {
         debug!("patching item at '{}'", metadata);
         trace!("patch json value: {:#?}", patch);
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
-        let merge_type = PatchMergeType::for_spec(S::metadata());
-
+     
         let bytes = serde_json::to_vec(&patch)?;
 
         trace!(

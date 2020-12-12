@@ -16,6 +16,7 @@ use serde_json::Value;
 use k8_diff::DiffError;
 use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use crate::metadata::options::DeleteOptions;
+use crate::diff::PatchMergeType;
 
 use crate::{ ListArg, MetadataClient, MetadataClientError, NameSpace, TokenStreamResult} ;
 
@@ -147,15 +148,10 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
-    async fn patch_spec<S, M>(
-        &self,
-        _metadata: &M,
-        _patch: &Value,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn patch<S, M>(&self, _metadata: &M, _patch: &Value, _merge_type: PatchMergeType) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        K8Obj<S>: DeserializeOwned,
-        S: Spec + Send,
-        M: K8Meta + Display + Send + Sync,
+        S: Spec,
+        M: K8Meta + Display + Send + Sync
     {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }

@@ -36,7 +36,7 @@ pin-utils = "0.1.0"
 serde = { version ="1.0.108", features = ['derive'] }
 serde_json = "1.0.40"
 serde_qs = "0.5.0"
-async-trait = "0.1.21"
+async-trait = "0.1.42"
 fluvio-future = { version = "0.1.7", features = ["net"]}
 k8-metadata-client = { version = "2.0.0", path = "../k8-metadata-client"}
 k8-obj-core = { version = "2.0.0", path = "../k8-obj-core"}
