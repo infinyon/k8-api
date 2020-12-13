@@ -44,7 +44,7 @@ jobs:
         run: make check-fmt
 
   check_clippy:
-    name: check cargo fmt
+    name: clippy check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
