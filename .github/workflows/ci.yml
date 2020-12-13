@@ -97,5 +97,5 @@ jobs:
         run: cargo build --tests --all-features
       - name: K8 client integration test native
         run: make k8-client-integration-test-native
-        timeout-minutes: 3
+        timeout-minutes: 2
 
