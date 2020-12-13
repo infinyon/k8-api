@@ -58,7 +58,9 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: clippy
-        run: make check-clippy
+        run: |
+          cargo clippy --version
+          make check-clippy
 
 
   k8_test:
