@@ -93,6 +93,9 @@ jobs:
         run: |
           kubectl get nodes
           kubectl config view
+      - name: Build test
+        run: cargo build --tests --all-features
       - name: K8 client integration test native
         run: make k8-client-integration-test-native
+        timeout-minutes: 3
 
