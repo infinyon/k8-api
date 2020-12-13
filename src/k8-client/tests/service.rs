@@ -25,7 +25,7 @@ mod integration_tests {
     const ITER: u16 = 10;
     const NS: &str = "default";
 
-    const DELAY: Duration = Duration::from_millis(50);
+    const DELAY: Duration = Duration::from_millis(100);
 
     fn create_client() -> K8Client {
         K8Client::default().expect("cluster not initialized")
