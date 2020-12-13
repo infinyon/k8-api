@@ -67,10 +67,7 @@ impl MetadataClientError for DoNothingError {
     }
 
     fn not_founded(&self) -> bool {
-        match self {
-            Self::NotFound => true,
-            _ => false,
-        }
+        matches!(self, Self::NotFound)
     }
 }
 

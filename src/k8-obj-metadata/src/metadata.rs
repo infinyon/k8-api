@@ -556,6 +556,15 @@ where
     }
 }
 
+impl<S> Default for K8List<S>
+where
+    S: Spec,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub trait DeserializeWith: Sized {
     fn deserialize_with<'de, D>(de: D) -> Result<Self, D::Error>
     where

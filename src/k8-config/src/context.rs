@@ -221,15 +221,13 @@ impl MinikubeProfile {
             .valid
             .into_iter()
             .next()
-            .ok_or(ConfigError::Other("no valid minikube profiles".to_string()))?;
+            .ok_or_else(|| ConfigError::Other("no valid minikube profiles".to_string()))?;
         let node = profile_json
             .config
             .nodes
             .into_iter()
             .next()
-            .ok_or(ConfigError::Other(
-                "Minikube has no active nodes".to_string(),
-            ))?;
+            .ok_or_else(|| ConfigError::Other("Minikube has no active nodes".to_string()))?;
         let profile = MinikubeProfile {
             name: profile_json.name,
             node,
@@ -335,7 +333,7 @@ pub mod v1 {
     #[allow(deprecated)]
     #[deprecated(note = "Please use MinikubeContext instead")]
     pub fn create_dns_context(option: Option) {
-        const TEMPLATE: &'static str = r#"
+        const TEMPLATE: &str = r#"
 #!/bin/bash
 export IP=$(minikube ip)
 sudo sed -i '' '/minikubeCA/d' /etc/hosts

@@ -11,7 +11,6 @@ use futures_util::stream::BoxStream;
 use futures_util::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use serde_json;
 use serde_json::Error as SerdeJsonError;
 use serde_json::Value;
 use tracing::debug;
@@ -34,10 +33,7 @@ pub enum NameSpace {
 
 impl NameSpace {
     pub fn is_all(&self) -> bool {
-        match self {
-            Self::All => true,
-            _ => false,
-        }
+        matches!(self, Self::All)
     }
 
     pub fn named(&self) -> &str {
@@ -80,6 +76,7 @@ pub trait MetadataClientError: Debug + Display {
 
 pub type TokenStreamResult<S, E> = Result<Vec<Result<K8Watch<S>, E>>, E>;
 
+#[allow(clippy::clippy::redundant_closure)]
 pub fn as_token_stream_result<S, E>(events: Vec<K8Watch<S>>) -> TokenStreamResult<S, E>
 where
     S: Spec,
@@ -214,7 +211,7 @@ pub trait MetadataClient: Send + Sync {
                         S::label(),
                         value.metadata.name
                     );
-                    let created_item = self.create_item(value.into()).await?;
+                    let created_item = self.create_item(value).await?;
                     Ok(ApplyResult::Created(created_item))
                 } else {
                     Err(err)
