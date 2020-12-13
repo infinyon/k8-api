@@ -84,9 +84,8 @@ impl TlsHyperConnector {
     }
 }
 
-//pub type HyperBuilder = ClientConfigBuilder<HyperClientBuilder>;
-//pub type HyperHttpsClient = Client<HttpsConnector<HttpConnector>>;
 
+#[allow(clippy::type_complexity)]
 impl Service<Uri> for TlsHyperConnector {
     type Response = HyperTlsStream;
     type Error = ClientError;

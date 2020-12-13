@@ -52,7 +52,7 @@ where
     let namespace = ns.into();
     let version = crd.version;
     let plural = crd.names.plural;
-    let group = crd.group.as_ref();
+    let group = crd.group;
     let api_prefix = match group {
         "core" => "api".to_owned(),
         _ => format!("apis/{}", group),

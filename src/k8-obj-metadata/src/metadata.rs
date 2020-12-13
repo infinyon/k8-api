@@ -288,29 +288,6 @@ where
 }
 
 
-
-/*
-/// being deleted
-#[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-#[serde(bound(deserialize = "S: DeserializeOwned"))]
-pub struct DeleteProgressStatus<S>
-where
-    S: Spec,
-{
-    pub api_version: String,
-    pub metadata: ObjectMeta,
-    pub code: Option<u16>,
-    pub details: Option<StatusDetails>,
-    pub kind: String,
-    pub message: Option<String>,
-    pub reason: Option<String>,
-    #[serde(bound(deserialize = "DeleteResponse<S>: DeserializeOwned"))]
-    pub status: S::Status,
-}
-*/
-
-
 /// status for actual deletion
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

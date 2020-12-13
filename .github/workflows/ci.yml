@@ -24,7 +24,42 @@ jobs:
         toolchain: ${{ matrix.rust }}
         override: true
     - name: Run unit tests
-      run:  cargo test
+      run:  cargo test --lib --all-features
+
+  check_fmt:
+    name: check cargo fmt
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: fmt
+        run: make check-fmt
+
+  check_clippy:
+    name: check cargo fmt
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: clippy
+        run: make check-clippy
+
 
   k8_test:
       name: Kubernetes integration test

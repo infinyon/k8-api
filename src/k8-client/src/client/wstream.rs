@@ -96,7 +96,7 @@ where
 
         *(self.as_mut().done()) = done;
 
-        if last_buffer.len() > 0 {
+        if !last_buffer.is_empty() {
             trace!("no more inner, buffer len: {}", last_buffer.len());
             // trace!("chunk: {:#}",String::from_utf8_lossy(&last_buffer).to_string());
 

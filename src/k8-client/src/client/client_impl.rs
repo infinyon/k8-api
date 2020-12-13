@@ -20,7 +20,6 @@ use hyper::Body;
 use hyper::Request;
 use hyper::Uri;
 use serde::de::DeserializeOwned;
-use serde_json;
 use serde_json::Value;
 use tracing::debug;
 use tracing::error;
@@ -121,6 +120,7 @@ impl K8Client {
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
+    #[allow(clippy::useless_conversion)]
     fn stream_of_chunks<S>(&self, uri: Uri) -> impl Stream<Item = Bytes> + '_
     where
         S: Spec,
@@ -259,7 +259,7 @@ impl MetadataClient for K8Client {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static,
     {
-        ListStream::new(namespace.into(), limit, option, self.clone()).boxed()
+        ListStream::new(namespace.into(), limit, option, self).boxed()
     }
 
     async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<DeleteStatus<S>, ClientError>
