@@ -35,7 +35,8 @@ mod canary_test {
         let client = K8Client::default().expect("cluster could not be configured");
         let secrets = client
             .retrieve_items::<SecretSpec, _>(NameSpace::All)
-            .await.expect("item retrieve");
+            .await
+            .expect("item retrieve");
 
         let system_secrets: Vec<K8Obj<SecretSpec>> = secrets
             .items

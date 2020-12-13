@@ -14,11 +14,13 @@ use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
+use crate::metadata::{
+    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
+};
 use crate::metadata::options::DeleteOptions;
 use crate::diff::PatchMergeType;
 
-use crate::{ ListArg, MetadataClient, MetadataClientError, NameSpace, TokenStreamResult} ;
+use crate::{ListArg, MetadataClient, MetadataClientError, NameSpace, TokenStreamResult};
 
 #[derive(Debug)]
 pub enum DoNothingError {
@@ -115,7 +117,11 @@ impl MetadataClient for DoNothingClient {
         futures_util::stream::empty().boxed()
     }
 
-    async fn delete_item_with_option<S, M>(&self, _metadata: &M, _options: Option<DeleteOptions>) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(
+        &self,
+        _metadata: &M,
+        _options: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -148,10 +154,15 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
-    async fn patch<S, M>(&self, _metadata: &M, _patch: &Value, _merge_type: PatchMergeType) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn patch<S, M>(
+        &self,
+        _metadata: &M,
+        _patch: &Value,
+        _merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         S: Spec,
-        M: K8Meta + Display + Send + Sync
+        M: K8Meta + Display + Send + Sync,
     {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }

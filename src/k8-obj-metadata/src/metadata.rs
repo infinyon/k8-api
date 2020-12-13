@@ -10,8 +10,8 @@ use serde::Serialize;
 
 use crate::Spec;
 
-pub const DEFAULT_NS: &'static str = "default";
-pub const TYPE_OPAQUE: &'static str = "Opaque";
+pub const DEFAULT_NS: &str = "default";
+pub const TYPE_OPAQUE: &str = "Opaque";
 
 pub trait K8Meta {
     /// resource name
@@ -114,7 +114,7 @@ impl ObjectMeta {
             kind: S::kind(),
             name: self.name.clone(),
             uid: self.uid.clone(),
-           // controller: Some(true),
+            // controller: Some(true),
             ..Default::default()
         }
     }
@@ -262,9 +262,7 @@ pub struct OwnerReferences {
     pub uid: String,
 }
 
-
 impl Default for OwnerReferences {
-
     fn default() -> Self {
         Self {
             api_version: "v1".to_owned(),
@@ -277,29 +275,26 @@ impl Default for OwnerReferences {
     }
 }
 
-
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum DeleteStatus<S>
 where
     S: Spec,
 {
     Deleted(DeletedStatus),
-    ForegroundDelete(K8Obj<S>)
+    ForegroundDelete(K8Obj<S>),
 }
-
 
 /// status for actual deletion
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct DeletedStatus
-{
+pub struct DeletedStatus {
     pub api_version: String,
     pub code: Option<u16>,
     pub details: Option<StatusDetails>,
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    pub status: StatusEnum
+    pub status: StatusEnum,
 }
 
 /// Default status implementation
@@ -310,7 +305,6 @@ pub enum StatusEnum {
     #[serde(rename = "Failure")]
     FAILURE,
 }
-
 
 /*
 #[serde(deserialize_with = "StatusEnum::deserialize_with")]
@@ -578,7 +572,7 @@ where
 {
     ADDED(K8Obj<S>),
     MODIFIED(K8Obj<S>),
-    DELETED(K8Obj<S>)
+    DELETED(K8Obj<S>),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -682,7 +676,7 @@ mod test_delete {
 
     use crate::{ Spec,Status, DefaultHeader, Crd, CrdNames};
     use super::DeleteResponse;
-   
+
     const TEST_API: Crd = Crd {
         group: "test",
         version: "v1",
@@ -718,7 +712,7 @@ mod test_delete {
             "kind": "Status",
             "apiVersion": "v1",
             "metadata": {
-              
+
             },
             "status": "Success",
             "details": {
@@ -750,7 +744,7 @@ impl<'de, S> Deserialize<'de> for DeleteResponse<S>
         struct StatusVisitor<S: Spec>(PhantomData<fn() -> S>);
 
         impl<'de,S> Visitor<'de> for StatusVisitor<S>
-            where 
+            where
                 S: Spec,
                 DeleteResponse<S>: Deserialize<'de>,
         {

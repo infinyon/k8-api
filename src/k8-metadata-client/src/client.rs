@@ -17,12 +17,14 @@ use serde_json::Value;
 use tracing::debug;
 use tracing::trace;
 
-use k8_diff::{ Changes, Diff, DiffError};
-use crate::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus };
+use k8_diff::{Changes, Diff, DiffError};
+use crate::metadata::{
+    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
+};
 use crate::metadata::options::DeleteOptions;
 use crate::diff::PatchMergeType;
 
-use crate::{ ApplyResult, DiffSpec };
+use crate::{ApplyResult, DiffSpec};
 
 #[derive(Clone)]
 pub enum NameSpace {
@@ -138,19 +140,24 @@ pub trait MetadataClient: Send + Sync {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static;
 
-    async fn delete_item_with_option<S, M>(&self, metadata: &M, option: Option<DeleteOptions>) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(
+        &self,
+        metadata: &M,
+        option: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
 
-
-    async fn delete_item<S, M>(&self, metadata: &M) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    async fn delete_item<S, M>(
+        &self,
+        metadata: &M,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
-        M: K8Meta + Send + Sync {
-
-        self.delete_item_with_option::<S,M>(metadata, None).await
-
+        M: K8Meta + Send + Sync,
+    {
+        self.delete_item_with_option::<S, M>(metadata, None).await
     }
 
     /// create new object
@@ -225,20 +232,29 @@ pub trait MetadataClient: Send + Sync {
         S: Spec;
 
     /// patch existing spec
-    async fn patch_spec<S, M>(&self, metadata: &M, patch: &Value) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn patch_spec<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
     {
-        self.patch(metadata, patch,PatchMergeType::for_spec(S::metadata())).await
+        self.patch(metadata, patch, PatchMergeType::for_spec(S::metadata()))
+            .await
     }
 
     /// patch object with arbitrary patch
-    async fn patch<S, M>(&self, metadata: &M, patch: &Value, merge_type: PatchMergeType) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn patch<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync;
-    
 
     /// stream items since resource versions
     fn watch_stream_since<S, N>(

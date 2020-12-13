@@ -84,7 +84,6 @@ impl TlsHyperConnector {
     }
 }
 
-
 #[allow(clippy::type_complexity)]
 impl Service<Uri> for TlsHyperConnector {
     type Response = HyperTlsStream;

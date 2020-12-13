@@ -14,7 +14,9 @@ k8-client-integration-test-rustls:
 	make -C src/k8-client run-integration-test-rustls
 
 check-fmt:
+	rustup component add rustfmt
 	cargo fmt -- --check
+
 
 check-clippy:
 	rustup component add clippy

@@ -26,17 +26,17 @@ use tracing::error;
 use tracing::trace;
 
 use k8_config::K8Config;
-use k8_metadata_client::{ ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult };
-use crate::core::metadata::{ InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
-use crate::core::metadata::options::{ ListOptions, DeleteOptions };
+use k8_metadata_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
+use crate::core::metadata::{
+    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
+};
+use crate::core::metadata::options::{ListOptions, DeleteOptions};
 
-use crate::uri::{ item_uri, items_uri};
+use crate::uri::{item_uri, items_uri};
 use crate::ClientError;
 
-
 use super::wstream::WatchStream;
-use super::{ HyperClient, HyperConfigBuilder, ListStream };
-
+use super::{HyperClient, HyperConfigBuilder, ListStream};
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
@@ -101,10 +101,10 @@ impl K8Client {
             let mut reader = (aggregate(resp).await?).reader();
             let mut buffer = Vec::new();
             reader.read_to_end(&mut buffer)?;
-            trace!("success response: {}",String::from_utf8_lossy(&buffer));  
+            trace!("success response: {}", String::from_utf8_lossy(&buffer));
             serde_json::from_slice(&buffer).map_err(|err| {
-                error!("json error: {}", err);     
-                error!("source: {}",String::from_utf8_lossy(&buffer));           
+                error!("json error: {}", err);
+                error!("source: {}", String::from_utf8_lossy(&buffer));
                 err.into()
             })
         } else {
@@ -208,11 +208,6 @@ impl K8Client {
         trace!("items retrieved: {:#?}", items);
         Ok(items)
     }
-
-    
-
-
-    
 }
 
 #[async_trait]
@@ -262,22 +257,23 @@ impl MetadataClient for K8Client {
         ListStream::new(namespace.into(), limit, option, self).boxed()
     }
 
-    async fn delete_item_with_option<S, M>(&self, metadata: &M,option: Option<DeleteOptions>) -> Result<DeleteStatus<S>, ClientError>
+    async fn delete_item_with_option<S, M>(
+        &self,
+        metadata: &M,
+        option: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
     {
         use crate::core::metadata::DeletedStatus;
-        
+
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: delete item on url: {}", S::label(), uri);
 
         let body = if let Some(option_value) = option {
             let bytes = serde_json::to_vec(&option_value)?;
-            trace!(
-                "delete raw : {}",
-                String::from_utf8_lossy(&bytes)
-            );
+            trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
 
             bytes.into()
         } else {
@@ -286,19 +282,21 @@ impl MetadataClient for K8Client {
         let request = Request::delete(uri)
             .header(ACCEPT, "application/json")
             .body(body)?;
-        let values: serde_json::Map<String, serde_json::Value> = self.handle_request(request).await?;
+        let values: serde_json::Map<String, serde_json::Value> =
+            self.handle_request(request).await?;
         if let Some(kind) = values.get("kind") {
             if kind == "Status" {
-                let status: DeletedStatus = serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                let status: DeletedStatus =
+                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
                 Ok(DeleteStatus::Deleted(status))
             } else {
-                let status: K8Obj<S> = serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                let status: K8Obj<S> =
+                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
                 Ok(DeleteStatus::ForegroundDelete(status))
             }
         } else {
-            Err(ClientError::Other(format!("missing kind: {:#?}",values)))
+            Err(ClientError::Other(format!("missing kind: {:#?}", values)))
         }
-        
     }
 
     /// create new object
@@ -353,9 +351,13 @@ impl MetadataClient for K8Client {
         self.handle_request(request).await
     }
 
-
     /// patch existing with spec
-    async fn patch<S, M>(&self, metadata: &M, patch: &Value, merge_type: PatchMergeType) -> Result<K8Obj<S>, ClientError>
+    async fn patch<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -363,7 +365,7 @@ impl MetadataClient for K8Client {
         debug!("patching item at '{}'", metadata);
         trace!("patch json value: {:#?}", patch);
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
-     
+
         let bytes = serde_json::to_vec(&patch)?;
 
         trace!(

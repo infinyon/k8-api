@@ -17,7 +17,7 @@ mod integration_tests {
 
     use k8_client::{ClientError, K8Client};
     use k8_metadata_client::{ApplyResult, MetadataClient};
-    use k8_obj_core::service::{ServicePort,ServiceSpec};
+    use k8_obj_core::service::{ServicePort, ServiceSpec};
     use k8_obj_core::metadata::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
@@ -43,7 +43,6 @@ mod integration_tests {
 
     /// create new service item
     fn new_service_with_name(name: String) -> InputK8Obj<ServiceSpec> {
-        
         let mut labels = HashMap::new();
         labels.insert("app".to_owned(), SPU_DEFAULT_NAME.to_owned());
         let mut selector = HashMap::new();
@@ -135,7 +134,7 @@ mod integration_tests {
             .retrieve_items::<ServiceSpec, _>(NS)
             .await
             .expect("services");
-       // assert_eq!(services.items.len(), 1);
+        // assert_eq!(services.items.len(), 1);
 
         let version = services.metadata.resource_version.clone();
         debug!("using version: {} ", version);
@@ -181,27 +180,26 @@ mod integration_tests {
         Ok(())
     }
 
-    
     /*
     TODO: fix this test
-    
+
     #[test_async]
     async fn test_service_delete_with_option() -> Result<(), ClientError> {
         use k8_obj_core::metadata::options::{ DeleteOptions, PropogationPolicy };
 
         let client = create_client();
-       
+
         let new_item = new_service_with_name("testservice_delete".to_owned());
       //  new_item.metadata.finalizers = vec!["my-finalizer.example.com".to_owned()];
 
-        
+
         let created_item = client
                .create_item::<ServiceSpec>(new_item)
                .await
                .expect("service should be created");
 
-         
-        
+
+
         client
             .delete_item_with_option::<ServiceSpec, _>(&created_item.metadata,Some(DeleteOptions {
                 propagation_policy: Some(PropogationPolicy::Foreground),
@@ -209,14 +207,13 @@ mod integration_tests {
             }))
             .await
             .expect("delete should work");
-        
-            
+
+
 
         assert!(true);
 
         Ok(())
-        
+
     }
     */
-
 }

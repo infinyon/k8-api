@@ -16,7 +16,7 @@ pub struct ListOptions {
     pub watch: Option<bool>,
 }
 
-#[derive(Serialize,Debug)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteOptions {
     pub kind: &'static str,
@@ -32,25 +32,23 @@ pub struct DeleteOptions {
 }
 
 impl Default for DeleteOptions {
-
     fn default() -> Self {
-        Self { 
+        Self {
             kind: "DeleteOptions",
             api_version: "v1",
             pretty: None,
             dry_run: None,
             grace_period_seconds: None,
-            propagation_policy: None
+            propagation_policy: None,
         }
     }
 }
-#[derive(Serialize,Debug)]
+#[derive(Serialize, Debug)]
 pub enum PropogationPolicy {
     Orphan,
     Background,
-    Foreground
+    Foreground,
 }
-
 
 #[derive(Serialize, Default)]
 #[serde(rename_all = "camelCase")]

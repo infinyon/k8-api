@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::metadata::{Crd, CrdNames, Header, Spec, Status };
+use crate::metadata::{Crd, CrdNames, Header, Spec, Status};
 
 const STORAGE_API: Crd = Crd {
     group: "storage.k8s.io",

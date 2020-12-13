@@ -15,7 +15,7 @@ mod integration_tests {
     use k8_metadata_client::MetadataClient;
     use k8_obj_core::service::ServicePort;
     use k8_obj_core::service::{LoadBalancerIngress, ServiceSpec};
-    use k8_obj_core::metadata::{InputK8Obj,InputObjectMeta,Spec };
+    use k8_obj_core::metadata::{InputK8Obj, InputObjectMeta, Spec};
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
 

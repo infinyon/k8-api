@@ -18,13 +18,14 @@ use pin_utils::unsafe_unpinned;
 use k8_metadata_client::ListArg;
 use k8_metadata_client::NameSpace;
 
-use crate::core::metadata::{ K8List, Spec };
+use crate::core::metadata::{K8List, Spec};
 use crate::core::metadata::options::ListOptions;
 use crate::ClientError;
 use crate::K8Client;
 use crate::SharedK8Client;
 
-type K8ListImpl<'a,S> = Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>;
+type K8ListImpl<'a, S> =
+    Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>;
 
 pub struct ListStream<'a, S>
 where
@@ -35,7 +36,7 @@ where
     done: bool,
     namespace: NameSpace,
     client: SharedK8Client,
-    inner: K8ListImpl<'a,S>,
+    inner: K8ListImpl<'a, S>,
     data1: PhantomData<S>,
 }
 
@@ -68,9 +69,7 @@ impl<'a, S> ListStream<'a, S>
 where
     S: Spec,
 {
-    unsafe_pinned!(
-        inner: K8ListImpl<'a,S>
-    );
+    unsafe_pinned!(inner: K8ListImpl<'a, S>);
     unsafe_unpinned!(client: SharedK8Client);
 
     /// given continuation, generate list option

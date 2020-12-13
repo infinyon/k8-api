@@ -1,9 +1,8 @@
 use crate::http::Uri;
 
-use crate::core::metadata::{Crd, Spec };
+use crate::core::metadata::{Crd, Spec};
 use crate::core::metadata::options::{ListOptions};
 use crate::metadata::NameSpace;
-
 
 /// items uri
 pub fn item_uri<S>(host: &str, name: &str, namespace: &str, sub_resource: Option<&str>) -> Uri
@@ -85,7 +84,7 @@ where
 #[cfg(test)]
 mod test {
 
-    use crate::core::metadata::{Crd,CrdNames,DEFAULT_NS };
+    use crate::core::metadata::{Crd, CrdNames, DEFAULT_NS};
 
     use super::prefix_uri;
     use super::ListOptions;
