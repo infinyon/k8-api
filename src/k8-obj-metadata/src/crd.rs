@@ -17,5 +17,5 @@ pub struct CrdNames {
     pub singular: &'static str,
 }
 
-pub const GROUP: &'static str = "fluvio.infinyon.com";
-pub const V1: &'static str = "v1";
+pub const GROUP: &str = "fluvio.infinyon.com";
+pub const V1: &str = "v1";

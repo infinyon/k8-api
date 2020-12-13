@@ -34,38 +34,23 @@ pub enum Diff<R, P> {
 
 impl<R, P> Diff<R, P> {
     pub fn is_none(&self) -> bool {
-        match self {
-            Diff::None => true,
-            _ => false,
-        }
+        matches!(self, Diff::None)
     }
 
     pub fn is_delete(&self) -> bool {
-        match self {
-            Diff::Delete => true,
-            _ => false,
-        }
+        matches!(self, Diff::Delete)
     }
 
     pub fn is_replace(&self) -> bool {
-        match self {
-            Diff::Replace(_) => true,
-            _ => false,
-        }
+        matches!(self, Diff::Replace(_))
     }
 
     pub fn is_patch(&self) -> bool {
-        match self {
-            Diff::Patch(_) => true,
-            _ => false,
-        }
+        matches!(self, Diff::Patch(_))
     }
 
     pub fn is_merge(&self) -> bool {
-        match self {
-            Diff::Replace(_) => true,
-            _ => false,
-        }
+        matches!(self, Diff::Merge(_))
     }
 
     pub fn as_replace_ref(&self) -> &R {

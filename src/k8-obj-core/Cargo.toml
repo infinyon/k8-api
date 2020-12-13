@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-obj-core"
-version = "1.1.0"
+version = "2.0.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes API Objects"
 repository = "https://github.com/infinyon/k8-api"
@@ -15,4 +15,4 @@ serde = { version ="1.0.103", features = ['derive'] }
 serde_json = "1.0.27"
 serde_qs = "0.4.1"
 http = { version = "0.1.15" }
-k8-obj-metadata = { version = "1.0.0", path = "../k8-obj-metadata" }
+k8-obj-metadata = { version = "2.0.0", path = "../k8-obj-metadata" }

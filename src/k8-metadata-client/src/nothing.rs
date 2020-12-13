@@ -14,20 +14,13 @@ use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use k8_obj_metadata::InputK8Obj;
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::K8Meta;
-use k8_obj_metadata::K8Obj;
-use k8_obj_metadata::K8Status;
-use k8_obj_metadata::K8Watch;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::UpdateK8ObjStatus;
+use crate::metadata::{
+    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
+};
+use crate::metadata::options::DeleteOptions;
+use crate::diff::PatchMergeType;
 
-use crate::ListArg;
-use crate::MetadataClient;
-use crate::MetadataClientError;
-use crate::NameSpace;
-use crate::TokenStreamResult;
+use crate::{ListArg, MetadataClient, MetadataClientError, NameSpace, TokenStreamResult};
 
 #[derive(Debug)]
 pub enum DoNothingError {
@@ -74,10 +67,7 @@ impl MetadataClientError for DoNothingError {
     }
 
     fn not_founded(&self) -> bool {
-        match self {
-            Self::NotFound => true,
-            _ => false,
-        }
+        matches!(self, Self::NotFound)
     }
 }
 
@@ -124,12 +114,16 @@ impl MetadataClient for DoNothingClient {
         futures_util::stream::empty().boxed()
     }
 
-    async fn delete_item<S, M>(&self, _metadata: &M) -> Result<K8Status, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(
+        &self,
+        _metadata: &M,
+        _options: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        Err(DoNothingError::NotFound) as Result<K8Status, Self::MetadataClientError>
+        Err(DoNothingError::NotFound) as Result<DeleteStatus<S>, Self::MetadataClientError>
     }
 
     async fn create_item<S>(
@@ -157,14 +151,14 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
-    async fn patch_spec<S, M>(
+    async fn patch<S, M>(
         &self,
         _metadata: &M,
         _patch: &Value,
+        _merge_type: PatchMergeType,
     ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
-        K8Obj<S>: DeserializeOwned,
-        S: Spec + Send,
+        S: Spec,
         M: K8Meta + Display + Send + Sync,
     {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>

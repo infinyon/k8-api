@@ -1,9 +1,9 @@
-mod client;
+mod client_impl;
 
 mod list_stream;
 mod wstream;
 
-pub use client::K8Client;
+pub use client_impl::K8Client;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "native_tls")] {

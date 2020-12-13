@@ -1,10 +1,8 @@
 use crate::http::Uri;
 
-use k8_obj_metadata::Crd;
-use k8_obj_metadata::Spec;
-
-use k8_metadata_client::NameSpace;
-use k8_obj_metadata::options::ListOptions;
+use crate::core::metadata::{Crd, Spec};
+use crate::core::metadata::options::{ListOptions};
+use crate::metadata::NameSpace;
 
 /// items uri
 pub fn item_uri<S>(host: &str, name: &str, namespace: &str, sub_resource: Option<&str>) -> Uri
@@ -53,7 +51,7 @@ where
     let namespace = ns.into();
     let version = crd.version;
     let plural = crd.names.plural;
-    let group = crd.group.as_ref();
+    let group = crd.group;
     let api_prefix = match group {
         "core" => "api".to_owned(),
         _ => format!("apis/{}", group),
@@ -86,9 +84,7 @@ where
 #[cfg(test)]
 mod test {
 
-    use k8_obj_metadata::Crd;
-    use k8_obj_metadata::CrdNames;
-    use k8_obj_metadata::DEFAULT_NS;
+    use crate::core::metadata::{Crd, CrdNames, DEFAULT_NS};
 
     use super::prefix_uri;
     use super::ListOptions;

@@ -18,13 +18,14 @@ use pin_utils::unsafe_unpinned;
 use k8_metadata_client::ListArg;
 use k8_metadata_client::NameSpace;
 
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::Spec;
-
+use crate::core::metadata::{K8List, Spec};
+use crate::core::metadata::options::ListOptions;
 use crate::ClientError;
 use crate::K8Client;
 use crate::SharedK8Client;
-use k8_obj_metadata::options::ListOptions;
+
+type K8ListImpl<'a, S> =
+    Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>;
 
 pub struct ListStream<'a, S>
 where
@@ -35,7 +36,7 @@ where
     done: bool,
     namespace: NameSpace,
     client: SharedK8Client,
-    inner: Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>,
+    inner: K8ListImpl<'a, S>,
     data1: PhantomData<S>,
 }
 
@@ -68,9 +69,7 @@ impl<'a, S> ListStream<'a, S>
 where
     S: Spec,
 {
-    unsafe_pinned!(
-        inner: Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>
-    );
+    unsafe_pinned!(inner: K8ListImpl<'a, S>);
     unsafe_unpinned!(client: SharedK8Client);
 
     /// given continuation, generate list option
@@ -99,6 +98,7 @@ impl<S> ListStream<'_, S>
 where
     S: Spec + 'static,
 {
+    #[allow(clippy::transmute_ptr_to_ptr)]
     fn set_inner(mut self: Pin<&mut Self>, list_option: Option<ListOptions>) {
         let namespace = self.as_ref().namespace.clone();
         let current_client = &self.as_ref().client;
@@ -142,7 +142,7 @@ where
             Some(fut) => match fut.poll(ctx) {
                 Poll::Pending => {
                     trace!("{} inner was pending, loop continue", S::label());
-                    return Poll::Pending;
+                    Poll::Pending
                 }
                 Poll::Ready(val) => {
                     match val {
@@ -154,18 +154,18 @@ where
                                 let list_option = self.as_ref().list_option(Some(_cont.clone()));
                                 self.set_inner(Some(list_option));
                                 trace!("{}: ready and set inner, returning ready", S::label());
-                                return Poll::Ready(Some(list));
+                                Poll::Ready(Some(list))
                             } else {
                                 debug!("{} no more continue, marking as done", S::label());
                                 // we are done
                                 let _ = replace(&mut self.as_mut().done, true);
-                                return Poll::Ready(Some(list));
+                                Poll::Ready(Some(list))
                             }
                         }
                         Err(err) => {
                             error!("{}: error in list stream: {}", S::label(), err);
                             let _ = replace(&mut self.as_mut().done, true);
-                            return Poll::Ready(None);
+                            Poll::Ready(None)
                         }
                     }
                 }

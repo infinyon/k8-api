@@ -11,26 +11,19 @@ use futures_util::stream::BoxStream;
 use futures_util::stream::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use serde_json;
 use serde_json::Error as SerdeJsonError;
 use serde_json::Value;
 use tracing::debug;
 use tracing::trace;
 
-use k8_diff::Changes;
-use k8_diff::Diff;
-use k8_diff::DiffError;
-use k8_obj_metadata::InputK8Obj;
-use k8_obj_metadata::K8List;
-use k8_obj_metadata::K8Meta;
-use k8_obj_metadata::K8Obj;
-use k8_obj_metadata::K8Status;
-use k8_obj_metadata::K8Watch;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::UpdateK8ObjStatus;
+use k8_diff::{Changes, Diff, DiffError};
+use crate::metadata::{
+    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
+};
+use crate::metadata::options::DeleteOptions;
+use crate::diff::PatchMergeType;
 
-use crate::ApplyResult;
-use crate::DiffSpec;
+use crate::{ApplyResult, DiffSpec};
 
 #[derive(Clone)]
 pub enum NameSpace {
@@ -40,10 +33,7 @@ pub enum NameSpace {
 
 impl NameSpace {
     pub fn is_all(&self) -> bool {
-        match self {
-            Self::All => true,
-            _ => false,
-        }
+        matches!(self, Self::All)
     }
 
     pub fn named(&self) -> &str {
@@ -86,6 +76,7 @@ pub trait MetadataClientError: Debug + Display {
 
 pub type TokenStreamResult<S, E> = Result<Vec<Result<K8Watch<S>, E>>, E>;
 
+#[allow(clippy::clippy::redundant_closure)]
 pub fn as_token_stream_result<S, E>(events: Vec<K8Watch<S>>) -> TokenStreamResult<S, E>
 where
     S: Spec,
@@ -146,10 +137,25 @@ pub trait MetadataClient: Send + Sync {
         S: Spec + 'static,
         N: Into<NameSpace> + Send + Sync + 'static;
 
-    async fn delete_item<S, M>(&self, metadata: &M) -> Result<K8Status, Self::MetadataClientError>
+    async fn delete_item_with_option<S, M>(
+        &self,
+        metadata: &M,
+        option: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
+
+    async fn delete_item<S, M>(
+        &self,
+        metadata: &M,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Send + Sync,
+    {
+        self.delete_item_with_option::<S, M>(metadata, None).await
+    }
 
     /// create new object
     async fn create_item<S>(
@@ -205,7 +211,7 @@ pub trait MetadataClient: Send + Sync {
                         S::label(),
                         value.metadata.name
                     );
-                    let created_item = self.create_item(value.into()).await?;
+                    let created_item = self.create_item(value).await?;
                     Ok(ApplyResult::Created(created_item))
                 } else {
                     Err(err)
@@ -222,11 +228,26 @@ pub trait MetadataClient: Send + Sync {
     where
         S: Spec;
 
-    /// patch existing with spec
+    /// patch existing spec
     async fn patch_spec<S, M>(
         &self,
         metadata: &M,
         patch: &Value,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        self.patch(metadata, patch, PatchMergeType::for_spec(S::metadata()))
+            .await
+    }
+
+    /// patch object with arbitrary patch
+    async fn patch<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+        merge_type: PatchMergeType,
     ) -> Result<K8Obj<S>, Self::MetadataClientError>
     where
         S: Spec,

@@ -24,7 +24,42 @@ jobs:
         toolchain: ${{ matrix.rust }}
         override: true
     - name: Run unit tests
-      run:  cargo test
+      run:  cargo test --lib --all-features
+
+  check_fmt:
+    name: check cargo fmt
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: fmt
+        run: make check-fmt
+
+  check_clippy:
+    name: clippy check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: clippy
+        run: make check-clippy
+
 
   k8_test:
       name: Kubernetes integration test
@@ -58,8 +93,9 @@ jobs:
         run: |
           kubectl get nodes
           kubectl config view
+      - name: Build test
+        run: cargo build --tests --all-features
       - name: K8 client integration test native
         run: make k8-client-integration-test-native
-     # - name: K8 client integration test with rustls
-     #   run: make k8-client-integration-test-rustls
+        timeout-minutes: 2
 

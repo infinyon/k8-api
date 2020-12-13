@@ -25,9 +25,7 @@ pub struct ClusterDetail {
 
 impl ClusterDetail {
     pub fn ca(&self) -> Option<IoResult<String>> {
-        self.certificate_authority
-            .as_ref()
-            .map(|ca| read_to_string(ca))
+        self.certificate_authority.as_ref().map(read_to_string)
     }
 }
 

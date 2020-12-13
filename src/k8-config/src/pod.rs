@@ -5,8 +5,8 @@ use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
-const BASE_DIR: &'static str = "/var/run/secrets/kubernetes.io/serviceaccount";
-const API_SERVER: &'static str = "https://kubernetes.default.svc";
+const BASE_DIR: &str = "/var/run/secrets/kubernetes.io/serviceaccount";
+const API_SERVER: &str = "https://kubernetes.default.svc";
 
 ///var/run/secrets/kubernetes.io/serviceaccount
 

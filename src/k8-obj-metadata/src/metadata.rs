@@ -4,15 +4,14 @@ use std::fmt;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use serde::de::DeserializeOwned;
-use serde::de::Deserializer;
+use serde::de::{DeserializeOwned, Deserializer};
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::Spec;
 
-pub const DEFAULT_NS: &'static str = "default";
-pub const TYPE_OPAQUE: &'static str = "Opaque";
+pub const DEFAULT_NS: &str = "default";
+pub const TYPE_OPAQUE: &str = "Opaque";
 
 pub trait K8Meta {
     /// resource name
@@ -55,6 +54,7 @@ pub struct ObjectMeta {
     pub labels: HashMap<String, String>,
     pub owner_references: Vec<OwnerReferences>,
     pub annotations: HashMap<String, String>,
+    pub finalizers: Vec<String>,
 }
 
 impl LabelProvider for ObjectMeta {
@@ -111,11 +111,10 @@ impl ObjectMeta {
     /// if name or uid doesn't exists return none
     pub fn make_owner_reference<S: Spec>(&self) -> OwnerReferences {
         OwnerReferences {
-            api_version: S::api_version(),
             kind: S::kind(),
             name: self.name.clone(),
             uid: self.uid.clone(),
-            controller: Some(true),
+            // controller: Some(true),
             ..Default::default()
         }
     }
@@ -168,6 +167,7 @@ pub struct InputObjectMeta {
     pub labels: HashMap<String, String>,
     pub namespace: String,
     pub owner_references: Vec<OwnerReferences>,
+    pub finalizers: Vec<String>,
 }
 
 impl LabelProvider for InputObjectMeta {
@@ -250,52 +250,66 @@ impl From<ObjectMeta> for UpdateItemMeta {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct OwnerReferences {
     pub api_version: String,
-    pub block_owner_deletion: Option<bool>,
+    #[serde(default)]
+    pub block_owner_deletion: bool,
     pub controller: Option<bool>,
     pub kind: String,
     pub name: String,
     pub uid: String,
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
-pub enum StatusEnum {
-    SUCCESS,
-    FAILURE,
-}
-
-impl DeserializeWith for StatusEnum {
-    fn deserialize_with<'de, D>(de: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(de)?;
-
-        match s.as_ref() {
-            "Success" => Ok(StatusEnum::SUCCESS),
-            "Failure" => Ok(StatusEnum::FAILURE),
-            _ => Err(serde::de::Error::custom(
-                "error trying to deserialize status type",
-            )),
+impl Default for OwnerReferences {
+    fn default() -> Self {
+        Self {
+            api_version: "v1".to_owned(),
+            block_owner_deletion: false,
+            controller: None,
+            kind: "".to_owned(),
+            uid: "".to_owned(),
+            name: "".to_owned(),
         }
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum DeleteStatus<S>
+where
+    S: Spec,
+{
+    Deleted(DeletedStatus),
+    ForegroundDelete(K8Obj<S>),
+}
+
+/// status for actual deletion
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8Status {
+pub struct DeletedStatus {
     pub api_version: String,
     pub code: Option<u16>,
     pub details: Option<StatusDetails>,
     pub kind: String,
     pub message: Option<String>,
     pub reason: Option<String>,
-    #[serde(deserialize_with = "StatusEnum::deserialize_with")]
     pub status: StatusEnum,
 }
+
+/// Default status implementation
+#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
+pub enum StatusEnum {
+    #[serde(rename = "Success")]
+    SUCCESS,
+    #[serde(rename = "Failure")]
+    FAILURE,
+}
+
+/*
+#[serde(deserialize_with = "StatusEnum::deserialize_with")]
+    pub status: StatusEnum,
+*/
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct StatusDetails {
@@ -518,9 +532,9 @@ where
     S: Spec,
 {
     pub api_version: String,
-    pub items: Vec<K8Obj<S>>,
     pub kind: String,
     pub metadata: ListMetadata,
+    pub items: Vec<K8Obj<S>>,
 }
 
 impl<S> K8List<S>
@@ -539,6 +553,15 @@ where
                 self_link: "".to_owned(),
             },
         }
+    }
+}
+
+impl<S> Default for K8List<S>
+where
+    S: Spec,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -650,3 +673,119 @@ mod test {
         assert_eq!(env.value, Some("english".to_owned()));
     }
 }
+
+/*
+#[cfg(test)]
+mod test_delete {
+
+
+
+    use serde_json;
+    use serde::{ Serialize,Deserialize};
+
+    use crate::{ Spec,Status, DefaultHeader, Crd, CrdNames};
+    use super::DeleteResponse;
+
+    const TEST_API: Crd = Crd {
+        group: "test",
+        version: "v1",
+        names: CrdNames {
+            kind: "test",
+            plural: "test",
+            singular: "test",
+        },
+    };
+
+
+    #[derive(Deserialize, Serialize, Default, Debug, Clone)]
+    struct TestSpec {}
+
+    impl Spec for TestSpec {
+        type Status = TestStatus;
+        type Header = DefaultHeader;
+
+        fn metadata() -> &'static Crd {
+            &TEST_API
+        }
+    }
+
+    #[derive(Deserialize, Serialize,Debug, Default,Clone)]
+    struct TestStatus(bool);
+
+    impl Status for TestStatus{}
+
+    #[test]
+    fn test_deserialize_test_options() {
+        let data = r#"
+        {
+            "kind": "Status",
+            "apiVersion": "v1",
+            "metadata": {
+
+            },
+            "status": "Success",
+            "details": {
+              "name": "test",
+              "group": "test.infinyon.com",
+              "kind": "test",
+              "uid": "62fc6733-c505-40c1-9dbb-dcd71e93528f"
+            }"#;
+
+        // Parse the string of data into serde_json::Value.
+        let _status: DeleteResponse<TestSpec> = serde_json::from_str(data).expect("response");
+    }
+}
+*/
+
+/*
+
+
+impl<'de, S> Deserialize<'de> for DeleteResponse<S>
+    where
+        S: Spec
+{
+
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>,
+    {
+        use serde::de::{ Visitor, MapAccess};
+
+        struct StatusVisitor<S: Spec>(PhantomData<fn() -> S>);
+
+        impl<'de,S> Visitor<'de> for StatusVisitor<S>
+            where
+                S: Spec,
+                DeleteResponse<S>: Deserialize<'de>,
+        {
+            type Value = DeleteResponse<S>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("string or json")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                match value {
+                    "Success" => Ok(DeleteResponse::OkStatus(StatusEnum::SUCCESS)),
+                    "Failure" => Ok(DeleteResponse::OkStatus(StatusEnum::FAILURE)),
+                    _ => Err(de::Error::custom(format!("unrecognized status: {}",value)))
+                }
+
+
+            }
+
+            fn visit_map<M>(self, map: M) -> Result<Self::Value, M::Error>
+            where
+                M: MapAccess<'de>,
+            {
+                Deserialize::deserialize(de::value::MapAccessDeserializer::new(map))
+            }
+        }
+
+        deserializer.deserialize_any(StatusVisitor(PhantomData))
+    }
+
+}
+*/
