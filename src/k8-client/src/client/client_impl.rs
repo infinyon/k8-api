@@ -311,7 +311,7 @@ impl MetadataClient for K8Client {
 
         let bytes = serde_json::to_vec(&value)?;
 
-        println!(
+        trace!(
             "create {} raw: {}",
             S::label(),
             String::from_utf8_lossy(&bytes).to_string()
