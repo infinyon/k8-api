@@ -14,8 +14,8 @@ impl Serialize for PatchObject {
         let mut map = serializer.serialize_map(Some(diff_maps.len()))?;
         for (key, val) in diff_maps {
             match val {
-                Diff::None => {},
-                Diff::Delete => {},
+                Diff::None => {}
+                Diff::Delete => {}
                 Diff::Patch(ref v) => map.serialize_entry(key, v)?,
                 Diff::Replace(ref v) => {
                     map.serialize_entry(key, v)?;

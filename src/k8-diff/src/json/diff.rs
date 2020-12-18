@@ -78,38 +78,37 @@ mod test {
     fn test_replace_some_with_none() {
         use serde::Serialize;
         use serde_json::to_value;
-       
+
         use crate::Diff;
-        
+
         #[derive(Serialize)]
         struct Test {
             choice: Option<bool>,
-            value: u16
+            value: u16,
         }
 
         let old_spec = to_value(Test {
             choice: Some(true),
-            value: 5
-        }).expect("json");
+            value: 5,
+        })
+        .expect("json");
         let new_spec = to_value(Test {
             choice: None,
-            value: 5
-        }).expect("json");
+            value: 5,
+        })
+        .expect("json");
 
         let diff = old_spec.diff(&new_spec).expect("diff");
-        
+
         assert!(diff.is_patch());
 
         match diff {
             Diff::Patch(p) => {
                 let json_diff = serde_json::to_value(p).expect("json");
-                println!("json diff: {:#?}",json_diff);
-                assert_eq!(json_diff,json!({
-                    "choice": null
-                }));
-            },
-            _ => assert!(false)
+                println!("json diff: {:#?}", json_diff);
+                assert_eq!(json_diff, json!({ "choice": null }));
+            }
+            _ => assert!(false),
         }
-       
     }
 }
