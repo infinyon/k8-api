@@ -75,6 +75,7 @@ mod test {
     }
 
     #[test]
+    #[allow(clippy::clippy::assertions_on_constants)]
     fn test_replace_some_with_none() {
         use serde::Serialize;
         use serde_json::to_value;
