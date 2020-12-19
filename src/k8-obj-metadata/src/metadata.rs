@@ -43,7 +43,6 @@ pub struct ObjectMeta {
     pub name: String,
     pub namespace: String,
     pub uid: String,
-    pub self_link: String,
     pub creation_timestamp: String,
     pub generation: Option<i32>,
     pub resource_version: String,
@@ -549,8 +548,7 @@ where
             kind: S::kind(),
             metadata: ListMetadata {
                 _continue: None,
-                resource_version: S::api_version(),
-                self_link: "".to_owned(),
+                resource_version: S::api_version()
             },
         }
     }
@@ -588,8 +586,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct ListMetadata {
     pub _continue: Option<String>,
-    pub resource_version: String,
-    pub self_link: String,
+    pub resource_version: String
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, PartialEq, Clone)]
