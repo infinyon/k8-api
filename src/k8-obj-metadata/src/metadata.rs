@@ -548,7 +548,7 @@ where
             kind: S::kind(),
             metadata: ListMetadata {
                 _continue: None,
-                resource_version: S::api_version()
+                resource_version: S::api_version(),
             },
         }
     }
@@ -586,7 +586,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct ListMetadata {
     pub _continue: Option<String>,
-    pub resource_version: String
+    pub resource_version: String,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, PartialEq, Clone)]
