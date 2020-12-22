@@ -1,9 +1,11 @@
+use std::collections::BTreeMap;
+
 use serde::Deserialize;
 use serde::Serialize;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
-use k8_obj_metadata::DefaultHeader;
+use k8_obj_metadata::Header;
 use k8_obj_metadata::Spec;
 use k8_obj_metadata::Status;
 
@@ -21,7 +23,7 @@ const CONFIG_MAP_API: Crd = Crd {
 
 impl Spec for ConfigMapSpec {
     type Status = ConfigMapStatus;
-    type Header = DefaultHeader;
+    type Header = ConfigMapHeader;
 
     fn metadata() -> &'static Crd {
         &CONFIG_MAP_API
@@ -37,3 +39,12 @@ pub struct ConfigMapSpec {}
 pub struct ConfigMapStatus {}
 
 impl Status for ConfigMapStatus {}
+
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ConfigMapHeader {
+    #[serde(default)]
+    pub data: BTreeMap<String, String>,
+}
+
+impl Header for ConfigMapHeader {}
