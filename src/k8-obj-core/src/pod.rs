@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Value as DynamicObject;
 
 use k8_obj_metadata::Crd;
 use k8_obj_metadata::CrdNames;
@@ -65,7 +66,7 @@ pub struct ContainerSpec {
     pub image_pull_policy: Option<String>, // TODO: should be enum
     pub volume_mounts: Vec<VolumeMount>,
     pub env: Vec<Env>,
-    pub resource: Option<ResourceRequirements>,
+    pub resources: Option<ResourceRequirements>,
     pub termination_mssage_path: Option<String>,
     pub termination_message_policy: Option<String>,
     pub tty: Option<bool>,
@@ -74,10 +75,8 @@ pub struct ContainerSpec {
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ResourceRequirements {
-    pub api_groups: Vec<String>,
-    pub resource_names: Vec<String>,
-    pub resources: Vec<String>,
-    pub verbs: Vec<String>,
+    pub limits: DynamicObject,
+    pub requests: DynamicObject,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
