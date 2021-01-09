@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-obj-metadata"
-version = "2.0.1"
+version = "2.0.2"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
