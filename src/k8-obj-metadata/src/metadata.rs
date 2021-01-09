@@ -167,6 +167,7 @@ pub struct InputObjectMeta {
     pub namespace: String,
     pub owner_references: Vec<OwnerReferences>,
     pub finalizers: Vec<String>,
+    pub annotations: HashMap<String, String>,
 }
 
 impl LabelProvider for InputObjectMeta {
