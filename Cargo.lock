@@ -1010,7 +1010,7 @@ dependencies = [
 
 [[package]]
 name = "k8-obj-core"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "http 0.1.21",
  "k8-obj-metadata",

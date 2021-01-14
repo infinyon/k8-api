@@ -59,8 +59,8 @@ pub struct PodSecurityContext {
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Sysctl {
-    name: String,
-    value: String,
+    pub name: String,
+    pub value: String,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
