@@ -53,6 +53,14 @@ pub struct PodSecurityContext {
     pub run_as_group: Option<u32>,
     pub run_as_non_root: Option<bool>,
     pub run_as_user: Option<u32>,
+    pub sysctls: Vec<Sysctl>,
+}
+
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Sysctl {
+    pub name: String,
+    pub value: String,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
