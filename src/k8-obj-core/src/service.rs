@@ -68,6 +68,15 @@ pub enum TargetPort {
     Name(String),
 }
 
+impl std::fmt::Display for TargetPort {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Number(value) => write!(f, "{}", value),
+            Self::Name(value) => write!(f, "{}", value),
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ServiceStatus {
