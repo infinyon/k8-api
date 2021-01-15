@@ -58,7 +58,14 @@ pub struct ServicePort {
     pub name: Option<String>,
     pub node_port: Option<u16>,
     pub port: u16,
-    pub target_port: Option<u16>,
+    pub target_port: Option<TargetPort>,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[serde(untagged)]
+pub enum TargetPort {
+    Number(u16),
+    Name(String),
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
