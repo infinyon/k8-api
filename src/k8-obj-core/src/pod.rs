@@ -47,7 +47,7 @@ pub struct PodSpec {
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct PodSecurityContext {
     pub fs_group: Option<u32>,
     pub run_as_group: Option<u32>,
