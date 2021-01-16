@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use k8_obj_core::pod::PodSpec;
-use crate::core::metadata::{Crd, CrdNames, DefaultHeader, LabelSelector, Spec, Status, TemplateSpec};
+use crate::core::pod::PodSpec;
+use crate::{Crd, CrdNames, DefaultHeader, LabelSelector, Spec, Status, TemplateSpec};
 
 const STATEFUL_API: Crd = Crd {
     group: "apps",

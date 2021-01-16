@@ -11,8 +11,8 @@ pub use k8_config::K8Config;
 #[cfg(feature = "k8")]
 pub mod fixture;
 
-pub use k8_metadata_client as metadata;
-pub use k8_obj_core as core;
+pub use k8_metadata_client as meta_client;
+pub use meta_client::k8_types;
 
 pub use shared::load_and_share;
 pub use shared::new_shared;

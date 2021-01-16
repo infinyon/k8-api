@@ -1,13 +1,17 @@
 [package]
 edition = "2018"
-name = "k8-obj-metadata"
-version = "2.0.2"
+name = "k8-types"
+version = "0.1.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
-description = "Core Kubernetes metadata traits"
+description = "Kubernetes Object Types"
 repository = "https://github.com/infinyon/k8-api"
 license = "Apache-2.0"
 categories = ["encoding"]
 
+[features]
+core = []
+app = ["core"]
+storage = []
 
 [dependencies]
 tracing = "0.1.19"

@@ -1,12 +1,9 @@
 [workspace]
 members = [
-    "src/k8-obj-core",
-    "src/k8-obj-app",
-    "src/k8-obj-metadata",
+    "src/k8-types",
     "src/k8-metadata-client",
     "src/k8-diff",
     "src/k8-config",
     "src/k8-client",
-    "src/k8-obj-storage",
     "src/k8-ctx-util"
 ]

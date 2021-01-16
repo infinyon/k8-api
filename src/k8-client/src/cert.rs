@@ -104,8 +104,8 @@ where
         use rand::distributions::Alphanumeric;
         use rand::Rng;
 
-        use crate::core::plugin::ExecCredentialSpec;
-        use crate::core::metadata::K8Obj;
+        use crate::k8_types::core::plugin::ExecCredentialSpec;
+        use crate::k8_types::K8Obj;
 
         let current_user = kube_config.current_user().ok_or_else(|| {
             IoError::new(

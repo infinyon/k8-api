@@ -26,11 +26,11 @@ use tracing::error;
 use tracing::trace;
 
 use k8_config::K8Config;
-use k8_metadata_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
-use crate::core::metadata::{
+use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
+use crate::k8_types::{
     InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
 };
-use crate::core::metadata::options::{ListOptions, DeleteOptions};
+use crate::k8_types::options::{ListOptions, DeleteOptions};
 
 use crate::uri::{item_uri, items_uri};
 use crate::ClientError;
@@ -266,7 +266,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        use crate::core::metadata::DeletedStatus;
+        use crate::k8_types::DeletedStatus;
 
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
         debug!("{}: delete item on url: {}", S::label(), uri);
