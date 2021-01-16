@@ -4,4 +4,3 @@ pub mod plugin;
 pub mod pod;
 pub mod secret;
 pub mod service;
-

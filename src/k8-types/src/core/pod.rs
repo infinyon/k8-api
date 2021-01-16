@@ -9,7 +9,6 @@ use crate::Env;
 use crate::Spec;
 use crate::Status;
 
-
 const POD_API: Crd = Crd {
     group: "core",
     version: "v1",

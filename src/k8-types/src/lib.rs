@@ -2,17 +2,16 @@ mod crd;
 mod metadata;
 pub mod options;
 pub mod store;
-#[cfg(feature="core")]
+#[cfg(feature = "core")]
 pub mod core;
-#[cfg(feature="app")]
+#[cfg(feature = "app")]
 pub mod app;
-#[cfg(feature="storage")]
+#[cfg(feature = "storage")]
 pub mod storage;
 
 pub use self::crd::*;
 pub use self::metadata::*;
 pub use self::spec_def::*;
-
 
 mod spec_def {
 
@@ -21,7 +20,7 @@ mod spec_def {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
     use serde::Serialize;
-    
+
     use super::Crd;
 
     pub trait Status:
@@ -73,5 +72,4 @@ mod spec_def {
     pub struct DefaultHeader {}
 
     impl Header for DefaultHeader {}
-
 }

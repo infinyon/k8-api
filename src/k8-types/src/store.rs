@@ -177,8 +177,8 @@ macro_rules! default_store_spec {
             fn convert_from_k8(
                 k8_obj: crate::K8Obj<Self::K8Spec>,
             ) -> Result<Option<crate::store::MetaItem<Self>>, std::io::Error> {
-                let ctx = crate::store::MetaItemContext::default()
-                    .with_ctx(k8_obj.metadata.clone());
+                let ctx =
+                    crate::store::MetaItemContext::default().with_ctx(k8_obj.metadata.clone());
                 Ok(Some(crate::store::MetaItem::new(
                     k8_obj.metadata.name,
                     k8_obj.spec,
