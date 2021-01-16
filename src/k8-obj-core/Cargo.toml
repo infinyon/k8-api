@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-obj-core"
-version = "2.1.1"
+version = "2.2.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes API Objects"
 repository = "https://github.com/infinyon/k8-api"

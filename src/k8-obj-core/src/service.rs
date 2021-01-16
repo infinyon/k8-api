@@ -58,7 +58,23 @@ pub struct ServicePort {
     pub name: Option<String>,
     pub node_port: Option<u16>,
     pub port: u16,
-    pub target_port: Option<u16>,
+    pub target_port: Option<TargetPort>,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[serde(untagged)]
+pub enum TargetPort {
+    Number(u16),
+    Name(String),
+}
+
+impl std::fmt::Display for TargetPort {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Number(value) => write!(f, "{}", value),
+            Self::Name(value) => write!(f, "{}", value),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
