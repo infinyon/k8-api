@@ -3,11 +3,11 @@ use std::collections::BTreeMap;
 use serde::Deserialize;
 use serde::Serialize;
 
-use k8_obj_metadata::Crd;
-use k8_obj_metadata::CrdNames;
-use k8_obj_metadata::Header;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::Status;
+use crate::Crd;
+use crate::CrdNames;
+use crate::Header;
+use crate::Spec;
+use crate::Status;
 
 //
 // Secret Object

@@ -2,15 +2,13 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as DynamicObject;
 
-use k8_obj_metadata::Crd;
-use k8_obj_metadata::CrdNames;
-use k8_obj_metadata::DefaultHeader;
-use k8_obj_metadata::Env;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::Status;
+use crate::Crd;
+use crate::CrdNames;
+use crate::DefaultHeader;
+use crate::Env;
+use crate::Spec;
+use crate::Status;
 
-//
-// Pod Object
 
 const POD_API: Crd = Crd {
     group: "core",

@@ -166,7 +166,7 @@ impl ::std::default::Default for MetaItemContext {
 #[macro_export]
 macro_rules! default_store_spec {
     ($spec:ident,$status:ident,$name:expr) => {
-        impl k8_obj_metadata::store::StoreSpec for $spec {
+        impl crate::store::StoreSpec for $spec {
             const LABEL: &'static str = $name;
 
             type K8Spec = Self;
@@ -175,11 +175,11 @@ macro_rules! default_store_spec {
             type Owner = Self;
 
             fn convert_from_k8(
-                k8_obj: k8_obj_metadata::K8Obj<Self::K8Spec>,
-            ) -> Result<Option<k8_obj_metadata::store::MetaItem<Self>>, std::io::Error> {
-                let ctx = k8_obj_metadata::store::MetaItemContext::default()
+                k8_obj: crate::K8Obj<Self::K8Spec>,
+            ) -> Result<Option<crate::store::MetaItem<Self>>, std::io::Error> {
+                let ctx = crate::store::MetaItemContext::default()
                     .with_ctx(k8_obj.metadata.clone());
-                Ok(Some(k8_obj_metadata::store::MetaItem::new(
+                Ok(Some(crate::store::MetaItem::new(
                     k8_obj.metadata.name,
                     k8_obj.spec,
                     k8_obj.status,

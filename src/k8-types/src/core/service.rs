@@ -2,12 +2,12 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use k8_obj_metadata::default_store_spec;
-use k8_obj_metadata::Crd;
-use k8_obj_metadata::CrdNames;
-use k8_obj_metadata::DefaultHeader;
-use k8_obj_metadata::Spec;
-use k8_obj_metadata::Status;
+use crate::default_store_spec;
+use crate::Crd;
+use crate::CrdNames;
+use crate::DefaultHeader;
+use crate::Spec;
+use crate::Status;
 
 const SERVICE_API: Crd = Crd {
     group: "core",
