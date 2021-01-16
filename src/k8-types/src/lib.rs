@@ -4,13 +4,17 @@ pub mod options;
 pub mod store;
 #[cfg(feature="core")]
 pub mod core;
+#[cfg(feature="app")]
+pub mod app;
+#[cfg(feature="storage")]
+pub mod storage;
 
 pub use self::crd::*;
 pub use self::metadata::*;
-pub use self::spec::*;
+pub use self::spec_def::*;
 
 
-mod spec {
+mod spec_def {
 
     use std::fmt::Debug;
 
@@ -19,7 +23,7 @@ mod spec {
     use serde::Serialize;
     
     use super::Crd;
-    
+
     pub trait Status:
         Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync
     {

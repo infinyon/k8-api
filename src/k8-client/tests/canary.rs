@@ -10,8 +10,8 @@ mod canary_test {
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
     use k8_metadata_client::NameSpace;
-    use k8_obj_core::service::ServiceSpec;
-    use k8_obj_core::metadata::K8Obj;
+    use k8_types::core::service::ServiceSpec;
+    use k8_types::K8Obj;
 
     // get services to find kubernetes api
     #[test_async]
@@ -28,7 +28,7 @@ mod canary_test {
         Ok(())
     }
 
-    use k8_obj_core::secret::SecretSpec;
+    use k8_types::core::secret::SecretSpec;
 
     #[test_async]
     async fn test_client_secrets() -> Result<(), ClientError> {
@@ -56,7 +56,7 @@ mod canary_test {
 
     #[test_async]
     async fn test_pods() -> Result<(), ClientError> {
-        use k8_obj_core::pod::PodSpec;
+        use k8_types::core::pod::PodSpec;
 
         let client = K8Client::default().expect("cluster could not be configured");
         let pod_items = client

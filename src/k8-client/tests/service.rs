@@ -17,8 +17,8 @@ mod integration_tests {
 
     use k8_client::{ClientError, K8Client};
     use k8_metadata_client::{ApplyResult, MetadataClient};
-    use k8_obj_core::service::{ServicePort, ServiceSpec};
-    use k8_obj_core::metadata::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
+    use k8_types::core::service::{ServicePort, ServiceSpec};
+    use k8_types::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
 
     const SPU_DEFAULT_NAME: &'static str = "spu";
     const PORT: u16 = 9002;
