@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Debug;
@@ -394,13 +393,18 @@ where
 /// For creating, only need spec
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct K8SpecObj<S, M> {
+#[serde(bound(serialize = "S: Serialize, M: Serialize"))]
+#[serde(bound(deserialize = "S: DeserializeOwned, M: DeserializeOwned"))]
+pub struct K8SpecObj<S, M>
+where
+    S: Spec,
+{
     pub api_version: String,
     pub kind: String,
     pub metadata: M,
     pub spec: S,
-    #[serde(default)]
-    pub data: BTreeMap<String, String>,
+    #[serde(flatten)]
+    pub header: S::Header,
 }
 
 impl<S, M> K8SpecObj<S, M>
@@ -455,7 +459,7 @@ where
 
 impl<S> From<UpdateK8Obj<S>> for InputK8Obj<S>
 where
-    S: Default,
+    S: Spec,
 {
     fn from(update: UpdateK8Obj<S>) -> Self {
         Self {

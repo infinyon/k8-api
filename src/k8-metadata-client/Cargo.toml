@@ -18,5 +18,5 @@ serde_qs = "0.8.0"
 async-trait = "0.1.21"
 http = { version = "0.2.0" }
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
-k8-types = { version = "0.1.0", path = "../k8-types" }
+k8-types = { version = "0.2.0", path = "../k8-types" }
 
