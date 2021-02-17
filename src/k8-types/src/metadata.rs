@@ -395,7 +395,7 @@ where
 #[serde(rename_all = "camelCase")]
 #[serde(bound(serialize = "S: Serialize, M: Serialize"))]
 #[serde(bound(deserialize = "S: DeserializeOwned, M: DeserializeOwned"))]
-pub struct K8SpecObj<S, M> 
+pub struct K8SpecObj<S, M>
 where
     S: Spec,
 {
