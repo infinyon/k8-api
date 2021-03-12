@@ -28,7 +28,7 @@ impl Spec for PodSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PodSpec {
     pub volumes: Vec<VolumeSpec>,
@@ -43,7 +43,7 @@ pub struct PodSpec {
     pub scheduler_name: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PodSecurityContext {
     pub fs_group: Option<u32>,
@@ -53,14 +53,14 @@ pub struct PodSecurityContext {
     pub sysctls: Vec<Sysctl>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Sysctl {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ContainerSpec {
     pub name: String,
@@ -77,14 +77,14 @@ pub struct ContainerSpec {
     pub tty: Option<bool>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ResourceRequirements {
     pub limits: DynamicObject,
     pub requests: DynamicObject,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerPortSpec {
     pub container_port: u16,
@@ -102,14 +102,14 @@ impl ContainerPortSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 pub struct VolumeSpec {
     pub name: String,
     pub secret: Option<SecretVolumeSpec>,
     pub persistent_volume_claim: Option<PersistentVolumeClaimVolumeSource>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct VolumeMount {
     pub mount_path: String,
@@ -119,7 +119,7 @@ pub struct VolumeMount {
     pub sub_path: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SecretVolumeSpec {
     pub default_mode: u16,
@@ -127,7 +127,7 @@ pub struct SecretVolumeSpec {
     pub optional: Option<bool>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistentVolumeClaimVolumeSource {
     claim_name: String,
