@@ -610,7 +610,7 @@ impl LabelSelector {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Env {
     pub name: String,
@@ -640,13 +640,13 @@ impl Env {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvVarSource {
     field_ref: Option<ObjectFieldSelector>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectFieldSelector {
     pub field_path: String,

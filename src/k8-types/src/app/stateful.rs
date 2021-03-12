@@ -36,14 +36,14 @@ impl Spec for StatefulSetSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetUpdateStrategy {
     pub _type: String,
     pub rolling_ipdate: Option<RollingUpdateStatefulSetStrategy>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RollingUpdateStatefulSetStrategy {
     partition: u32,
@@ -55,7 +55,7 @@ pub enum PodMangementPolicy {
     Parallel,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistentVolumeClaim {
     pub access_modes: Vec<VolumeAccessMode>,
@@ -70,17 +70,17 @@ pub enum VolumeAccessMode {
     ReadOnlyMany,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct ResourceRequirements {
     pub requests: VolumeRequest,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct VolumeRequest {
     pub storage: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetStatus {
     pub replicas: u16,
@@ -104,7 +104,7 @@ pub enum StatusEnum {
     Unknown,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone,PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StatefulSetCondition {
     pub message: String,
