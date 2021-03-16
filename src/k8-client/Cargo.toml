@@ -37,6 +37,7 @@ fluvio-future = { version = "0.2.0", features = ["net", "task"] }
 k8-metadata-client = { version = "3.1.0", path = "../k8-metadata-client" }
 k8-diff = { version = "0.1.0", path = "../k8-diff" }
 k8-config = { version = "1.0.0", path = "../k8-config" }
+k8-types = { version = "0.2.1", path = "../k8-types", features = ["core"] }
 
 
 [dev-dependencies]
@@ -45,4 +46,3 @@ once_cell = "1.4.1"
 async-trait = "0.1.21"
 
 fluvio-future = { version = "0.2.0", features = ["fixture"] }
-k8-types = { version = "0.2.0", path = "../k8-types", features = ["core"] }
