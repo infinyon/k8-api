@@ -25,7 +25,11 @@ mod integration_tests {
 
     fn new_service() -> InputK8Obj<ServiceSpec> {
         let rng = thread_rng();
-        let rname: String = rng.sample_iter(&Alphanumeric).take(5).collect();
+        let rname: String = rng
+            .sample_iter(&Alphanumeric)
+            .map(char::from)
+            .take(5)
+            .collect();
         let name = format!("test{}", rname);
 
         let mut labels = HashMap::new();

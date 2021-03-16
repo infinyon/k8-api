@@ -14,7 +14,6 @@ app = ["core"]
 storage = []
 
 [dependencies]
-tracing = "0.1.19"
 serde = { version ="1.0.118", features = ['derive'] }
 serde_json = "1.0.60"
 serde_qs = "0.8.1"
