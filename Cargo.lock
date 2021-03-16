@@ -491,16 +491,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flv-util"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de89447c8b4aecfa4c0614d1a7be1c6ab4a0266b59bb2713fd746901f28d124e"
-dependencies = [
- "log",
- "tracing",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -844,14 +834,13 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "5.1.0"
+version = "5.1.1"
 dependencies = [
  "async-trait",
  "base64",
  "bytes",
  "cfg-if 1.0.0",
  "fluvio-future",
- "flv-util",
  "futures-util",
  "http",
  "hyper",
@@ -869,12 +858,11 @@ dependencies = [
  "serde_qs",
  "tokio",
  "tracing",
- "tracing-futures",
 ]
 
 [[package]]
 name = "k8-config"
-version = "1.3.0"
+version = "1.3.1"
 dependencies = [
  "dirs",
  "hostfile",
@@ -899,7 +887,6 @@ version = "0.1.2"
 dependencies = [
  "serde",
  "serde_json",
- "tracing",
 ]
 
 [[package]]
@@ -908,15 +895,12 @@ version = "3.1.0"
 dependencies = [
  "async-trait",
  "futures-util",
- "http",
  "k8-diff",
  "k8-types",
  "pin-utils",
  "serde",
  "serde_json",
- "serde_qs",
  "tracing",
- "tracing-futures",
 ]
 
 [[package]]
@@ -926,7 +910,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs",
- "tracing",
 ]
 
 [[package]]
@@ -1732,16 +1715,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f50de3927f93d202783f4513cda820ab47ef17f624b03c096e86ef00c67e6b5f"
 dependencies = [
  "lazy_static",
-]
-
-[[package]]
-name = "tracing-futures"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
-dependencies = [
- "pin-project",
- "tracing",
 ]
 
 [[package]]

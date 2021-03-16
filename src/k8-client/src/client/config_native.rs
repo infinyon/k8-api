@@ -49,7 +49,7 @@ impl AsyncRead for HyperTlsStream {
                 buf.advance(bytes_read);
                 Poll::Ready(Ok(()))
             }
-            Poll::Pending => Poll::Pending,
+            Poll::Pending => Poll::Pending
         }
     }
 }
