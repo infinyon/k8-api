@@ -41,12 +41,12 @@ impl AsyncRead for HyperTlsStream {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<IoResult<()>> {
-        match Pin::new(&mut self.0).poll_read(cx, buf.filled_mut())? {
+        match Pin::new(&mut self.0).poll_read(cx, buf.initialize_unfilled())? {
             Poll::Ready(bytes_read) => {
                 buf.advance(bytes_read);
                 Poll::Ready(Ok(()))
             }
-            Poll::Pending => Poll::Pending
+            Poll::Pending => Poll::Pending,
         }
     }
 }
