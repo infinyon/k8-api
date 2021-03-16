@@ -130,6 +130,7 @@ where
                 "eks-pem-{}",
                 rand::thread_rng()
                     .sample_iter(&Alphanumeric)
+                    .map(char::from)
                     .take(15)
                     .collect::<String>()
                     .to_lowercase()

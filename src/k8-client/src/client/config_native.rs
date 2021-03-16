@@ -13,7 +13,7 @@ use hyper::rt::Executor;
 use hyper::service::Service;
 use hyper::Body;
 use hyper::Client;
-use tokio::io::{AsyncRead, AsyncWrite};
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tracing::debug;
 
 use fluvio_future::native_tls::{
@@ -42,9 +42,15 @@ impl AsyncRead for HyperTlsStream {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<IoResult<usize>> {
-        Pin::new(&mut self.0).poll_read(cx, buf)
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<IoResult<()>> {
+        match Pin::new(&mut self.0).poll_read(cx, buf.filled_mut())? {
+            Poll::Ready(bytes_read) => {
+                buf.advance(bytes_read);
+                Poll::Ready(Ok(()))
+            }
+            Poll::Pending => Poll::Pending,
+        }
     }
 }
 

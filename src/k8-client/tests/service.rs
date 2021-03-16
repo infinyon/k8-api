@@ -33,7 +33,10 @@ mod integration_tests {
 
     static PREFIX: Lazy<String> = Lazy::new(|| {
         let rng = thread_rng();
-        rng.sample_iter(&Alphanumeric).take(5).collect()
+        rng.sample_iter(&Alphanumeric)
+            .map(char::from)
+            .take(5)
+            .collect()
     });
 
     fn new_service(item_id: u16) -> InputK8Obj<ServiceSpec> {

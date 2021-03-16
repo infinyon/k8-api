@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use bytes::buf::ext::BufExt;
+use bytes::Buf;
 use futures_util::future::FutureExt;
 use futures_util::stream::empty;
 use futures_util::stream::BoxStream;
