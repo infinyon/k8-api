@@ -22,8 +22,7 @@ use crate::k8_types::{
 };
 use crate::k8_types::options::DeleteOptions;
 use crate::diff::PatchMergeType;
-
-use crate::{ApplyResult, DiffSpec};
+use crate::{ApplyResult, DiffableK8Obj};
 
 #[derive(Clone)]
 pub enum NameSpace {
@@ -180,13 +179,17 @@ pub trait MetadataClient: Send + Sync {
         debug!("{}: applying '{}' changes", S::label(), value.metadata.name);
         trace!("{}: applying {:#?}", S::label(), value);
         match self.retrieve_item(&value.metadata).await {
-            Ok(item) => {
-                let mut old_spec: S = item.spec;
+            Ok(old_item) => {
+                let mut old_spec: S = old_item.spec;
                 old_spec.make_same(&value.spec);
                 // we don't care about status
-                let new_spec = serde_json::to_value(DiffSpec::from(value.spec.clone()))?;
-                let old_spec = serde_json::to_value(DiffSpec::from(old_spec))?;
-                let diff = old_spec.diff(&new_spec)?;
+                let new_obj = serde_json::to_value(DiffableK8Obj::new(
+                    value.metadata.clone(),
+                    value.spec.clone(),
+                ))?;
+                let old_obj =
+                    serde_json::to_value(DiffableK8Obj::new(old_item.metadata, old_spec))?;
+                let diff = old_obj.diff(&new_obj)?;
                 match diff {
                     Diff::None => {
                         debug!("{}: no diff detected, doing nothing", S::label());
@@ -194,11 +197,11 @@ pub trait MetadataClient: Send + Sync {
                     }
                     Diff::Patch(p) => {
                         let json_diff = serde_json::to_value(p)?;
-                        debug!("{}: detected diff: old vs. new spec", S::label());
-                        trace!("{}: new spec: {:#?}", S::label(), &new_spec);
-                        trace!("{}: old spec: {:#?}", S::label(), &old_spec);
+                        debug!("{}: detected diff: old vs. new obj", S::label());
+                        trace!("{}: new obj: {:#?}", S::label(), &new_obj);
+                        trace!("{}: old obj: {:#?}", S::label(), &old_obj);
                         trace!("{}: new/old diff: {:#?}", S::label(), json_diff);
-                        let patch_result = self.patch_spec(&value.metadata, &json_diff).await?;
+                        let patch_result = self.patch_obj(&value.metadata, &json_diff).await?;
                         Ok(ApplyResult::Patched(patch_result))
                     }
                     _ => Err(Self::MetadataClientError::patch_error()),
@@ -228,8 +231,8 @@ pub trait MetadataClient: Send + Sync {
     where
         S: Spec;
 
-    /// patch existing spec
-    async fn patch_spec<S, M>(
+    /// patch existing obj
+    async fn patch_obj<S, M>(
         &self,
         metadata: &M,
         patch: &Value,
