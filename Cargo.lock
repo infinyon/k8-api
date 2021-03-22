@@ -891,7 +891,7 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "async-trait",
  "futures-util",

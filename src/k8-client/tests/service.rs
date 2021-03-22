@@ -105,7 +105,6 @@ mod integration_tests {
                 ..Default::default()
             };
 
-            trace!("updated item: {:#?}", update_item);
             // apply new changes
             debug!("updating service: {}", i);
             let updates = client.apply(update_item).await.expect("apply");
@@ -113,16 +112,36 @@ mod integration_tests {
             let updated_item = match updates {
                 ApplyResult::Patched(item) => item,
                 _ => {
-                    assert!(false, "apply does not result in patche");
+                    assert!(false, "apply does not result in patch");
+                    panic!();
+                }
+            };
+            trace!("updated item: {:#?}", updated_item);
+
+            sleep(DELAY).await;
+
+            // update only metadata
+            let mut update_item_2 = updated_item.as_input();
+            update_item_2.metadata.annotations.insert(
+                "test-annotations".to_owned(),
+                "test-annotations-value".to_owned(),
+            );
+            // apply new changes
+            debug!("updating service meta: {}", i);
+            let updates_2 = client.apply(update_item_2).await.expect("apply");
+            trace!("updated item meta: {:#?}", updates_2);
+
+            let updated_item_2 = match updates_2 {
+                ApplyResult::Patched(item) => item,
+                _ => {
+                    assert!(false, "apply does not result in patch");
                     panic!();
                 }
             };
 
-            sleep(DELAY).await;
-
             debug!("deleting service: {}", i);
             client
-                .delete_item::<ServiceSpec, _>(&updated_item.metadata)
+                .delete_item::<ServiceSpec, _>(&updated_item_2.metadata)
                 .await
                 .expect("delete should work");
 
@@ -161,14 +180,29 @@ mod integration_tests {
                 .await
                 .expect("events")
                 .expect("events");
+            trace!("update_events {:?}", update_events);
+            assert_eq!(update_events.len(), 1);
             let update_event = update_events.pop().unwrap();
             assert!(matches!(update_event.expect("ok"), K8Watch::MODIFIED(_)));
+
+            let mut update_2_events = service_streams
+                .next()
+                .await
+                .expect("events")
+                .expect("events");
+            trace!("update_events {:?}", update_2_events);
+            assert_eq!(update_2_events.len(), 1);
+            let update_2_event = update_2_events.pop().unwrap();
+            assert!(matches!(update_2_event.expect("ok"), K8Watch::MODIFIED(_)));
 
             let mut delete_events = service_streams
                 .next()
                 .await
                 .expect("events")
                 .expect("events");
+
+            trace!("delete_events {:?}", delete_events);
+            assert_eq!(delete_events.len(), 1);
             let delete_event = delete_events.pop().unwrap();
             assert!(matches!(delete_event.expect("ok"), K8Watch::DELETED(_)));
         }

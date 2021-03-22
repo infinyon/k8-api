@@ -37,17 +37,19 @@ impl PatchMergeType {
     }
 }
 
-/// used for comparing spec,
+/// used for comparing k8 objects,
 #[derive(Serialize, Debug, Clone)]
-pub struct DiffSpec<S> {
+pub struct DiffableK8Obj<M, S> {
+    metadata: M,
     spec: S,
 }
 
-impl<S> DiffSpec<S>
+impl<M, S> DiffableK8Obj<M, S>
 where
+    M: Serialize,
     S: Serialize,
 {
-    pub fn from(spec: S) -> Self {
-        DiffSpec { spec }
+    pub fn new(metadata: M, spec: S) -> Self {
+        Self { metadata, spec }
     }
 }
