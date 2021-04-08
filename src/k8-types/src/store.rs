@@ -118,12 +118,12 @@ where
     }
 }
 
-impl<S> Into<(S::Key, S, S::Status)> for MetaItem<S>
+impl<S> From<MetaItem<S>> for (S::Key, S, S::Status)
 where
     S: StoreSpec,
 {
-    fn into(self) -> (S::Key, S, S::Status) {
-        (self.key, self.spec, self.status)
+    fn from(val: MetaItem<S>) -> Self {
+        (val.key, val.spec, val.status)
     }
 }
 

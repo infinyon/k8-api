@@ -173,7 +173,7 @@ mod integration_tests {
             assert_eq!(add_events.len(), 1);
             let add_event = add_events.pop().unwrap();
             //  debug!("events:{:#?}",events);
-            assert!(matches!(add_event.expect("ok"), K8Watch::ADDED(_)));
+            assert!(matches!(add_event.expect("ok"), K8Watch::Added(_)));
 
             let mut update_events = service_streams
                 .next()
@@ -183,7 +183,7 @@ mod integration_tests {
             trace!("update_events {:?}", update_events);
             assert_eq!(update_events.len(), 1);
             let update_event = update_events.pop().unwrap();
-            assert!(matches!(update_event.expect("ok"), K8Watch::MODIFIED(_)));
+            assert!(matches!(update_event.expect("ok"), K8Watch::Modified(_)));
 
             let mut update_2_events = service_streams
                 .next()
@@ -193,7 +193,7 @@ mod integration_tests {
             trace!("update_events {:?}", update_2_events);
             assert_eq!(update_2_events.len(), 1);
             let update_2_event = update_2_events.pop().unwrap();
-            assert!(matches!(update_2_event.expect("ok"), K8Watch::MODIFIED(_)));
+            assert!(matches!(update_2_event.expect("ok"), K8Watch::Modified(_)));
 
             let mut delete_events = service_streams
                 .next()
@@ -204,7 +204,7 @@ mod integration_tests {
             trace!("delete_events {:?}", delete_events);
             assert_eq!(delete_events.len(), 1);
             let delete_event = delete_events.pop().unwrap();
-            assert!(matches!(delete_event.expect("ok"), K8Watch::DELETED(_)));
+            assert!(matches!(delete_event.expect("ok"), K8Watch::Deleted(_)));
         }
     }
 

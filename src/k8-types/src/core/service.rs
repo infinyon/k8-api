@@ -94,7 +94,8 @@ pub enum ExternalTrafficPolicy {
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum LoadBalancerType {
     ExternalName,
-    ClusterIP,
+    #[serde(rename = "ClusterIP")]
+    ClusterIp,
     NodePort,
     LoadBalancer,
 }
