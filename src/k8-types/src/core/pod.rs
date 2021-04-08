@@ -75,6 +75,32 @@ pub struct ContainerSpec {
     pub termination_mssage_path: Option<String>,
     pub termination_message_policy: Option<String>,
     pub tty: Option<bool>,
+    pub liveness_probe: Option<Probe>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Probe {
+    pub exec: Option<ExecAction>,
+    pub failure_threshold: Option<u32>,
+    pub initial_delay_seconds: Option<u32>,
+    pub period_seconds: Option<u32>,
+    pub success_threshold: Option<u32>,
+    pub tcp_socket: Option<TcpSocketAction>,
+    pub timeout_seconds: Option<u32>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ExecAction {
+    pub command: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase", default)]
+pub struct TcpSocketAction {
+    pub host: String,
+    pub port: u16,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
