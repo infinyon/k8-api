@@ -94,6 +94,7 @@ pub enum ExternalTrafficPolicy {
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum LoadBalancerType {
     ExternalName,
+    #[allow(clippy::upper_case_acronyms)]
     ClusterIP,
     NodePort,
     LoadBalancer,

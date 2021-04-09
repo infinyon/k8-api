@@ -296,6 +296,7 @@ pub struct DeletedStatus {
 }
 
 /// Default status implementation
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 pub enum StatusEnum {
     #[serde(rename = "Success")]
@@ -573,6 +574,7 @@ pub trait DeserializeWith: Sized {
         D: Deserializer<'de>;
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type", content = "object")]
 #[serde(bound(serialize = "K8Obj<S>: Serialize"))]
