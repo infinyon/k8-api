@@ -123,13 +123,12 @@ impl ObjectMeta {
 
     /// create child references that points to this
     pub fn make_child_input_metadata<S: Spec>(&self, childname: String) -> InputObjectMeta {
-        let mut owner_refs: Vec<OwnerReferences> = vec![];
-        owner_refs.push(self.make_owner_reference::<S>());
+        let owner_references: Vec<OwnerReferences> = vec![self.make_owner_reference::<S>()];
 
         InputObjectMeta {
             name: childname,
             namespace: self.namespace().to_owned(),
-            owner_references: owner_refs,
+            owner_references,
             ..Default::default()
         }
     }
@@ -299,10 +298,8 @@ pub struct DeletedStatus {
 /// Default status implementation
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 pub enum StatusEnum {
-    #[serde(rename = "Success")]
-    SUCCESS,
-    #[serde(rename = "Failure")]
-    FAILURE,
+    Success,
+    Failure,
 }
 
 /*
@@ -582,9 +579,12 @@ pub enum K8Watch<S>
 where
     S: Spec,
 {
-    ADDED(K8Obj<S>),
-    MODIFIED(K8Obj<S>),
-    DELETED(K8Obj<S>),
+    #[serde(rename = "ADDED")]
+    Added(K8Obj<S>),
+    #[serde(rename = "MODIFIED")]
+    Modified(K8Obj<S>),
+    #[serde(rename = "DELETED")]
+    Deleted(K8Obj<S>),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

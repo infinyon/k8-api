@@ -285,7 +285,7 @@ pub trait MetadataClient: Send + Sync {
                     let items_list = item_now_list
                         .items
                         .into_iter()
-                        .map(|item| Ok(K8Watch::ADDED(item)))
+                        .map(|item| Ok(K8Watch::Added(item)))
                         .collect();
                     let list_stream = once(ready(Ok(items_list)));
 
