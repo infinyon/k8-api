@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as DynamicObject;
@@ -41,6 +43,7 @@ pub struct PodSpec {
     pub dns_policy: Option<String>,
     pub security_context: Option<PodSecurityContext>,
     pub scheduler_name: Option<String>,
+    pub node_selector: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
