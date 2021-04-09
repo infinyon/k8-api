@@ -298,8 +298,10 @@ pub struct DeletedStatus {
 /// Default status implementation
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 pub enum StatusEnum {
-    Success,
-    Failure,
+    #[serde(rename = "Success")]
+    SUCCESS,
+    #[serde(rename = "Failure")]
+    FAILURE,
 }
 
 /*
@@ -579,12 +581,9 @@ pub enum K8Watch<S>
 where
     S: Spec,
 {
-    #[serde(rename = "ADDED")]
-    Added(K8Obj<S>),
-    #[serde(rename = "MODIFIED")]
-    Modified(K8Obj<S>),
-    #[serde(rename = "DELETED")]
-    Deleted(K8Obj<S>),
+    ADDED(K8Obj<S>),
+    MODIFIED(K8Obj<S>),
+    DELETED(K8Obj<S>),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
