@@ -8,6 +8,8 @@ pub mod core;
 pub mod app;
 #[cfg(feature = "storage")]
 pub mod storage;
+#[cfg(feature = "batch")]
+pub mod batch;
 
 pub use self::crd::*;
 pub use self::metadata::*;

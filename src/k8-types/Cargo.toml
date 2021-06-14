@@ -12,6 +12,7 @@ categories = ["encoding"]
 core = []
 app = ["core"]
 storage = []
+batch = ["core"]
 
 [dependencies]
 serde = { version ="1.0.118", features = ['derive'] }
