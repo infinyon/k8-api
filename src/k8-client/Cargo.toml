@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-client"
-version = "5.1.2"
+version = "5.1.3"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -37,7 +37,7 @@ fluvio-future = { version = "0.2.0", features = ["net", "task"] }
 k8-metadata-client = { version = "3.1.0", path = "../k8-metadata-client" }
 k8-diff = { version = "0.1.0", path = "../k8-diff" }
 k8-config = { version = "1.0.0", path = "../k8-config" }
-k8-types = { version = "0.2.2", path = "../k8-types", features = ["core"] }
+k8-types = { version = "0.2.2", path = "../k8-types", features = ["core", "batch"] }
 
 
 [dev-dependencies]
