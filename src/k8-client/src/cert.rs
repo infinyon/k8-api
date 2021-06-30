@@ -122,6 +122,7 @@ where
         })?;
 
         if let Some(ca_data) = &current_cluster.cluster.certificate_authority_data {
+            debug!("detected in-line certs");
             let pem_bytes = decode(ca_data).unwrap();
 
             trace!("pem: {}", String::from_utf8_lossy(&pem_bytes).to_string());
@@ -145,6 +146,7 @@ where
             let builder = builder.load_ca_certificate(file_path)?;
 
             if let Some(exec) = &current_user.user.exec {
+                // handle AWS
                 let token_output = Command::new(exec.command.clone())
                     .args(exec.args.clone())
                     .output()?;
