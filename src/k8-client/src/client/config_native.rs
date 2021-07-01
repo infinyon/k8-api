@@ -14,7 +14,7 @@ use hyper::service::Service;
 use hyper::Body;
 use hyper::Client;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
-use tracing::debug;
+use tracing::{debug};
 
 use fluvio_future::native_tls::{
     CertBuilder, ConnectorBuilder, DefaultClientTlsStream, IdentityBuilder, PrivateKeyBuilder,
@@ -178,6 +178,15 @@ impl ConfigBuilder for HyperClientBuilder {
         })
     }
 
+    fn load_ca_cert_with_data(self, ca_data: Vec<u8>) -> Result<Self, IoError> {
+        let ca_builder = X509PemBuilder::new(ca_data);
+
+        Ok(Self {
+            ca_cert: Some(ca_builder),
+            client_identity: self.client_identity,
+        })
+    }
+
     fn load_client_certificate<P: AsRef<Path>>(
         self,
         client_crt_path: P,
@@ -189,6 +198,22 @@ impl ConfigBuilder for HyperClientBuilder {
         let identity = IdentityBuilder::from_x509(
             X509PemBuilder::from_path(client_crt_path)?,
             PrivateKeyBuilder::from_path(client_key_path)?,
+        )?;
+
+        Ok(Self {
+            ca_cert: self.ca_cert,
+            client_identity: Some(identity),
+        })
+    }
+
+    fn load_client_certificate_with_data(
+        self,
+        client_crt: Vec<u8>,
+        client_key: Vec<u8>,
+    ) -> Result<Self, IoError> {
+        let identity = IdentityBuilder::from_x509(
+            X509PemBuilder::new(client_crt),
+            PrivateKeyBuilder::new(client_key),
         )?;
 
         Ok(Self {

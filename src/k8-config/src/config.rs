@@ -62,6 +62,8 @@ pub struct User {
 pub struct UserDetail {
     pub client_certificate: Option<String>,
     pub client_key: Option<String>,
+    pub client_certificate_data: Option<String>,
+    pub client_key_data: Option<String>,
     pub exec: Option<Exec>,
 }
 

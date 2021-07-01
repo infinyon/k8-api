@@ -3,7 +3,6 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use tracing::debug;
-use tracing::trace;
 
 use k8_config::K8Config;
 use k8_config::KubeConfig;
@@ -20,11 +19,20 @@ pub trait ConfigBuilder: Sized {
 
     fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>;
 
+    // load from ca data
+    fn load_ca_cert_with_data(self, data: Vec<u8>) -> Result<Self, IoError>;
+
     // load client certificate (crt) and private key
     fn load_client_certificate<P: AsRef<Path>>(
         self,
         client_crt_path: P,
         client_key_path: P,
+    ) -> Result<Self, IoError>;
+
+    fn load_client_certificate_with_data(
+        self,
+        client_crt: Vec<u8>,
+        client_key: Vec<u8>,
     ) -> Result<Self, IoError>;
 }
 
@@ -97,12 +105,9 @@ where
         builder: B,
         kube_config: &KubeConfig,
     ) -> Result<(B, Option<String>), IoError> {
-        use std::io::Write;
         use std::process::Command;
 
         use base64::decode;
-        use rand::distributions::Alphanumeric;
-        use rand::Rng;
 
         use crate::k8_types::core::plugin::ExecCredentialSpec;
         use crate::k8_types::K8Obj;
@@ -121,70 +126,14 @@ where
             )
         })?;
 
-        if let Some(ca_data) = &current_cluster.cluster.certificate_authority_data {
-            debug!("detected in-line certs");
+        // load CA cluster
+
+        let builder = if let Some(ca_data) = &current_cluster.cluster.certificate_authority_data {
+            debug!("detected in-line cluster CA certs");
             let pem_bytes = decode(ca_data).unwrap();
-
-            trace!("pem: {}", String::from_utf8_lossy(&pem_bytes).to_string());
-
-            let random_file_name = format!(
-                "eks-pem-{}",
-                rand::thread_rng()
-                    .sample_iter(&Alphanumeric)
-                    .map(char::from)
-                    .take(15)
-                    .collect::<String>()
-                    .to_lowercase()
-            );
-
-            let file_path = std::env::temp_dir().join(random_file_name);
-            debug!("writing pem file to: {:#?}", file_path);
-
-            let mut file = std::fs::File::create(file_path.clone())?;
-            file.write_all(&pem_bytes)?;
-
-            let builder = builder.load_ca_certificate(file_path)?;
-
-            if let Some(exec) = &current_user.user.exec {
-                // handle AWS
-                let token_output = Command::new(exec.command.clone())
-                    .args(exec.args.clone())
-                    .output()?;
-
-                debug!(
-                    "token: {}",
-                    String::from_utf8_lossy(&token_output.stdout).to_string()
-                );
-                let credential: K8Obj<ExecCredentialSpec> =
-                    serde_json::from_slice(&token_output.stdout)?;
-                let token = credential.status.token;
-                debug!("token: {:#?}", token);
-                Ok((builder, Some(token)))
-            } else {
-                Ok((builder, None))
-            }
+            builder.load_ca_cert_with_data(pem_bytes)?
         } else {
-            let builder =
-                if let Some(client_crt_path) = current_user.user.client_certificate.as_ref() {
-                    if let Some(client_key_path) = current_user.user.client_key.as_ref() {
-                        debug!(
-                            "loading client crt: {} and client key: {}",
-                            client_crt_path, client_key_path
-                        );
-                        builder.load_client_certificate(client_crt_path, client_key_path)?
-                    } else {
-                        return Err(IoError::new(
-                            ErrorKind::InvalidInput,
-                            "no client cert key path founded".to_owned(),
-                        ));
-                    }
-                } else {
-                    return Err(IoError::new(
-                        ErrorKind::InvalidInput,
-                        "no client cert crt path founded".to_owned(),
-                    ));
-                };
-
+            // let not inline, then must must ref to file
             let ca_certificate_path = current_cluster
                 .cluster
                 .certificate_authority
@@ -196,7 +145,79 @@ where
                     )
                 })?;
 
-            Ok((builder.load_ca_certificate(ca_certificate_path)?, None))
+            debug!("loading cluster CA from: {:#?}", ca_certificate_path);
+
+            builder.load_ca_certificate(ca_certificate_path)?
+        };
+
+        // load client certs
+        if let Some(exec) = &current_user.user.exec {
+            debug!(exec = ?exec,"loading client CA using exec");
+
+            let token_output = Command::new(exec.command.clone())
+                .args(exec.args.clone())
+                .output()?;
+
+            debug!(
+                cmd_token = ?String::from_utf8_lossy(&token_output.stdout).to_string()
+            );
+
+            let credential: K8Obj<ExecCredentialSpec> =
+                serde_json::from_slice(&token_output.stdout)?;
+            let token = credential.status.token;
+            debug!(?token);
+            Ok((builder, Some(token)))
+        } else if let Some(client_cert_data) = &current_user.user.client_certificate_data {
+            debug!("detected in-line cluster CA certs");
+            let client_cert_pem_bytes = decode(client_cert_data).map_err(|err| {
+                IoError::new(
+                    ErrorKind::InvalidInput,
+                    format!("base64 decoding err: {}", err),
+                )
+            })?;
+
+            let client_key_pem_bytes =
+                decode(current_user.user.client_key_data.as_ref().ok_or_else(|| {
+                    IoError::new(
+                        ErrorKind::InvalidInput,
+                        "current user must have client key data".to_owned(),
+                    )
+                })?)
+                .map_err(|err| {
+                    IoError::new(
+                        ErrorKind::InvalidInput,
+                        format!("base64 decoding err: {}", err),
+                    )
+                })?;
+
+            Ok((
+                builder.load_client_certificate_with_data(
+                    client_cert_pem_bytes,
+                    client_key_pem_bytes,
+                )?,
+                None,
+            ))
+        } else if let Some(client_crt_path) = current_user.user.client_certificate.as_ref() {
+            let client_key_path = current_user.user.client_key.as_ref().ok_or_else(|| {
+                IoError::new(
+                    ErrorKind::InvalidInput,
+                    "current user must have client key".to_owned(),
+                )
+            })?;
+
+            debug!(
+                "loading client crt: {} and client key: {}",
+                client_crt_path, client_key_path
+            );
+            Ok((
+                builder.load_client_certificate(client_crt_path, client_key_path)?,
+                None,
+            ))
+        } else {
+            Err(IoError::new(
+                ErrorKind::InvalidInput,
+                "no client cert crt path founded".to_owned(),
+            ))
         }
     }
 }
