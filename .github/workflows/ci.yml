@@ -67,7 +67,7 @@ jobs:
       strategy:
         matrix:
           os: [ubuntu-latest]
-          k8: [minikube,k3d]
+          k8: [minikube,k3d,kind]
           rust: [stable]
 
       steps:
@@ -89,6 +89,12 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
           k3d cluster create fluvio-k3d --image rancher/k3s:v1.19.12-k3s1-amd64
+      - name: Install Kind
+        if: startsWith(matrix.k8,'kind')
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+          chmod +x ./kind
+          ./kind create cluster
       - name: Test K8 Installation
         run: |
           kubectl get nodes
