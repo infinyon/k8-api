@@ -310,7 +310,6 @@ pub mod v1 {
             .cluster
             .certificate_authority
             .as_ref()
-            .clone()
             .expect("certificate authority")
             .to_string()
     }

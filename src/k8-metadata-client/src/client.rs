@@ -75,7 +75,7 @@ pub trait MetadataClientError: Debug + Display {
 
 pub type TokenStreamResult<S, E> = Result<Vec<Result<K8Watch<S>, E>>, E>;
 
-#[allow(clippy::clippy::redundant_closure)]
+#[allow(clippy::redundant_closure)]
 pub fn as_token_stream_result<S, E>(events: Vec<K8Watch<S>>) -> TokenStreamResult<S, E>
 where
     S: Spec,
