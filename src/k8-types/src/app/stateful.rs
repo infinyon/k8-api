@@ -59,7 +59,7 @@ pub enum PodMangementPolicy {
 #[serde(rename_all = "camelCase")]
 pub struct PersistentVolumeClaim {
     pub access_modes: Vec<VolumeAccessMode>,
-    pub storage_class_name: String,
+    pub storage_class_name: Option<String>,
     pub resources: ResourceRequirements,
 }
 
