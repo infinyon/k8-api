@@ -448,9 +448,9 @@ dependencies = [
 
 [[package]]
 name = "fluvio-future"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa9feaa68147ceb5174f7fbead7779d64085605818bd911d7ef2cbfae1604f84"
+checksum = "b0212c5fab32e362715ed8f08424e57aaf764a4ce206d6b6bf61fe23bd819371"
 dependencies = [
  "async-io",
  "async-native-tls",
