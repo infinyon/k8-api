@@ -109,6 +109,7 @@ impl ObjectMeta {
     /// if name or uid doesn't exists return none
     pub fn make_owner_reference<S: Spec>(&self) -> OwnerReferences {
         OwnerReferences {
+            api_version: S::api_version(),
             kind: S::kind(),
             name: self.name.clone(),
             uid: self.uid.clone(),
