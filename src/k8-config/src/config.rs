@@ -45,7 +45,7 @@ pub struct ContextDetail {
 impl ContextDetail {
     pub fn namespace(&self) -> &str {
         match &self.namespace {
-            Some(nm) => &nm,
+            Some(nm) => nm,
             None => "default",
         }
     }
