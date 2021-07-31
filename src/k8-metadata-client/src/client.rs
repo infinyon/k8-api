@@ -38,7 +38,7 @@ impl NameSpace {
     pub fn named(&self) -> &str {
         match self {
             Self::All => "all",
-            Self::Named(name) => &name,
+            Self::Named(name) => name,
         }
     }
 }
