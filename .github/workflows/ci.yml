@@ -57,6 +57,9 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.os }}
       - name: clippy
         run: make check-clippy
 
@@ -77,6 +80,9 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.os }}-${{ matrix.k8 }}
       - name: Install Minikube for Github runner
         if: startsWith(matrix.k8,'minikube')
         uses: manusa/actions-setup-minikube@v2.4.2
