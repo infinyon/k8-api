@@ -2,9 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - staging
+      - trying
   pull_request:
     branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.head_ref || 'ci_staging' }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -57,6 +66,9 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.os }}
       - name: clippy
         run: make check-clippy
 
@@ -77,6 +89,9 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.os }}-${{ matrix.k8 }}
       - name: Install Minikube for Github runner
         if: startsWith(matrix.k8,'minikube')
         uses: manusa/actions-setup-minikube@v2.4.2
@@ -105,4 +120,13 @@ jobs:
       - name: K8 client integration test native
         run: make k8-client-integration-test-native
         timeout-minutes: 2
+
+  done:
+    name: Done
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [unit_test,check_fmt,check_clippy,k8_test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: echo "Done!"
 
