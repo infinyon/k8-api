@@ -121,3 +121,12 @@ jobs:
         run: make k8-client-integration-test-native
         timeout-minutes: 2
 
+  done:
+    name: Done
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [unit_test,check_fmt,check_clippy,k8_test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: echo "Done!"
+
