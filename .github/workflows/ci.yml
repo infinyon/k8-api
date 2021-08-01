@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - staging
+      - trying
   pull_request:
     branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
 
 concurrency:
   group: ${{ github.head_ref || 'ci_staging' }}
