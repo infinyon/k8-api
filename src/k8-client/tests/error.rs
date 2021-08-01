@@ -17,7 +17,7 @@ mod integration_tests {
     use k8_types::core::service::{LoadBalancerIngress, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, Spec};
 
-    const SPU_DEFAULT_NAME: &'static str = "spu";
+    const SPU_DEFAULT_NAME: &str = "spu";
 
     fn create_client() -> K8Client {
         K8Client::default().expect("cluster not initialized")
@@ -111,7 +111,7 @@ mod integration_tests {
             .expect_err("update");
         match err {
             ClientError::Client(status) => assert_eq!(status, StatusCode::CONFLICT),
-            _ => assert!(false),
+            _ => panic!(),
         }
 
         // clean up

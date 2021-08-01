@@ -20,4 +20,4 @@ check-fmt:
 
 check-clippy:
 	rustup component add clippy
-	cargo clippy --all-targets  --all-features -- -D warnings
+	cargo clippy --all-features --tests -- -D warnings

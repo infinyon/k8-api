@@ -20,7 +20,7 @@ mod integration_tests {
     use k8_types::core::service::{ServicePort, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
 
-    const SPU_DEFAULT_NAME: &'static str = "spu";
+    const SPU_DEFAULT_NAME: &str = "spu";
     const PORT: u16 = 9002;
     const ITER: u16 = 10;
     const NS: &str = "default";
@@ -61,7 +61,7 @@ mod integration_tests {
             ..Default::default()
         };
 
-        let new_item = InputK8Obj {
+        InputK8Obj {
             api_version: ServiceSpec::api_version(),
             kind: ServiceSpec::kind(),
             metadata: InputObjectMeta {
@@ -72,9 +72,7 @@ mod integration_tests {
             },
             spec: service_spec,
             ..Default::default()
-        };
-
-        new_item
+        }
     }
 
     /// create, update and delete random services
@@ -112,8 +110,7 @@ mod integration_tests {
             let updated_item = match updates {
                 ApplyResult::Patched(item) => item,
                 _ => {
-                    assert!(false, "apply does not result in patch");
-                    panic!();
+                    panic!("apply does not result in patch");
                 }
             };
             trace!("updated item: {:#?}", updated_item);
@@ -134,8 +131,7 @@ mod integration_tests {
             let updated_item_2 = match updates_2 {
                 ApplyResult::Patched(item) => item,
                 _ => {
-                    assert!(false, "apply does not result in patch");
-                    panic!();
+                    panic!("apply does not result in patch");
                 }
             };
 
