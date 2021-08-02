@@ -34,6 +34,11 @@ impl Spec for StatefulSetSpec {
     fn metadata() -> &'static Crd {
         &STATEFUL_API
     }
+
+    // statefulset doesnt' like to change volume claim template
+    fn make_same(&mut self, other: &Self) {
+        self.volume_claim_templates = other.volume_claim_templates.clone();
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
