@@ -1,11 +1,17 @@
 use crate::http::Uri;
+use crate::ClientError;
 
 use crate::k8_types::{Crd, Spec};
 use crate::k8_types::options::{ListOptions};
 use crate::meta_client::NameSpace;
 
 /// items uri
-pub fn item_uri<S>(host: &str, name: &str, namespace: &str, sub_resource: Option<&str>) -> Uri
+pub fn item_uri<S>(
+    host: &str,
+    name: &str,
+    namespace: &str,
+    sub_resource: Option<&str>,
+) -> Result<Uri, ClientError>
 where
     S: Spec,
 {
@@ -17,8 +23,8 @@ where
     let crd = S::metadata();
     let prefix = prefix_uri(crd, host, ns, None);
     let uri_value = format!("{}/{}{}", prefix, name, sub_resource.unwrap_or(""));
-    let uri: Uri = uri_value.parse().unwrap();
-    uri
+    let uri: Uri = uri_value.parse()?;
+    Ok(uri)
 }
 
 /// items uri

@@ -12,6 +12,7 @@ use k8_metadata_client::MetadataClientError;
 use crate::http::header::InvalidHeaderValue;
 use crate::http::status::StatusCode;
 use crate::http::Error as HttpError;
+use crate::http::InvalidUri;
 
 #[non_exhaustive]
 #[derive(Debug)]
@@ -68,6 +69,12 @@ impl From<serde_json::Error> for ClientError {
 impl From<DiffError> for ClientError {
     fn from(error: DiffError) -> Self {
         Self::DiffError(error)
+    }
+}
+
+impl From<InvalidUri> for ClientError {
+    fn from(error: InvalidUri) -> Self {
+        Self::HttpError(error.into())
     }
 }
 

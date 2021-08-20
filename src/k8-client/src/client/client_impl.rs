@@ -220,7 +220,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: retrieving item: {}", S::label(), uri);
 
         self.handle_request(Request::get(uri).body(Body::empty())?)
@@ -268,7 +268,7 @@ impl MetadataClient for K8Client {
     {
         use crate::k8_types::DeletedStatus;
 
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: delete item on url: {}", S::label(), uri);
 
         let body = if let Some(option_value) = option {
@@ -334,7 +334,7 @@ impl MetadataClient for K8Client {
             &value.metadata.name,
             &value.metadata.namespace,
             Some("/status"),
-        );
+        )?;
         debug!("updating '{}' status - uri: {}", value.metadata.name, uri);
         trace!("update status: {:#?}", &value);
 
@@ -364,7 +364,7 @@ impl MetadataClient for K8Client {
     {
         debug!("patching item at '{}'", metadata);
         trace!("patch json value: {:#?}", patch);
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
 
         let bytes = serde_json::to_vec(&patch)?;
 

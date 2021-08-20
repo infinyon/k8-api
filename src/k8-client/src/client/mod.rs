@@ -21,6 +21,7 @@ pub mod http {
     pub use ::http::header;
     pub use ::http::status;
     pub use ::http::Error;
+    pub use ::http::uri::InvalidUri;
     pub use hyper::Uri;
 }
 
