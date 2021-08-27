@@ -41,7 +41,6 @@ pub struct RollingUpdateDeployment {
     pub max_unavailable: Option<String>,
 }
 
-
 impl Spec for DeploymentSpec {
     type Status = DeploymentStatus;
     type Header = DefaultHeader;
@@ -54,7 +53,6 @@ impl Spec for DeploymentSpec {
         todo!();
     }
 }
-
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
