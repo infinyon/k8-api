@@ -31,6 +31,7 @@ pub struct DeploymentSpec {
 #[serde(rename_all = "camelCase", default)]
 pub struct DeploymentStrategy {
     pub rolling_update: Option<RollingUpdateDeployment>,
+    #[serde(rename = "type")]
     pub type_: Option<String>,
 }
 
@@ -59,7 +60,8 @@ impl Spec for DeploymentSpec {
 pub struct DeploymentStatus {
     pub available_replicas: Option<i32>,
     pub collision_count: Option<i32>,
-    pub conditions: Option<Vec<DeploymentCondition>>,
+    #[serde(default = "Vec::new")]
+    pub conditions: Vec<DeploymentCondition>,
     pub observed_generation: Option<i64>,
     pub ready_replicas: Option<i32>,
     pub replicas: Option<i32>,
@@ -75,6 +77,7 @@ pub struct DeploymentCondition {
     pub message: Option<String>,
     pub reason: Option<String>,
     pub status: String,
+    #[serde(rename = "type")]
     pub type_: String,
 }
 
