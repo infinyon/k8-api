@@ -50,8 +50,8 @@ impl Spec for DeploymentSpec {
         &DEPLOYMENT_API
     }
 
-    fn make_same(&mut self, _other: &Self) {
-        todo!();
+    fn make_same(&mut self, other: &Self) {
+        *self = other.clone();
     }
 }
 
