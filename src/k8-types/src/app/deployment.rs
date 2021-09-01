@@ -49,10 +49,6 @@ impl Spec for DeploymentSpec {
     fn metadata() -> &'static Crd {
         &DEPLOYMENT_API
     }
-
-    fn make_same(&mut self, other: &Self) {
-        *self = other.clone();
-    }
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
