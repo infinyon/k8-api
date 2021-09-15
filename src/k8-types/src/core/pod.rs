@@ -132,9 +132,11 @@ impl ContainerPortSpec {
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct VolumeSpec {
     pub name: String,
     pub secret: Option<SecretVolumeSpec>,
+    pub config_map: Option<ConfigMapVolumeSource>,
     pub persistent_volume_claim: Option<PersistentVolumeClaimVolumeSource>,
 }
 
@@ -154,6 +156,22 @@ pub struct SecretVolumeSpec {
     pub default_mode: u16,
     pub secret_name: String,
     pub optional: Option<bool>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ConfigMapVolumeSource {
+    pub default_mode: Option<i32>,
+    pub items: Option<Vec<KeyToPath>>,
+    pub name: Option<String>,
+    pub optional: Option<bool>,
+}
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct KeyToPath {
+    pub key: String,
+    pub mode: Option<i32>,
+    pub path: String,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
