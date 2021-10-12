@@ -1,3 +1,5 @@
+use serde::Deserialize;
+use serde::Serialize;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::sync::Arc;
@@ -46,6 +48,20 @@ pub struct K8Client {
     token: Option<String>,
 }
 
+#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[serde(rename_all = "camelCase", default)]
+pub struct VersionInfo {
+    pub major: String,
+    pub minor: String,
+    pub git_version: String,
+    pub git_commit: String,
+    pub git_treestate: String,
+    pub build_date: String,
+    pub go_version: String,
+    pub compiler: String,
+    pub platform: String,
+}
+
 impl K8Client {
     // load using default k8 config
     pub fn default() -> Result<Self, ClientError> {
@@ -64,6 +80,15 @@ impl K8Client {
             host,
             token,
         })
+    }
+
+    pub async fn server_version(&self) -> Result<VersionInfo, ClientError> {
+        let uri = format!("{}/version", self.host);
+        let info = self
+            .handle_request(Request::get(uri).body(Body::empty())?)
+            .await?;
+        trace!("version info retrieved: {:#?}", info);
+        Ok(info)
     }
 
     fn hostname(&self) -> &str {
