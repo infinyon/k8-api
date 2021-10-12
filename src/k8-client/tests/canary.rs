@@ -15,6 +15,18 @@ mod canary_test {
 
     // get services to find kubernetes api
     #[test_async]
+    async fn test_client_server_version() -> Result<(), ClientError> {
+        let client = K8Client::default().expect("cluster could not be configured");
+        let version = client.server_version().await?;
+        info!(
+            "server version reported: {}.{}",
+            version.major, version.minor,
+        );
+        Ok(())
+    }
+
+    // get services to find kubernetes api
+    #[test_async]
     async fn test_client_get_services() -> Result<(), ClientError> {
         let client = K8Client::default().expect("cluster could not be configured");
         let services = client.retrieve_items::<ServiceSpec, _>("default").await?;
