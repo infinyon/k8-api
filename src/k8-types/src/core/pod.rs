@@ -35,7 +35,7 @@ impl Spec for PodSpec {
 pub struct PodSpec {
     pub volumes: Vec<VolumeSpec>,
     pub containers: Vec<ContainerSpec>,
-    pub restart_policy: Option<String>, // TODO; should be enum
+    pub restart_policy: Option<PodRestartPoilicy>,
     pub service_account_name: Option<String>,
     pub service_account: Option<String>,
     pub node_name: Option<String>,
@@ -44,6 +44,19 @@ pub struct PodSpec {
     pub security_context: Option<PodSecurityContext>,
     pub scheduler_name: Option<String>,
     pub node_selector: Option<HashMap<String, String>>,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum PodRestartPoilicy {
+    Always,
+    Never,
+    OnFailure,
+}
+impl Default for PodRestartPoilicy {
+    fn default() -> Self {
+        Self::Always // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
@@ -71,7 +84,7 @@ pub struct ContainerSpec {
     pub command: Vec<String>,
     pub ports: Vec<ContainerPortSpec>,
     pub image: Option<String>,
-    pub image_pull_policy: Option<String>, // TODO: should be enum
+    pub image_pull_policy: Option<ImagePullPolicy>, // TODO: should be enum
     pub volume_mounts: Vec<VolumeMount>,
     pub env: Vec<Env>,
     pub resources: Option<ResourceRequirements>,
@@ -80,6 +93,21 @@ pub struct ContainerSpec {
     pub tty: Option<bool>,
     pub liveness_probe: Option<Probe>,
 }
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum ImagePullPolicy {
+    Always,
+    Never,
+    IfNotPresent,
+}
+
+impl Default for ImagePullPolicy {
+    fn default() -> Self {
+        Self::Always // https://kubernetes.io/docs/concepts/containers/images/#updating-images
+    }
+}
+
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
