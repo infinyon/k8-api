@@ -108,7 +108,6 @@ impl Default for ImagePullPolicy {
     }
 }
 
-
 #[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Probe {
