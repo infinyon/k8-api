@@ -8,7 +8,7 @@ mod integration_tests {
     use k8_types::{
         InputK8Obj, InputObjectMeta, TemplateSpec,
         batch::job::JobSpec,
-        core::pod::{ContainerSpec, PodSpec},
+        core::pod::{ContainerSpec, PodSpec, PodRestartPoilicy},
     };
 
     const NS: &str = "default";
@@ -37,7 +37,7 @@ mod integration_tests {
                     ],
                     ..Default::default()
                 }],
-                restart_policy: Some("Never".to_string()),
+                restart_policy: Some(PodRestartPoilicy::Never),
                 ..Default::default()
             }),
             active_deadline_seconds: Some(60),
