@@ -47,7 +47,7 @@ pub struct PodSpec {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub enum PodRestartPoilicy {
     Always,
     Never,
@@ -95,7 +95,7 @@ pub struct ContainerSpec {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub enum ImagePullPolicy {
     Always,
     Never,
