@@ -154,13 +154,12 @@ where
                                 let list_option = self.as_ref().list_option(Some(_cont.clone()));
                                 self.set_inner(Some(list_option));
                                 trace!("{}: ready and set inner, returning ready", S::label());
-                                Poll::Ready(Some(list))
                             } else {
                                 debug!("{} no more continue, marking as done", S::label());
                                 // we are done
                                 let _ = replace(&mut self.as_mut().done, true);
-                                Poll::Ready(Some(list))
                             }
+                            Poll::Ready(Some(list))
                         }
                         Err(err) => {
                             error!("{}: error in list stream: {}", S::label(), err);
