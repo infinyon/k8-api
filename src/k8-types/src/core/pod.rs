@@ -205,7 +205,7 @@ pub struct KeyToPath {
 #[serde(rename_all = "camelCase")]
 pub struct PersistentVolumeClaimVolumeSource {
     claim_name: String,
-    read_only: bool,
+    read_only: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
