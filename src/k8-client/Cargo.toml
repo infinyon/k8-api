@@ -11,9 +11,10 @@ readme = "README.md"
 
 
 [features]
-default = ["native_tls"]
+default = ["openssl_tls"]
 k8 = []
-native_tls = ["fluvio-future/native2_tls", "openssl/vendored"]
+openssl_tls = ["fluvio-future/openssl_tls"]
+native_tls = ["fluvio-future/native2_tls"]
 rust_tls = ["rustls", "fluvio-future/tls"]
 
 [dependencies]
@@ -23,7 +24,6 @@ bytes = "1.0.1"
 base64 = { version="0.13.0" }
 futures-util = { version="0.3.5", features=["io"] }
 rand = { version="0.8.3" }
-openssl = { version="0.10.30", optional=true }
 rustls = { version="0.19.0", optional=true }
 hyper = { version="0.14.4", features=["client", "http1", "http2", "stream"] }
 http = { version="0.2" }
