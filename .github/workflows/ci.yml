@@ -24,7 +24,6 @@ jobs:
       matrix:
         os: [ubuntu-latest,macOS-latest]
         rust: [stable]
-        k8-client-feature-flags: ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
 
     steps:
     - uses: actions/checkout@v2
@@ -37,13 +36,13 @@ jobs:
       run:  cargo test --lib --all-features
 
   unit_test_k8_client_feature_flags:
-    name: Unit test
+    name: Unit test feature flags
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest,macOS-latest]
         rust: [stable]
-        feature-flags: ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
+        features: ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
 
     steps:
     - uses: actions/checkout@v2
@@ -53,7 +52,7 @@ jobs:
         toolchain: ${{ matrix.rust }}
         override: true
     - name: Run unit tests
-      run:  cargo test --lib -p k8-client --no-default-features --features ${{feature-flags}}
+      run:  cargo test --lib -p k8-client --no-default-features --features ${{ matrix.features }}
 
   check_fmt:
     name: check cargo fmt
