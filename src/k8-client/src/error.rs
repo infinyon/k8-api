@@ -27,8 +27,9 @@ pub enum ClientError {
     PatchError,
     HyperError(HyperError),
     Client(StatusCode),
-    Tls(fluvio_future::openssl::TlsError),
     Other(String),
+    #[cfg(feature = "openssl_tls")]
+    Tls(fluvio_future::openssl::TlsError),
 }
 
 impl std::error::Error for ClientError {
@@ -42,10 +43,11 @@ impl std::error::Error for ClientError {
             Self::InvalidHttpHeader(err) => Some(err),
             Self::K8ConfigError(err) => Some(err),
             Self::HyperError(err) => Some(err),
-            Self::Tls(err) => Some(err),
             Self::Client(_) => None,
             Self::PatchError => None,
             Self::Other(_) => None,
+            #[cfg(feature = "openssl_tls")]
+            Self::Tls(err) => Some(err),
         }
     }
 }
@@ -62,6 +64,7 @@ impl From<env::VarError> for ClientError {
     }
 }
 
+#[cfg(feature = "openssl_tls")]
 impl From<fluvio_future::openssl::TlsError> for ClientError {
     fn from(error: fluvio_future::openssl::TlsError) -> Self {
         Self::Tls(error)
@@ -126,11 +129,12 @@ impl fmt::Display for ClientError {
             Self::Client(status) => write!(f, "client error: {}", status),
             Self::DiffError(err) => write!(f, "{:#?}", err),
             Self::InvalidHttpHeader(err) => write!(f, "{:#?}", err),
-            Self::Tls(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
             Self::K8ConfigError(err) => write!(f, "{}", err),
             Self::HyperError(err) => write!(f, "{}", err),
             Self::Other(msg) => write!(f, "{}", msg),
+            #[cfg(feature = "openssl_tls")]
+            Self::Tls(err) => write!(f, "{:#?}", err),
         }
     }
 }
