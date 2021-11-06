@@ -35,7 +35,7 @@ impl Spec for PodSpec {
 pub struct PodSpec {
     pub volumes: Vec<VolumeSpec>,
     pub containers: Vec<ContainerSpec>,
-    pub restart_policy: Option<PodRestartPoilicy>,
+    pub restart_policy: Option<PodRestartPolicy>,
     pub service_account_name: Option<String>,
     pub service_account: Option<String>,
     pub node_name: Option<String>,
@@ -48,12 +48,12 @@ pub struct PodSpec {
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
-pub enum PodRestartPoilicy {
+pub enum PodRestartPolicy {
     Always,
     Never,
     OnFailure,
 }
-impl Default for PodRestartPoilicy {
+impl Default for PodRestartPolicy {
     fn default() -> Self {
         Self::Always // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
     }
