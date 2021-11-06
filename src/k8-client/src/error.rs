@@ -28,6 +28,8 @@ pub enum ClientError {
     HyperError(HyperError),
     Client(StatusCode),
     Other(String),
+    #[cfg(feature = "openssl_tls")]
+    Tls(fluvio_future::openssl::TlsError),
 }
 
 impl std::error::Error for ClientError {
@@ -44,6 +46,8 @@ impl std::error::Error for ClientError {
             Self::Client(_) => None,
             Self::PatchError => None,
             Self::Other(_) => None,
+            #[cfg(feature = "openssl_tls")]
+            Self::Tls(err) => Some(err),
         }
     }
 }
@@ -57,6 +61,13 @@ impl From<IoError> for ClientError {
 impl From<env::VarError> for ClientError {
     fn from(error: env::VarError) -> Self {
         Self::EnvError(error)
+    }
+}
+
+#[cfg(feature = "openssl_tls")]
+impl From<fluvio_future::openssl::TlsError> for ClientError {
+    fn from(error: fluvio_future::openssl::TlsError) -> Self {
+        Self::Tls(error)
     }
 }
 
@@ -122,6 +133,8 @@ impl fmt::Display for ClientError {
             Self::K8ConfigError(err) => write!(f, "{}", err),
             Self::HyperError(err) => write!(f, "{}", err),
             Self::Other(msg) => write!(f, "{}", msg),
+            #[cfg(feature = "openssl_tls")]
+            Self::Tls(err) => write!(f, "{:#?}", err),
         }
     }
 }

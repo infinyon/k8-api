@@ -6,7 +6,10 @@ mod wstream;
 pub use client_impl::K8Client;
 
 cfg_if::cfg_if! {
-    if #[cfg(feature = "native_tls")] {
+    if #[cfg(feature = "openssl_tls")] {
+        mod config_openssl;
+        use config_openssl::*;
+    } else if #[cfg(feature = "native_tls")] {
         mod config_native;
         use config_native::*;
     } else if #[cfg(feature = "rust_tls")] {

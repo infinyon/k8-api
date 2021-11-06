@@ -35,6 +35,25 @@ jobs:
     - name: Run unit tests
       run:  cargo test --lib --all-features
 
+  unit_test_k8_client_feature_flags:
+    name: Unit test feature flags
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest,macOS-latest]
+        rust: [stable]
+        features: ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install ${{ matrix.rust }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Run unit tests
+      run:  cargo test --lib -p k8-client --no-default-features --features ${{ matrix.features }}
+
   check_fmt:
     name: check cargo fmt
     runs-on: ${{ matrix.os }}
@@ -124,7 +143,7 @@ jobs:
   done:
     name: Done
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-    needs: [unit_test,check_fmt,check_clippy,k8_test]
+    needs: [unit_test,check_fmt,check_clippy,k8_test, unit_test_k8_client_feature_flags]
     runs-on: ubuntu-latest
     steps:
       - name: Done
