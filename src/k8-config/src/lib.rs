@@ -40,8 +40,8 @@ impl K8Config {
             Ok(K8Config::Pod(pod_config))
         } else {
             debug!("no pod config is found. trying to read kubeconfig");
-            let config = std::env::var(KUBECONFIG)
-                .map_or(KubeConfig::from_home(), |path| KubeConfig::from_file(path))?;
+            let config =
+                std::env::var(KUBECONFIG).map_or(KubeConfig::from_home(), KubeConfig::from_file)?;
             debug!("kube config: {:#?}", config);
             // check if we have current cluster
 

@@ -213,10 +213,12 @@ where
                 builder.load_client_certificate(client_crt_path, client_key_path)?,
                 None,
             ))
+        } else if let Some(user_token) = &current_user.user.token {
+            Ok((builder, Some(user_token.clone())))
         } else {
             Err(IoError::new(
                 ErrorKind::InvalidInput,
-                "no client cert crt path founded".to_owned(),
+                "no client cert crt data, path or user token were found".to_owned(),
             ))
         }
     }
