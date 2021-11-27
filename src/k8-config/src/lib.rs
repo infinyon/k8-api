@@ -12,6 +12,8 @@ pub use pod::PodConfig;
 
 use tracing::debug;
 
+const KUBECONFIG: &str = "KUBECONFIG";
+
 #[derive(Debug)]
 pub struct KubeContext {
     pub namespace: String,
@@ -38,7 +40,8 @@ impl K8Config {
             Ok(K8Config::Pod(pod_config))
         } else {
             debug!("no pod config is found. trying to read kubeconfig");
-            let config = KubeConfig::from_home()?;
+            let config =
+                std::env::var(KUBECONFIG).map_or(KubeConfig::from_home(), KubeConfig::from_file)?;
             debug!("kube config: {:#?}", config);
             // check if we have current cluster
 
