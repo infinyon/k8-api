@@ -65,7 +65,16 @@ pub struct ListArg {
 /// trait for metadata client
 pub trait MetadataClientError: Debug + Display {
     /// is not founded
-    fn not_founded(&self) -> bool;
+    #[deprecated(
+        since = "3.3.0",
+        note = "This method is no longer used. Use not_found instead"
+    )]
+    fn not_founded(&self) -> bool {
+        self.not_found()
+    }
+
+    /// is not found
+    fn not_found(&self) -> bool;
 
     // create new patch error
     fn patch_error() -> Self;
@@ -208,7 +217,7 @@ pub trait MetadataClient: Send + Sync {
                 }
             }
             Err(err) => {
-                if err.not_founded() {
+                if err.not_found() {
                     debug!(
                         "{}: item '{}' not found, creating ...",
                         S::label(),
@@ -309,7 +318,7 @@ pub trait MetadataClient: Send + Sync {
         match self.retrieve_item::<S, M>(metadata).await {
             Ok(_) => Ok(true),
             Err(err) => {
-                if err.not_founded() {
+                if err.not_found() {
                     Ok(false)
                 } else {
                     Err(err)
