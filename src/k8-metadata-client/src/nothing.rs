@@ -66,7 +66,7 @@ impl MetadataClientError for DoNothingError {
         Self::PatchError
     }
 
-    fn not_founded(&self) -> bool {
+    fn not_found(&self) -> bool {
         matches!(self, Self::NotFound)
     }
 }

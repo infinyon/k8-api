@@ -23,7 +23,7 @@ impl PodConfig {
         let path = Path::new(BASE_DIR);
         if !path.exists() {
             debug!(
-                "pod config dir: {} is not founded, skipping pod config",
+                "pod config dir: {} is not found, skipping pod config",
                 BASE_DIR
             );
             return None;
@@ -51,7 +51,7 @@ fn read_file(name: &str) -> Option<String> {
     match read_to_string(&full_path) {
         Ok(value) => Some(value),
         Err(err) => {
-            error!("no {} founded as pod in {}", name, full_path);
+            error!("no {} found as pod in {}", name, full_path);
             trace!("unable to read pod: {} value: {}", name, err);
             None
         }

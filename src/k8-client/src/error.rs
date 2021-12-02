@@ -144,7 +144,7 @@ impl MetadataClientError for ClientError {
         Self::PatchError
     }
 
-    fn not_founded(&self) -> bool {
+    fn not_found(&self) -> bool {
         match self {
             Self::Client(status) => status == &StatusCode::NOT_FOUND,
             _ => false,
