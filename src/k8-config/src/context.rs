@@ -169,7 +169,7 @@ struct MinikubeNode {
 #[derive(Debug, Deserialize)]
 struct MinikubeConfig {
     #[serde(rename = "Name")]
-    name: String,
+    _name: String,
     #[serde(rename = "Nodes")]
     nodes: Vec<MinikubeNode>,
 }
@@ -184,7 +184,7 @@ struct MinikubeProfileJson {
     #[serde(rename = "Name")]
     name: String,
     #[serde(rename = "Status")]
-    status: String,
+    _status: String,
     #[serde(rename = "Config")]
     config: MinikubeConfig,
 }
@@ -193,7 +193,7 @@ struct MinikubeProfileJson {
 #[derive(Debug)]
 struct MinikubeProfile {
     /// The name of the minikube profile, usually "minikube"
-    name: String,
+    _name: String,
     /// The active minikube node, with IP and port
     node: MinikubeNode,
 }
@@ -229,7 +229,7 @@ impl MinikubeProfile {
             .next()
             .ok_or_else(|| ConfigError::Other("Minikube has no active nodes".to_string()))?;
         let profile = MinikubeProfile {
-            name: profile_json.name,
+            _name: profile_json.name,
             node,
         };
         Ok(profile)
