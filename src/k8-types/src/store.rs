@@ -127,7 +127,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct MetaItemContext {
     pub item_ctx: Option<ObjectMeta>,
     pub parent_ctx: Option<ObjectMeta>,
@@ -149,15 +149,6 @@ impl MetaItemContext {
             Self::default().with_parent_ctx(self.item_ctx.as_ref().unwrap().clone())
         } else {
             Self::default()
-        }
-    }
-}
-
-impl ::std::default::Default for MetaItemContext {
-    fn default() -> Self {
-        Self {
-            item_ctx: None,
-            parent_ctx: None,
         }
     }
 }
