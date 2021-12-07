@@ -195,9 +195,13 @@ pub trait MetadataClient: Send + Sync {
                 let new_obj = serde_json::to_value(DiffableK8Obj::new(
                     value.metadata.clone(),
                     value.spec.clone(),
+                    value.header.clone(),
                 ))?;
-                let old_obj =
-                    serde_json::to_value(DiffableK8Obj::new(old_item.metadata, old_spec))?;
+                let old_obj = serde_json::to_value(DiffableK8Obj::new(
+                    old_item.metadata,
+                    old_spec,
+                    old_item.header,
+                ))?;
                 let diff = old_obj.diff(&new_obj)?;
                 match diff {
                     Diff::None => {
