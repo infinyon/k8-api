@@ -39,17 +39,24 @@ impl PatchMergeType {
 
 /// used for comparing k8 objects,
 #[derive(Serialize, Debug, Clone)]
-pub struct DiffableK8Obj<M, S> {
+pub struct DiffableK8Obj<M, S, H> {
     metadata: M,
     spec: S,
+    #[serde(flatten)]
+    header: H,
 }
 
-impl<M, S> DiffableK8Obj<M, S>
+impl<M, S, H> DiffableK8Obj<M, S, H>
 where
     M: Serialize,
     S: Serialize,
+    H: Serialize,
 {
-    pub fn new(metadata: M, spec: S) -> Self {
-        Self { metadata, spec }
+    pub fn new(metadata: M, spec: S, header: H) -> Self {
+        Self {
+            metadata,
+            spec,
+            header,
+        }
     }
 }
