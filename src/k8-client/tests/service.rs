@@ -128,16 +128,39 @@ mod integration_tests {
             let updates_2 = client.apply(update_item_2).await.expect("apply");
             trace!("updated item meta: {:#?}", updates_2);
 
-            let updated_item_2 = match updates_2 {
+            let update2_outpaut = match updates_2 {
                 ApplyResult::Patched(item) => item,
                 _ => {
                     panic!("apply does not result in patch");
                 }
             };
 
+            let mut update_item_3 = update2_outpaut.as_input();
+            update_item_3.metadata.annotations = HashMap::new();
+            update_item_3.spec = ServiceSpec {
+                cluster_ip: "111".to_owned(),
+                ports: vec![ServicePort {
+                    port: PORT,
+                    name: Some("t2".to_owned()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+
+            client
+                .replace_item(update_item_3.clone())
+                .await
+                .expect("replace");
+
+            let new_service = client
+                .retrieve_item::<ServiceSpec, _>(&update_item_3.metadata)
+                .await
+                .expect("retrieval");
+            assert_eq!(new_service.spec, update_item_3.spec);
+
             debug!("deleting service: {}", i);
             client
-                .delete_item::<ServiceSpec, _>(&updated_item_2.metadata)
+                .delete_item::<ServiceSpec, _>(&update_item_3.metadata)
                 .await
                 .expect("delete should work");
 

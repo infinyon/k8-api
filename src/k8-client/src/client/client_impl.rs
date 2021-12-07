@@ -233,6 +233,33 @@ impl K8Client {
         trace!("items retrieved: {:#?}", items);
         Ok(items)
     }
+
+    /// replace existing object.
+    /// object must exist
+    pub async fn replace_item<S>(&self, value: InputK8Obj<S>) -> Result<(), ClientError>
+    where
+        S: Spec,
+    {
+        let metadata = &value.metadata;
+        debug!( name = %metadata.name,"replace item");
+        trace!("replace {:#?}", value);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+
+        let bytes = serde_json::to_vec(&value)?;
+
+        trace!(
+            "replace uri: {}, raw: {}",
+            uri,
+            String::from_utf8_lossy(&bytes).to_string()
+        );
+
+        let request = Request::patch(uri)
+            .header(CONTENT_TYPE, "application/json")
+            .body(bytes.into())?;
+
+        self.handle_request(request).await?;
+        Ok(())
+    }
 }
 
 #[async_trait]
