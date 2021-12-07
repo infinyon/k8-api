@@ -128,14 +128,14 @@ mod integration_tests {
             let updates_2 = client.apply(update_item_2).await.expect("apply");
             trace!("updated item meta: {:#?}", updates_2);
 
-            let update2_outpaut = match updates_2 {
+            let update2_output = match updates_2 {
                 ApplyResult::Patched(item) => item,
                 _ => {
                     panic!("apply does not result in patch");
                 }
             };
 
-            let mut update_item_3 = update2_outpaut.as_input();
+            let mut update_item_3 = update2_output.as_update();
             update_item_3.metadata.annotations = HashMap::new();
             update_item_3.spec = ServiceSpec {
                 cluster_ip: "111".to_owned(),

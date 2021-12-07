@@ -27,6 +27,7 @@ use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
+use k8_types::UpdatedK8Obj;
 use k8_config::K8Config;
 use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
 use crate::k8_types::{
@@ -236,7 +237,7 @@ impl K8Client {
 
     /// replace existing object.
     /// object must exist
-    pub async fn replace_item<S>(&self, value: InputK8Obj<S>) -> Result<(), ClientError>
+    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<(), ClientError>
     where
         S: Spec,
     {
@@ -253,7 +254,7 @@ impl K8Client {
             String::from_utf8_lossy(&bytes).to_string()
         );
 
-        let request = Request::patch(uri)
+        let request = Request::put(uri)
             .header(CONTENT_TYPE, "application/json")
             .body(bytes.into())?;
 
