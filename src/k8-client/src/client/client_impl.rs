@@ -27,6 +27,7 @@ use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
+use k8_types::UpdatedK8Obj;
 use k8_config::K8Config;
 use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
 use crate::k8_types::{
@@ -232,6 +233,32 @@ impl K8Client {
             .await?;
         trace!("items retrieved: {:#?}", items);
         Ok(items)
+    }
+
+    /// replace existing object.
+    /// object must exist
+    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<K8Obj<S>, ClientError>
+    where
+        S: Spec,
+    {
+        let metadata = &value.metadata;
+        debug!( name = %metadata.name,"replace item");
+        trace!("replace {:#?}", value);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+
+        let bytes = serde_json::to_vec(&value)?;
+
+        trace!(
+            "replace uri: {}, raw: {}",
+            uri,
+            String::from_utf8_lossy(&bytes).to_string()
+        );
+
+        let request = Request::put(uri)
+            .header(CONTENT_TYPE, "application/json")
+            .body(bytes.into())?;
+
+        self.handle_request(request).await
     }
 }
 

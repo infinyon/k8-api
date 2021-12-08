@@ -155,6 +155,10 @@ impl ObjectMeta {
             name: self.name.clone(),
             namespace: self.namespace.clone(),
             resource_version: self.resource_version.clone(),
+            annotations: self.annotations.clone(),
+            owner_references: self.owner_references.clone(),
+            finalizers: self.finalizers.clone(),
+            labels: self.labels.clone(),
         }
     }
 }
@@ -237,16 +241,34 @@ impl From<ObjectMeta> for ItemMeta {
 pub struct UpdateItemMeta {
     pub name: String,
     pub namespace: String,
+    pub labels: HashMap<String, String>,
     pub resource_version: String,
+    pub annotations: HashMap<String, String>,
+    pub owner_references: Vec<OwnerReferences>,
+    pub finalizers: Vec<String>,
 }
 
 impl From<ObjectMeta> for UpdateItemMeta {
     fn from(meta: ObjectMeta) -> Self {
         Self {
             name: meta.name,
+            labels: meta.labels,
             namespace: meta.namespace,
             resource_version: meta.resource_version,
+            annotations: meta.annotations,
+            owner_references: meta.owner_references,
+            finalizers: meta.finalizers,
         }
+    }
+}
+
+impl K8Meta for UpdateItemMeta {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn namespace(&self) -> &str {
+        &self.namespace
     }
 }
 
@@ -390,6 +412,16 @@ where
             ..Default::default()
         }
     }
+
+    pub fn as_update(&self) -> K8SpecObj<S, UpdateItemMeta> {
+        K8SpecObj {
+            api_version: self.api_version.clone(),
+            kind: self.kind.clone(),
+            metadata: self.metadata.as_update(),
+            spec: self.spec.clone(),
+            ..Default::default()
+        } as K8SpecObj<S, UpdateItemMeta>
+    }
 }
 
 /// For creating, only need spec
@@ -428,7 +460,9 @@ where
 }
 
 pub type InputK8Obj<S> = K8SpecObj<S, InputObjectMeta>;
+#[deprecated(note = "use UpdatedK8Obj instead")]
 pub type UpdateK8Obj<S> = K8SpecObj<S, ItemMeta>;
+pub type UpdatedK8Obj<S> = K8SpecObj<S, UpdateItemMeta>;
 
 /// Used for updating k8obj
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
@@ -459,6 +493,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 impl<S> From<UpdateK8Obj<S>> for InputK8Obj<S>
 where
     S: Spec,

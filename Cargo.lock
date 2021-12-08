@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "5.4.0"
+version = "5.5.0"
 dependencies = [
  "async-trait",
  "base64",
@@ -970,7 +970,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "serde",
  "serde_json",
