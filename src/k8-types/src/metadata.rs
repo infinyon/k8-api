@@ -158,6 +158,7 @@ impl ObjectMeta {
             annotations: self.annotations.clone(),
             owner_references: self.owner_references.clone(),
             finalizers: self.finalizers.clone(),
+            labels: self.labels.clone(),
         }
     }
 }
@@ -240,6 +241,7 @@ impl From<ObjectMeta> for ItemMeta {
 pub struct UpdateItemMeta {
     pub name: String,
     pub namespace: String,
+    pub labels: HashMap<String, String>,
     pub resource_version: String,
     pub annotations: HashMap<String, String>,
     pub owner_references: Vec<OwnerReferences>,
@@ -250,6 +252,7 @@ impl From<ObjectMeta> for UpdateItemMeta {
     fn from(meta: ObjectMeta) -> Self {
         Self {
             name: meta.name,
+            labels: meta.labels,
             namespace: meta.namespace,
             resource_version: meta.resource_version,
             annotations: meta.annotations,

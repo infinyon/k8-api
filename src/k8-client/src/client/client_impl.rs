@@ -237,7 +237,7 @@ impl K8Client {
 
     /// replace existing object.
     /// object must exist
-    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<(), ClientError>
+    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<K8Obj<S>, ClientError>
     where
         S: Spec,
     {
@@ -258,8 +258,7 @@ impl K8Client {
             .header(CONTENT_TYPE, "application/json")
             .body(bytes.into())?;
 
-        self.handle_request(request).await?;
-        Ok(())
+        self.handle_request(request).await
     }
 }
 
