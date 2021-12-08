@@ -12,4 +12,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+    - update-types: ["version-update:semver-patch"]
 
