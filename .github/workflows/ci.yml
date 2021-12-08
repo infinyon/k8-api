@@ -143,7 +143,12 @@ jobs:
   done:
     name: Done
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-    needs: [unit_test,check_fmt,check_clippy,k8_test, unit_test_k8_client_feature_flags]
+    needs: 
+      - unit_test
+      - check_fmt
+      - check_clippy
+      - k8_integration_test
+      - unit_test_k8_client_feature_flags
     runs-on: ubuntu-latest
     steps:
       - name: Done
