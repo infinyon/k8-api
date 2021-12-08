@@ -490,6 +490,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 impl<S> From<UpdateK8Obj<S>> for InputK8Obj<S>
 where
     S: Spec,
