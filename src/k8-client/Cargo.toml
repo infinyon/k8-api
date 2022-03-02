@@ -45,4 +45,4 @@ rand = "0.8.3"
 once_cell = "1.4.1"
 async-trait = "0.1.21"
 
-fluvio-future = { version="0.3.14", path="../../../future-aio", features=["fixture"] }
+fluvio-future = { version="0.3.14", features=["fixture"] }
