@@ -1,6 +1,6 @@
 [package]
 edition = "2018"
-name = "wendy-k8-metadata-client"
+name = "k8-metadata-client"
 version = "3.3.1"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Trait for interfacing kubernetes metadata service"
@@ -16,4 +16,3 @@ serde_json = "1.0.40"
 async-trait = "0.1.21"
 k8-diff = { version = "0.1.0", path = "../k8-diff"}
 k8-types = { version = "0.5.0", path = "../k8-types" }
-
