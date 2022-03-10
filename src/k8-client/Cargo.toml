@@ -42,7 +42,7 @@ k8-types = { version="0.5.2", path="../k8-types", features=["core", "batch"] }
 
 [dev-dependencies]
 rand = "0.8.3"
-once_cell = "1.4.1"
+once_cell = "1.10.0"
 async-trait = "0.1.21"
 
 fluvio-future = { version="0.3.14", features=["fixture"] }
