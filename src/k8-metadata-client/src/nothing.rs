@@ -191,5 +191,4 @@ impl MetadataClient for DoNothingClient {
     {
         futures_util::stream::empty().boxed()
     }
-
 }

@@ -447,7 +447,12 @@ impl MetadataClient for K8Client {
     {
         debug!(%metadata, "patching status");
         trace!("patch json value: {:#?}", patch);
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), Some("/status"))?;
+        let uri = item_uri::<S>(
+            self.hostname(),
+            metadata.name(),
+            metadata.namespace(),
+            Some("/status"),
+        )?;
 
         let bytes = serde_json::to_vec(&patch)?;
 
