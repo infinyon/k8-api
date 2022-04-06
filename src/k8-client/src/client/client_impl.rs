@@ -414,7 +414,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Display + Send + Sync,
     {
-        debug!("patching item at '{}'", metadata);
+        debug!(%metadata, "patching");
         trace!("patch json value: {:#?}", patch);
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
 
@@ -445,7 +445,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Display + Send + Sync,
     {
-        debug!("patching item at '{}'", metadata);
+        debug!(%metadata, "patching status");
         trace!("patch json value: {:#?}", patch);
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), Some("/status"))?;
 
