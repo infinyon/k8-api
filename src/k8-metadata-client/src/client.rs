@@ -269,6 +269,17 @@ pub trait MetadataClient: Send + Sync {
         S: Spec,
         M: K8Meta + Display + Send + Sync;
 
+    /// patch status
+    async fn patch_status<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync;
+
     /// stream items since resource versions
     fn watch_stream_since<S, N>(
         &self,

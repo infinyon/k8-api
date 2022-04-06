@@ -434,6 +434,37 @@ impl MetadataClient for K8Client {
         self.handle_request(request).await
     }
 
+    /// patch status
+    async fn patch_status<S, M>(
+        &self,
+        metadata: &M,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, ClientError>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        debug!("patching item at '{}'", metadata);
+        trace!("patch json value: {:#?}", patch);
+        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), Some("/status"))?;
+
+        let bytes = serde_json::to_vec(&patch)?;
+
+        trace!(
+            "patch uri: {}, raw: {}",
+            uri,
+            String::from_utf8_lossy(&bytes).to_string()
+        );
+
+        let request = Request::patch(uri)
+            .header(ACCEPT, "application/json")
+            .header(CONTENT_TYPE, merge_type.content_type())
+            .body(bytes.into())?;
+
+        self.handle_request(request).await
+    }
+
     /// stream items since resource versions
     fn watch_stream_since<S, N>(
         &self,
