@@ -164,6 +164,19 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
     }
 
+    async fn patch_status<S, M>(
+        &self,
+        _metadata: &M,
+        _patch: &Value,
+        _merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        Err(DoNothingError::NotFound) as Result<K8Obj<S>, Self::MetadataClientError>
+    }
+
     fn watch_stream_since<S, N>(
         &self,
         _namespace: N,
