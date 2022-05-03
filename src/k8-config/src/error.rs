@@ -10,6 +10,8 @@ pub enum ConfigError {
     SerdeError(#[from] SerdeYamlError),
     #[error("No active Kubernetes context")]
     NoCurrentContext,
+    #[error("Unknown OAuth error: {0}")]
+    OAuth(String),
     #[error("Unknown error: {0}")]
     Other(String),
 }

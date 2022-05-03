@@ -10,6 +10,8 @@ pub use config::UserDetail;
 pub use error::ConfigError;
 pub use pod::PodConfig;
 
+pub use config::{AuthProviderDetail, GcpAuthProviderConfig};
+
 use tracing::debug;
 
 const KUBECONFIG: &str = "KUBECONFIG";

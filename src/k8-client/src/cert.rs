@@ -2,11 +2,13 @@ use std::io::Error as IoError;
 use std::io::ErrorKind;
 use std::path::Path;
 
-use tracing::debug;
+use tracing::{debug, error};
 
 use k8_config::K8Config;
 use k8_config::KubeConfig;
 use k8_config::PodConfig;
+use k8_config::{GcpAuthProviderConfig, AuthProviderDetail};
+use serde_json::Value;
 
 use crate::ClientError;
 
@@ -78,6 +80,68 @@ where
     pub fn token(&self) -> Option<String> {
         if let Some(token) = &self.external_token {
             Some(token.clone())
+        } else if let K8Config::KubeConfig(context) = &self.k8_config() {
+            // Look for auth-provider for dynamic token
+            // We should be able to know from the User config if we need to call gcp for a token
+
+            let kube_config = &context.config;
+
+            //    // Get name of current context
+            let current_context = kube_config.current_context.clone();
+
+            if let Some(c) = &kube_config
+                .contexts
+                .iter()
+                .find(|context| &context.name == &current_context)
+            {
+                let users = &kube_config.users;
+
+                let token = if let Some(u) = users.iter().find(|user| &user.name == &c.context.user)
+                {
+                    //Some(&u.user)
+
+                    if let Some(auth_provider) = &u.user.auth_provider {
+                        // If GCP
+                        if let AuthProviderDetail::Gcp(gcp_auth) = auth_provider {
+                            debug!("{gcp_auth:#?}");
+
+                            // Execute the command by default just in case access_key is expired
+                            let output = std::process::Command::new(&gcp_auth.cmd_path)
+                                .args(gcp_auth.cmd_args.split_whitespace().collect::<Vec<&str>>())
+                                .output()
+                                .expect("gcp command failed");
+
+                            // Return token from json response
+                            if let Ok(json) = serde_json::from_slice::<Value>(&output.stdout) {
+                                debug!("{json:#?}");
+                                debug!("{:#?}", json["credential"]["access_token"]);
+
+                                json["credential"]["access_token"]
+                                    .as_str()
+                                    .map(String::from)
+                            } else {
+                                None
+                            }
+                        } else {
+                            error!("Only Auth provider support for GCP");
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                token
+
+                // This is the `access_token` value from the gcloud cli command, which is not the same value as what is in the User auth-provider
+                //Some("ya29.A0ARrdaM8BR5Oi_TctugLqKhyud3Cqauv_Aj2e0FcOCnXDMyV26f7xE4f7GqMQGCO6yjTO2Iv3rt7yRuNgzOVmWDPXgLRfbTBrqAi82j_FlVYhS7sjHWEJfurt2B3hOOZkbZEBMwZ7lsMV2vrq1XBzwJytUGxSBviUN2h3pg".to_string())
+
+                //Some((c, user)
+            } else {
+                None
+            }
         } else {
             match self.k8_config() {
                 K8Config::Pod(pod) => Some(pod.token.to_owned()),
@@ -150,6 +214,7 @@ where
             builder.load_ca_certificate(ca_certificate_path)?
         };
 
+        // Note: GCP kubernetes clusters don't have any of these set on user
         // load client certs
         if let Some(exec) = &current_user.user.exec {
             debug!(exec = ?exec,"loading client CA using exec");
@@ -216,10 +281,13 @@ where
         } else if let Some(user_token) = &current_user.user.token {
             Ok((builder, Some(user_token.clone())))
         } else {
-            Err(IoError::new(
-                ErrorKind::InvalidInput,
-                "no client cert crt data, path or user token were found".to_owned(),
-            ))
+            // TODO: Uncomment this out when we support alternate auth provider flow
+            //Err(IoError::new(
+            //    ErrorKind::InvalidInput,
+            //    "no client cert crt data, path or user token were found".to_owned(),
+            //))
+
+            Ok((builder, None))
         }
     }
 }
