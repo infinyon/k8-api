@@ -90,11 +90,11 @@ where
             if let Some(c) = &kube_config
                 .contexts
                 .iter()
-                .find(|context| &context.name == &current_context)
+                .find(|context| context.name == current_context)
             {
                 let users = &kube_config.users;
 
-                let token = if let Some(u) = users.iter().find(|user| &user.name == &c.context.user)
+                let token = if let Some(u) = users.iter().find(|user| user.name == c.context.user)
                 {
                     if let Some(auth_provider) = &u.user.auth_provider {
                         if let AuthProviderDetail::Gcp(gcp_auth) = auth_provider {
@@ -205,7 +205,7 @@ where
         };
 
         // load client certs
-        // Note: GCP kubernetes (GKE) clusters don't have any of these set on user
+        // Note: Google Kubernetes (GKE) clusters don't have any of these set on user
         if let Some(exec) = &current_user.user.exec {
             debug!(exec = ?exec,"loading client CA using exec");
 

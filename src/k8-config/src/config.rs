@@ -57,7 +57,6 @@ pub struct User {
     pub user: UserDetail,
 }
 
-//// Maybe we should take a step back and support a simple
 //#[derive(Debug, PartialEq, Deserialize)]
 //pub struct AuthProviderConfig {
 //    pub name: String,
@@ -124,11 +123,11 @@ pub struct Exec {
 pub struct KubeConfig {
     #[serde(rename = "apiVersion")]
     pub api_version: String,
-    pub clusters: Vec<Cluster>, // I might consider storing this in a HashMap
-    pub contexts: Vec<Context>, // This too
+    pub clusters: Vec<Cluster>,
+    pub contexts: Vec<Context>,
     pub current_context: String,
     pub kind: String,
-    pub users: Vec<User>, // This too
+    pub users: Vec<User>,
 }
 
 impl KubeConfig {
