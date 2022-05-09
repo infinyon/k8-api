@@ -46,7 +46,7 @@ use super::{HyperClient, HyperConfigBuilder, ListStream};
 pub struct K8Client {
     client: HyperClient,
     host: String,
-    token: Option<String>, // This maybe needs its own type Token
+    token: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
@@ -70,14 +70,9 @@ impl K8Client {
         Self::new(config)
     }
 
-    // At this point,
     pub fn new(config: K8Config) -> Result<Self, ClientError> {
         let helper = HyperConfigBuilder::new(config)?;
         let host = helper.host();
-
-        // Ok, we should try to get a token here
-        // then later figure out how we can infer the need to do this
-
         let token = helper.token();
         let client = helper.build()?;
         debug!("using k8 token: {:#?}", token);
