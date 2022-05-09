@@ -135,10 +135,6 @@ where
 
                 token
 
-                // This is the `access_token` value from the gcloud cli command, which is not the same value as what is in the User auth-provider
-                //Some("ya29.A0ARrdaM8BR5Oi_TctugLqKhyud3Cqauv_Aj2e0FcOCnXDMyV26f7xE4f7GqMQGCO6yjTO2Iv3rt7yRuNgzOVmWDPXgLRfbTBrqAi82j_FlVYhS7sjHWEJfurt2B3hOOZkbZEBMwZ7lsMV2vrq1XBzwJytUGxSBviUN2h3pg".to_string())
-
-                //Some((c, user)
             } else {
                 None
             }
