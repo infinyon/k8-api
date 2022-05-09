@@ -94,8 +94,7 @@ where
             {
                 let users = &kube_config.users;
 
-                let token = if let Some(u) = users.iter().find(|user| user.name == c.context.user)
-                {
+                let token = if let Some(u) = users.iter().find(|user| user.name == c.context.user) {
                     if let Some(auth_provider) = &u.user.auth_provider {
                         if let AuthProviderDetail::Gcp(gcp_auth) = auth_provider {
                             debug!("{gcp_auth:#?}");
