@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::fs::File;
 use std::io::Result as IoResult;
@@ -58,12 +57,12 @@ pub struct User {
     pub user: UserDetail,
 }
 
-// Maybe we should take a step back and support a simple
-#[derive(Debug, PartialEq, Deserialize)]
-pub struct AuthProviderConfig {
-    pub name: String,
-    pub config: HashMap<String, String>,
-}
+//// Maybe we should take a step back and support a simple
+//#[derive(Debug, PartialEq, Deserialize)]
+//pub struct AuthProviderConfig {
+//    pub name: String,
+//    pub config: HashMap<String, String>,
+//}
 
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(tag = "name", content = "config")]
@@ -72,18 +71,13 @@ pub enum AuthProviderDetail {
     Gcp(GcpAuthProviderConfig),
 
     #[serde(other)]
-    Other, // Not prepared to support oidc
-
-           // When ready, serde_enum_str might be helpful for handling this case
-           //Other(AuthProviderConfig), // Not prepared to support oidc
-           //#[serde(alias = "oidc")]
-           //Oidc(OidcAuthProviderConfig)
+    Other,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GcpAuthProviderConfig {
-    pub access_token: Option<String>, // This might need to be Option<String> -- Sometimes doesn't exist when cluster is new
+    pub access_token: Option<String>,
     pub cmd_args: String,
     pub cmd_path: String,
     pub expiry: Option<String>,

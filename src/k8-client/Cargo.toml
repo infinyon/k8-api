@@ -14,10 +14,9 @@ readme = "README.md"
 [features]
 default = ["openssl_tls"]
 k8 = []
-openssl_tls = ["fluvio-future/openssl_tls", "hyper-openssl", "openssl"]
-native_tls = ["fluvio-future/native2_tls", "hyper-tls"]
-rust_tls = ["rustls", "fluvio-future/tls", "hyper-rustls"]
-#oauth = ["tame-oauth"]
+openssl_tls = ["fluvio-future/openssl_tls"]
+native_tls = ["fluvio-future/native2_tls"]
+rust_tls = ["rustls", "fluvio-future/tls"]
 
 [dependencies]
 cfg-if = "1.0"
@@ -28,10 +27,6 @@ futures-util = { version="0.3.21", features=["io"] }
 rand = { version="0.8.3" }
 rustls = { version="0.19.0", optional=true }
 hyper = { version="0.14.17", features=["client", "http1", "http2", "stream"] }
-hyper-tls = { version = "0.5.0", optional = true }
-hyper-rustls = { version = "0.23.0", optional = true }
-hyper-openssl = { version = "0.9.2", optional = true }
-openssl = { version = "0.10.36", optional = true }
 http = { version="0.2" }
 tokio = { version="1.17.0" }
 pin-utils = "0.1.0"
@@ -44,9 +39,6 @@ k8-metadata-client = { version="3.2.0", path="../k8-metadata-client" }
 k8-diff = { version="0.1.0", path="../k8-diff" }
 k8-config = { path="../k8-config" }
 k8-types = { version="0.5.2", path="../k8-types", features=["core", "batch"] }
-#tame-oauth = { version = "0.7.0", features = ["gcp"], optional = true }
-tame-oauth = { version = "0.7.0", features = ["gcp"]}
-thiserror = "1.0.30"
 
 
 [dev-dependencies]

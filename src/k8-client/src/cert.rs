@@ -7,7 +7,7 @@ use tracing::{debug, error};
 use k8_config::K8Config;
 use k8_config::KubeConfig;
 use k8_config::PodConfig;
-use k8_config::{GcpAuthProviderConfig, AuthProviderDetail};
+use k8_config::AuthProviderDetail;
 use serde_json::Value;
 
 use crate::ClientError;
@@ -81,12 +81,10 @@ where
         if let Some(token) = &self.external_token {
             Some(token.clone())
         } else if let K8Config::KubeConfig(context) = &self.k8_config() {
-            // Look for auth-provider for dynamic token
-            // We should be able to know from the User config if we need to call gcp for a token
+            // We should be able to know if we use dynamic tokens from the User config if using `auth_provider`
 
             let kube_config = &context.config;
 
-            //    // Get name of current context
             let current_context = kube_config.current_context.clone();
 
             if let Some(c) = &kube_config
@@ -98,10 +96,7 @@ where
 
                 let token = if let Some(u) = users.iter().find(|user| &user.name == &c.context.user)
                 {
-                    //Some(&u.user)
-
                     if let Some(auth_provider) = &u.user.auth_provider {
-                        // If GCP
                         if let AuthProviderDetail::Gcp(gcp_auth) = auth_provider {
                             debug!("{gcp_auth:#?}");
 
@@ -123,7 +118,7 @@ where
                                 None
                             }
                         } else {
-                            error!("Only Auth provider support for GCP");
+                            error!("Only Auth provider support for Google Kubernetes Engine (GKE). Please file issue.");
                             None
                         }
                     } else {
@@ -134,7 +129,6 @@ where
                 };
 
                 token
-
             } else {
                 None
             }
@@ -210,8 +204,8 @@ where
             builder.load_ca_certificate(ca_certificate_path)?
         };
 
-        // Note: GCP kubernetes clusters don't have any of these set on user
         // load client certs
+        // Note: GCP kubernetes (GKE) clusters don't have any of these set on user
         if let Some(exec) = &current_user.user.exec {
             debug!(exec = ?exec,"loading client CA using exec");
 
@@ -277,13 +271,10 @@ where
         } else if let Some(user_token) = &current_user.user.token {
             Ok((builder, Some(user_token.clone())))
         } else {
-            // TODO: Uncomment this out when we support alternate auth provider flow
-            //Err(IoError::new(
-            //    ErrorKind::InvalidInput,
-            //    "no client cert crt data, path or user token were found".to_owned(),
-            //))
-
-            Ok((builder, None))
+            Err(IoError::new(
+                ErrorKind::InvalidInput,
+                "no client cert crt data, path or user token were found".to_owned(),
+            ))
         }
     }
 }
