@@ -83,10 +83,10 @@ pub enum AuthProviderDetail {
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GcpAuthProviderConfig {
-    pub access_token: String,
+    pub access_token: Option<String>, // This might need to be Option<String> -- Sometimes doesn't exist when cluster is new
     pub cmd_args: String,
     pub cmd_path: String,
-    pub expiry: String,
+    pub expiry: Option<String>,
     pub expiry_key: String,
     pub token_key: String,
 }
