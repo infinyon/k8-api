@@ -895,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "5.6.0"
+version = "6.0.0"
 dependencies = [
  "async-trait",
  "base64",
@@ -922,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "k8-config"
-version = "1.5.0"
+version = "2.0.0"
 dependencies = [
  "dirs",
  "fluvio-future",
