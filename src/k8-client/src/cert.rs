@@ -269,6 +269,8 @@ where
             ))
         } else if let Some(user_token) = &current_user.user.token {
             Ok((builder, Some(user_token.clone())))
+        } else if let Some(AuthProviderDetail::Gcp(_)) = &current_user.user.auth_provider {
+            Ok((builder, None))
         } else {
             Err(IoError::new(
                 ErrorKind::InvalidInput,
