@@ -5,6 +5,7 @@ use std::path::Path;
 
 use dirs::home_dir;
 use serde::Deserialize;
+use serde_json::Value;
 
 use crate::ConfigError;
 
@@ -71,6 +72,33 @@ pub enum AuthProviderDetail {
 
     #[serde(other)]
     Other,
+}
+
+impl AuthProviderDetail {
+    pub fn token(&self) -> Result<Option<String>, ConfigError> {
+        if let AuthProviderDetail::Gcp(gcp_auth) = self {
+            // Execute the command by default just in case access_key is expired
+            let output = std::process::Command::new(&gcp_auth.cmd_path)
+                .args(gcp_auth.cmd_args.split_whitespace().collect::<Vec<&str>>())
+                .output()?;
+
+            // Return token from json response
+            if let Ok(json) = serde_json::from_slice::<Value>(&output.stdout) {
+                Ok(json["credential"]["access_token"]
+                    .as_str()
+                    .map(String::from))
+            } else {
+                Err(ConfigError::Other(
+                    "Failed parsing request token response".to_string(),
+                ))
+            }
+        } else {
+            Err(ConfigError::Other(
+                "Only Auth provider support for Google Kubernetes Engine (GKE). Please file issue."
+                    .to_string(),
+            ))
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Deserialize)]

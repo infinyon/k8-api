@@ -2,13 +2,12 @@ use std::io::Error as IoError;
 use std::io::ErrorKind;
 use std::path::Path;
 
-use tracing::{debug, error};
+use tracing::debug;
 
 use k8_config::K8Config;
 use k8_config::KubeConfig;
 use k8_config::PodConfig;
 use k8_config::AuthProviderDetail;
-use serde_json::Value;
 
 use crate::ClientError;
 
@@ -77,9 +76,9 @@ where
         &self.config
     }
 
-    pub fn token(&self) -> Option<String> {
+    pub fn token(&self) -> Result<Option<String>, ClientError> {
         if let Some(token) = &self.external_token {
-            Some(token.clone())
+            Ok(Some(token.clone()))
         } else if let K8Config::KubeConfig(context) = &self.k8_config() {
             // We should be able to know if we use dynamic tokens from the User config if using `auth_provider`
 
@@ -96,30 +95,7 @@ where
 
                 let token = if let Some(u) = users.iter().find(|user| user.name == c.context.user) {
                     if let Some(auth_provider) = &u.user.auth_provider {
-                        if let AuthProviderDetail::Gcp(gcp_auth) = auth_provider {
-                            debug!("{gcp_auth:#?}");
-
-                            // Execute the command by default just in case access_key is expired
-                            let output = std::process::Command::new(&gcp_auth.cmd_path)
-                                .args(gcp_auth.cmd_args.split_whitespace().collect::<Vec<&str>>())
-                                .output()
-                                .expect("gcp command failed");
-
-                            // Return token from json response
-                            if let Ok(json) = serde_json::from_slice::<Value>(&output.stdout) {
-                                debug!("{json:#?}");
-                                debug!("{:#?}", json["credential"]["access_token"]);
-
-                                json["credential"]["access_token"]
-                                    .as_str()
-                                    .map(String::from)
-                            } else {
-                                None
-                            }
-                        } else {
-                            error!("Only Auth provider support for Google Kubernetes Engine (GKE). Please file issue.");
-                            None
-                        }
+                        auth_provider.token()?
                     } else {
                         None
                     }
@@ -127,14 +103,14 @@ where
                     None
                 };
 
-                token
+                Ok(token)
             } else {
-                None
+                Ok(None)
             }
         } else {
             match self.k8_config() {
-                K8Config::Pod(pod) => Some(pod.token.to_owned()),
-                _ => None,
+                K8Config::Pod(pod) => Ok(Some(pod.token.to_owned())),
+                _ => Ok(None),
             }
         }
     }
