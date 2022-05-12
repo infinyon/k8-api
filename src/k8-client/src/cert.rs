@@ -7,6 +7,7 @@ use tracing::debug;
 use k8_config::K8Config;
 use k8_config::KubeConfig;
 use k8_config::PodConfig;
+use k8_config::AuthProviderDetail;
 
 use crate::ClientError;
 
@@ -75,13 +76,41 @@ where
         &self.config
     }
 
-    pub fn token(&self) -> Option<String> {
+    pub fn token(&self) -> Result<Option<String>, ClientError> {
         if let Some(token) = &self.external_token {
-            Some(token.clone())
+            Ok(Some(token.clone()))
+        } else if let K8Config::KubeConfig(context) = &self.k8_config() {
+            // We should be able to know if we use dynamic tokens from the User config if using `auth_provider`
+
+            let kube_config = &context.config;
+
+            let current_context = kube_config.current_context.clone();
+
+            if let Some(c) = &kube_config
+                .contexts
+                .iter()
+                .find(|context| context.name == current_context)
+            {
+                let users = &kube_config.users;
+
+                let token = if let Some(u) = users.iter().find(|user| user.name == c.context.user) {
+                    if let Some(auth_provider) = &u.user.auth_provider {
+                        auth_provider.token()?
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(token)
+            } else {
+                Ok(None)
+            }
         } else {
             match self.k8_config() {
-                K8Config::Pod(pod) => Some(pod.token.to_owned()),
-                _ => None,
+                K8Config::Pod(pod) => Ok(Some(pod.token.to_owned())),
+                _ => Ok(None),
             }
         }
     }
@@ -151,6 +180,7 @@ where
         };
 
         // load client certs
+        // Note: Google Kubernetes (GKE) clusters don't have any of these set on user
         if let Some(exec) = &current_user.user.exec {
             debug!(exec = ?exec,"loading client CA using exec");
 
@@ -215,6 +245,8 @@ where
             ))
         } else if let Some(user_token) = &current_user.user.token {
             Ok((builder, Some(user_token.clone())))
+        } else if let Some(AuthProviderDetail::Gcp(_)) = &current_user.user.auth_provider {
+            Ok((builder, None))
         } else {
             Err(IoError::new(
                 ErrorKind::InvalidInput,

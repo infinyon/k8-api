@@ -73,7 +73,7 @@ impl K8Client {
     pub fn new(config: K8Config) -> Result<Self, ClientError> {
         let helper = HyperConfigBuilder::new(config)?;
         let host = helper.host();
-        let token = helper.token();
+        let token = helper.token()?;
         let client = helper.build()?;
         debug!("using k8 token: {:#?}", token);
         Ok(Self {

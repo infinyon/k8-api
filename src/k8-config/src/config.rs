@@ -5,6 +5,7 @@ use std::path::Path;
 
 use dirs::home_dir;
 use serde::Deserialize;
+use serde_json::Value;
 
 use crate::ConfigError;
 
@@ -57,15 +58,83 @@ pub struct User {
     pub user: UserDetail,
 }
 
+//#[derive(Debug, PartialEq, Deserialize)]
+//pub struct AuthProviderConfig {
+//    pub name: String,
+//    pub config: HashMap<String, String>,
+//}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(tag = "name", content = "config")]
+pub enum AuthProviderDetail {
+    #[serde(alias = "gcp")]
+    Gcp(GcpAuthProviderConfig),
+
+    #[serde(other)]
+    Other,
+}
+
+impl AuthProviderDetail {
+    pub fn token(&self) -> Result<Option<String>, ConfigError> {
+        if let AuthProviderDetail::Gcp(gcp_auth) = self {
+            // Execute the command by default just in case access_key is expired
+            let output = std::process::Command::new(&gcp_auth.cmd_path)
+                .args(gcp_auth.cmd_args.split_whitespace().collect::<Vec<&str>>())
+                .output()?;
+
+            // Return token from json response
+            if let Ok(json) = serde_json::from_slice::<Value>(&output.stdout) {
+                Ok(json["credential"]["access_token"]
+                    .as_str()
+                    .map(String::from))
+            } else {
+                Err(ConfigError::Other(
+                    "Failed parsing request token response".to_string(),
+                ))
+            }
+        } else {
+            Err(ConfigError::Other(
+                "Only Auth provider support for Google Kubernetes Engine (GKE). Please file issue."
+                    .to_string(),
+            ))
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct GcpAuthProviderConfig {
+    pub access_token: Option<String>,
+    pub cmd_args: String,
+    pub cmd_path: String,
+    pub expiry: Option<String>,
+    pub expiry_key: String,
+    pub token_key: String,
+}
+
+//#[derive(Debug, PartialEq, Deserialize)]
+//#[serde(rename_all = "kebab-case")]
+//pub struct OidcAuthProviderConfig {
+//    client_id: String,
+//    client_secret: String,
+//    id_token: String,
+//    idp_certificate_authority: String,
+//    idp_issuer_url: String,
+//    refresh_token: String,
+//}
+
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct UserDetail {
+    pub auth_provider: Option<AuthProviderDetail>,
     pub client_certificate: Option<String>,
     pub client_key: Option<String>,
     pub client_certificate_data: Option<String>,
     pub client_key_data: Option<String>,
     pub exec: Option<Exec>,
     pub token: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
