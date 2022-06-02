@@ -44,6 +44,7 @@ pub struct ObjectMeta {
     pub uid: String,
     pub creation_timestamp: String,
     pub generation: Option<i32>,
+    #[serde(default)]
     pub resource_version: String,
     // optional
     pub cluster_name: Option<String>,
@@ -629,6 +630,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct ListMetadata {
     pub _continue: Option<String>,
+    #[serde(default)]
     pub resource_version: String,
 }
 
