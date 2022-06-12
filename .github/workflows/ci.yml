@@ -12,7 +12,7 @@ env:
   CARGO_TERM_COLOR: always
 
 concurrency:
-  group: ${{ github.head_ref || 'ci_staging' }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
