@@ -1,9 +1,11 @@
 mod client_impl;
+mod log_stream;
 
 mod list_stream;
 mod wstream;
 
 pub use client_impl::K8Client;
+pub use log_stream::LogStream;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "openssl_tls")] {
