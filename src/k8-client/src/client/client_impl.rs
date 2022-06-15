@@ -39,7 +39,7 @@ use crate::uri::{item_uri, items_uri};
 use crate::ClientError;
 
 use super::wstream::WatchStream;
-use super::{HyperClient, HyperConfigBuilder, ListStream};
+use super::{HyperClient, HyperConfigBuilder, ListStream, LogStream};
 
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
@@ -147,28 +147,29 @@ impl K8Client {
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
     #[allow(clippy::useless_conversion)]
-    fn stream_of_chunks<S>(&self, uri: Uri) -> impl Stream<Item = Bytes> + '_
-    where
-        S: Spec,
-        K8Watch<S>: DeserializeOwned,
-    {
+    fn stream_of_chunks(&self, uri: Uri) -> impl Stream<Item = Bytes> {
         debug!("streaming: {}", uri);
 
+        let request = http::Request::get(uri)
+            .body(Body::empty())
+            .map_err(ClientError::from)
+            .and_then(|mut req| {
+                self.finish_request(&mut req)?;
+                Ok(req)
+            });
+
+        let http_client = self.client.clone();
+
         let ft = async move {
-            let mut request = match http::Request::get(uri).body(Body::empty()) {
+            let request = match request {
                 Ok(req) => req,
                 Err(err) => {
-                    error!("error uri err: {}", err);
+                    error!("error building request: {}", err);
                     return empty().right_stream();
                 }
             };
 
-            if let Err(err) = self.finish_request(&mut request) {
-                error!("error finish request: {}", err);
-                return empty().right_stream();
-            };
-
-            match self.client.request(request).await {
+            match http_client.request(request).await {
                 Ok(response) => {
                     trace!("res status: {}", response.status());
                     trace!("res header: {:#?}", response.headers());
@@ -259,6 +260,23 @@ impl K8Client {
             .body(bytes.into())?;
 
         self.handle_request(request).await
+    }
+
+    pub async fn retrieve_log(
+        &self,
+        namespace: &str,
+        pod_name: &str,
+        container_name: &str,
+    ) -> Result<LogStream, ClientError> {
+        let sub_resource = format!("/log?container={}&follow={}", container_name, false);
+        let uri = item_uri::<k8_types::core::pod::PodSpec>(
+            self.hostname(),
+            pod_name,
+            namespace,
+            Some(&sub_resource),
+        )?;
+        let stream = self.stream_of_chunks(uri);
+        Ok(LogStream(Box::pin(stream)))
     }
 }
 
