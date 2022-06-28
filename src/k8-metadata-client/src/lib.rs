@@ -14,4 +14,3 @@ pub use nothing::DoNothingError;
 
 pub type SharedClient<C> = std::sync::Arc<C>;
 
-pub use k8_types;

@@ -138,8 +138,8 @@ where
 
         use base64::decode;
 
-        use crate::k8_types::core::plugin::ExecCredentialSpec;
-        use crate::k8_types::K8Obj;
+        use k8_types::core::plugin::ExecCredentialSpec;
+        use k8_types::K8Obj;
 
         let current_user = kube_config.current_user().ok_or_else(|| {
             IoError::new(

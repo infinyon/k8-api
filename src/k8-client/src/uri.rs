@@ -1,8 +1,8 @@
 use crate::http::Uri;
 use crate::ClientError;
 
-use crate::k8_types::{Crd, Spec};
-use crate::k8_types::options::{ListOptions};
+use k8_types::{Crd, Spec};
+use k8_types::options::{ListOptions};
 use crate::meta_client::NameSpace;
 
 /// items uri
@@ -90,7 +90,7 @@ where
 #[cfg(test)]
 mod test {
 
-    use crate::k8_types::{Crd, CrdNames, DEFAULT_NS};
+    use k8_types::{Crd, CrdNames, DEFAULT_NS};
 
     use super::prefix_uri;
     use super::ListOptions;
