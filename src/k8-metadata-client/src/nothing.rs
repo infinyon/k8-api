@@ -14,9 +14,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use k8_diff::DiffError;
-use k8_types::{
-    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
-};
+use k8_types::{InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use k8_types::options::DeleteOptions;
 use crate::diff::PatchMergeType;
 

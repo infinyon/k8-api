@@ -30,9 +30,7 @@ use tracing::trace;
 use k8_types::UpdatedK8Obj;
 use k8_config::K8Config;
 use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
-use k8_types::{
-    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
-};
+use k8_types::{InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use k8_types::options::{ListOptions, DeleteOptions};
 
 use crate::uri::{item_uri, items_uri};

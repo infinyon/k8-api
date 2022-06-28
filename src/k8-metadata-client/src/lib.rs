@@ -13,4 +13,3 @@ pub use nothing::DoNothingClient;
 pub use nothing::DoNothingError;
 
 pub type SharedClient<C> = std::sync::Arc<C>;
-
