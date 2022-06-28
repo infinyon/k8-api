@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "k8-types"
-version = "0.5.3"
+version = "0.6.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Kubernetes Object Types"
 repository = "https://github.com/infinyon/k8-api"
@@ -17,5 +17,6 @@ batch = ["core"]
 [dependencies]
 serde = { version ="1.0.136", features = ['derive'] }
 serde_json = "1.0.60"
-serde_qs = "0.8.1"
 
+[dev-dependencies]
+serde_qs = "0.9.2"
