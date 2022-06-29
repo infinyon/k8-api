@@ -226,7 +226,7 @@ pub struct ContainerStatus {
     pub name: String,
     pub state: ContainerState,
     pub ready: bool,
-    pub restart_count: u8,
+    pub restart_count: i32,
     pub image: String,
     #[serde(rename = "imageID")]
     pub image_id: String,
