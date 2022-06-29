@@ -1128,9 +1128,9 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
 name = "openssl-src"
-version = "300.0.2+3.0.0"
+version = "300.0.8+3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14a760a11390b1a5daf72074d4f6ff1a6e772534ae191f999f57e9ee8146d1fb"
+checksum = "00d3a6562a1fd6e812d1a05e22b3b7b9861ec261c05cfbb20a7d29af88952b4f"
 dependencies = [
  "cc",
 ]
