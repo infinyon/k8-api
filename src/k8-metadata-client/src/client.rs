@@ -17,10 +17,8 @@ use tracing::debug;
 use tracing::trace;
 
 use k8_diff::{Changes, Diff, DiffError};
-use crate::k8_types::{
-    InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus,
-};
-use crate::k8_types::options::DeleteOptions;
+use k8_types::{InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
+use k8_types::options::DeleteOptions;
 use crate::diff::PatchMergeType;
 use crate::{ApplyResult, DiffableK8Obj};
 

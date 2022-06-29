@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::k8_types::{Crd, K8Obj, Spec};
+use k8_types::{Crd, K8Obj, Spec};
 
 #[derive(Debug)]
 pub enum ApplyResult<S>

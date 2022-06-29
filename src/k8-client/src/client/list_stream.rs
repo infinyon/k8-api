@@ -18,8 +18,8 @@ use pin_utils::unsafe_unpinned;
 use k8_metadata_client::ListArg;
 use k8_metadata_client::NameSpace;
 
-use crate::k8_types::{K8List, Spec};
-use crate::k8_types::options::ListOptions;
+use k8_types::{K8List, Spec};
+use k8_types::options::ListOptions;
 use crate::ClientError;
 use crate::K8Client;
 use crate::SharedK8Client;
