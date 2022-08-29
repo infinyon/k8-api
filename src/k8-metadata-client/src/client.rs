@@ -154,7 +154,8 @@ pub trait MetadataClient: Send + Sync {
 
     async fn delete_collection<S, M>(
         &self,
-        metadata: &M,
+        namespace: NameSpace,
+        label_selector: Option<&str>,
         option: Option<DeleteOptions>,
     ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where

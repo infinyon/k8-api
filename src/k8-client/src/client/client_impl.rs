@@ -2,7 +2,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::fmt::Debug;
 use std::fmt::Display;
-use std::ptr::metadata;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -108,11 +107,13 @@ impl K8Client {
         Ok(())
     }
 
-    async fn delete<S>(&self, uri: Uri, options: DeleteOptions) -> Result<DeleteStatus<S>, ClientError>
+    async fn delete<S>(&self, uri: Uri, options: Option<DeleteOptions>) -> Result<DeleteStatus<S>, ClientError>
     where
         S: Spec
     {
-        let body = if let Some(option_value) = option {
+        use k8_types::DeletedStatus;
+
+        let body = if let Some(option_value) = options {
             let bytes = serde_json::to_vec(&option_value)?;
             trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
 
@@ -367,8 +368,6 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        use k8_types::DeletedStatus;
-
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: delete item on url: {}", S::label(), uri);
 
@@ -378,19 +377,17 @@ impl MetadataClient for K8Client {
     async fn delete_collection<S, M>(
         &self,
         namespace: NameSpace,
-        labelSelector: Option<&str>,
+        label_selector: Option<&str>,
         option: Option<DeleteOptions>,
     ) -> Result<DeleteStatus<S>, ClientError>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        use k8_types::DeletedStatus;
-
-        let list_options = labelSelector
+        let list_options = label_selector
             .map(|s| ListOptions{label_selector: Some(s.to_owned()), ..Default::default()});
 
-        let uri = items_uri::<S>(self.hostname(), namespace, None)?;
+        let uri = items_uri::<S>(self.hostname(), namespace, list_options);
         debug!("{}: delete collection on url: {}", S::label(), uri);
 
         self.delete::<S>(uri, option).await
