@@ -152,6 +152,15 @@ pub trait MetadataClient: Send + Sync {
         S: Spec,
         M: K8Meta + Send + Sync;
 
+    async fn delete_collection<S, M>(
+        &self,
+        metadata: &M,
+        option: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    where
+        S: Spec,
+        M: K8Meta + Send + Sync;
+
     async fn delete_item<S, M>(
         &self,
         metadata: &M,
