@@ -2,8 +2,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::core::pod::PodSpec;
-use crate::{Crd, CrdNames, DefaultHeader, LabelSelector, Spec, Status, TemplateSpec};
-
+use crate::{Crd, CrdNames, DefaultHeader, Int32OrString, LabelSelector, Spec, Status, TemplateSpec};
 const DEPLOYMENT_API: Crd = Crd {
     group: "apps",
     version: "v1",
@@ -38,8 +37,8 @@ pub struct DeploymentStrategy {
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RollingUpdateDeployment {
-    pub max_surge: Option<String>,
-    pub max_unavailable: Option<String>,
+    pub max_surge: Option<Int32OrString>,
+    pub max_unavailable: Option<Int32OrString>,
 }
 
 impl Spec for DeploymentSpec {
