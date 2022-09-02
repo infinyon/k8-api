@@ -16,7 +16,7 @@ batch = ["core"]
 
 [dependencies]
 serde = { version ="1.0.136", features = ['derive'] }
-serde_json = "1.0.60"
+serde_json = "1.0.85"
 
 [dev-dependencies]
 serde_qs = "0.9.2"
