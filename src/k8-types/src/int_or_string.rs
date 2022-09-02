@@ -1,7 +1,7 @@
 use std::{str::FromStr, convert::Infallible};
 
 /// See: https://github.com/kubernetes/apimachinery/blob/master/pkg/util/intstr/intstr.go
-/// IntOrString is a type that can hold an int32 or a string.
+/// Int32OrString is a type that can hold an int32 or a string.
 /// When used in JSON or YAML marshalling and unmarshalling, it produces or consumes the inner type.
 /// This allows you to have, for example, a JSON field that can accept a name or number.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -42,7 +42,7 @@ impl<'de> serde::Deserialize<'de> for Int32OrString {
             type Value = Int32OrString;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(formatter, "enum IntOrString")
+                write!(formatter, "enum Int32OrString")
             }
 
             fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
@@ -132,6 +132,14 @@ mod test {
         assert_eq!(int_or_string, Int32OrString::Int(100));
         let serialization = serde_json::to_value(&int_or_string).expect("failed serialization");
         assert_eq!(int_value, serialization);
+    }
+
+    #[test]
+    fn test_invalid_float_serde() {
+        let int_value = json!(2.5);
+
+        let _error = serde_json::from_value::<Int32OrString>(int_value)
+            .expect_err("float should not be deserialized");
     }
 
     #[test]
