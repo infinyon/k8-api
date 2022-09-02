@@ -19,7 +19,7 @@ const SERVICE_API: Crd = Crd {
     },
 };
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ServiceSpec {
     #[serde(rename = "clusterIP")]
@@ -52,7 +52,7 @@ impl Spec for ServiceSpec {
 
 default_store_spec!(ServiceSpec, ServiceStatus, "Service");
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ServicePort {
     pub name: Option<String>,
@@ -61,7 +61,7 @@ pub struct ServicePort {
     pub target_port: Option<TargetPort>,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum TargetPort {
     Number(u16),
@@ -77,7 +77,7 @@ impl std::fmt::Display for TargetPort {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ServiceStatus {
     pub load_balancer: LoadBalancerStatus,
@@ -85,13 +85,13 @@ pub struct ServiceStatus {
 
 impl Status for ServiceStatus {}
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Clone)]
 pub enum ExternalTrafficPolicy {
     Local,
     Cluster,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Clone)]
 pub enum LoadBalancerType {
     ExternalName,
     #[allow(clippy::upper_case_acronyms)]
@@ -100,7 +100,7 @@ pub enum LoadBalancerType {
     LoadBalancer,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LoadBalancerStatus {
     pub ingress: Vec<LoadBalancerIngress>,
@@ -113,7 +113,7 @@ impl LoadBalancerStatus {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadBalancerIngress {
     pub hostname: Option<String>,

@@ -27,14 +27,14 @@ impl Spec for NodeSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct NodeSpec {
     #[serde(rename = "providerID")]
     pub provider_id: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct NodeStatus {
     pub addresses: Vec<NodeAddress>,
@@ -46,11 +46,11 @@ pub struct NodeStatus {
 
 impl Status for NodeStatus {}
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct NodeList {}
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct NodeAddress {
     pub address: String,

@@ -9,13 +9,13 @@ use serde_json::Value;
 
 use crate::ConfigError;
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub struct Cluster {
     pub name: String,
     pub cluster: ClusterDetail,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ClusterDetail {
     pub insecure_skip_tls_verify: Option<bool>,
@@ -30,13 +30,13 @@ impl ClusterDetail {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub struct Context {
     pub name: String,
     pub context: ContextDetail,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub struct ContextDetail {
     pub cluster: String,
     pub user: String,
@@ -52,7 +52,7 @@ impl ContextDetail {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub struct User {
     pub name: String,
     pub user: UserDetail,
@@ -64,7 +64,7 @@ pub struct User {
 //    pub config: HashMap<String, String>,
 //}
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(tag = "name", content = "config")]
 pub enum AuthProviderDetail {
     #[serde(alias = "gcp")]
@@ -101,7 +101,7 @@ impl AuthProviderDetail {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GcpAuthProviderConfig {
     pub access_token: Option<String>,
@@ -123,7 +123,7 @@ pub struct GcpAuthProviderConfig {
 //    refresh_token: String,
 //}
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct UserDetail {
     pub auth_provider: Option<AuthProviderDetail>,
@@ -137,7 +137,7 @@ pub struct UserDetail {
     pub password: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Exec {
     #[serde(rename = "apiVersion")]
@@ -146,7 +146,7 @@ pub struct Exec {
     pub command: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct KubeConfig {
     #[serde(rename = "apiVersion")]

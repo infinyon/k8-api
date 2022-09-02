@@ -2,8 +2,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::core::pod::PodSpec;
-use crate::{Crd, CrdNames, DefaultHeader, LabelSelector, Spec, Status, TemplateSpec};
-
+use crate::{Crd, CrdNames, DefaultHeader, Int32OrString, LabelSelector, Spec, Status, TemplateSpec};
 const DEPLOYMENT_API: Crd = Crd {
     group: "apps",
     version: "v1",
@@ -14,7 +13,7 @@ const DEPLOYMENT_API: Crd = Crd {
     },
 };
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct DeploymentSpec {
     pub min_ready_seconds: Option<i32>,
@@ -27,7 +26,7 @@ pub struct DeploymentSpec {
     pub template: TemplateSpec<PodSpec>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct DeploymentStrategy {
     pub rolling_update: Option<RollingUpdateDeployment>,
@@ -35,11 +34,11 @@ pub struct DeploymentStrategy {
     pub type_: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RollingUpdateDeployment {
-    pub max_surge: Option<String>,
-    pub max_unavailable: Option<String>,
+    pub max_surge: Option<Int32OrString>,
+    pub max_unavailable: Option<Int32OrString>,
 }
 
 impl Spec for DeploymentSpec {
@@ -51,7 +50,7 @@ impl Spec for DeploymentSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DeploymentStatus {
     pub available_replicas: Option<i32>,
@@ -65,7 +64,7 @@ pub struct DeploymentStatus {
     pub updated_replicas: Option<i32>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DeploymentCondition {
     pub last_transition_time: Option<String>,
