@@ -966,7 +966,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.7.0"
+version = "0.6.1"
 dependencies = [
  "serde",
  "serde_json",
