@@ -115,3 +115,34 @@ impl serde::Serialize for Int32OrString {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+
+    use serde_json::json;
+
+    use crate::Int32OrString;
+
+    #[test]
+    fn test_int_serde() {
+        let int_value = json!(100);
+
+        let int_or_string: Int32OrString =
+            serde_json::from_value(int_value.clone()).expect("failed deserialization");
+        assert_eq!(int_or_string, Int32OrString::Int(100));
+        let serialization = serde_json::to_value(&int_or_string).expect("failed serialization");
+        assert_eq!(int_value, serialization);
+    }
+
+    #[test]
+    fn test_str_serde() {
+        let str_value = json!("25%");
+
+        let int_or_string: Int32OrString =
+            serde_json::from_value(str_value.clone()).expect("failed deserialization");
+        assert_eq!(int_or_string, Int32OrString::String("25%".into()));
+
+        let serialization = serde_json::to_value(&int_or_string).expect("failed serialization");
+        assert_eq!(str_value, serialization);
+    }
+}
