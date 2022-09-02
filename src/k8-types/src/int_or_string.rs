@@ -15,6 +15,21 @@ impl Default for Int32OrString {
         Int32OrString::Int(0)
     }
 }
+impl FromStr for Int32OrString {
+    type Err = Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<i32>() {
+            Ok(i) => Ok(Int32OrString::Int(i)),
+            Err(_) => Ok(Int32OrString::String(s.to_string())),
+        }
+    }
+}
+
+impl From<i32> for Int32OrString {
+    fn from(f: i32) -> Self {
+        Int32OrString::Int(f)
+    }
+}
 
 impl<'de> serde::Deserialize<'de> for Int32OrString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -86,22 +101,6 @@ impl<'de> serde::Deserialize<'de> for Int32OrString {
         }
 
         deserializer.deserialize_any(Visitor)
-    }
-}
-
-impl FromStr for Int32OrString {
-    type Err = Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.parse::<i32>() {
-            Ok(i) => Ok(Int32OrString::Int(i)),
-            Err(_) => Ok(Int32OrString::String(s.to_string())),
-        }
-    }
-}
-
-impl From<i32> for Int32OrString {
-    fn from(f: i32) -> Self {
-        Int32OrString::Int(f)
     }
 }
 
