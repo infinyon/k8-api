@@ -30,7 +30,7 @@ impl Spec for PodSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PodSpec {
     pub volumes: Vec<VolumeSpec>,
@@ -46,7 +46,7 @@ pub struct PodSpec {
     pub node_selector: Option<HashMap<String, String>>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 pub enum PodRestartPolicy {
     Always,
     Never,
@@ -58,7 +58,7 @@ impl Default for PodRestartPolicy {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PodSecurityContext {
     pub fs_group: Option<u32>,
@@ -68,14 +68,14 @@ pub struct PodSecurityContext {
     pub sysctls: Vec<Sysctl>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Sysctl {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ContainerSpec {
     pub name: String,
@@ -93,7 +93,7 @@ pub struct ContainerSpec {
     pub liveness_probe: Option<Probe>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 pub enum ImagePullPolicy {
     Always,
     Never,
@@ -106,7 +106,7 @@ impl Default for ImagePullPolicy {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Probe {
     pub exec: Option<ExecAction>,
@@ -118,27 +118,27 @@ pub struct Probe {
     pub timeout_seconds: Option<u32>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ExecAction {
     pub command: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TcpSocketAction {
     pub host: String,
     pub port: u16,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ResourceRequirements {
     pub limits: DynamicObject,
     pub requests: DynamicObject,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerPortSpec {
     pub container_port: u16,
@@ -156,7 +156,7 @@ impl ContainerPortSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct VolumeSpec {
     pub name: String,
@@ -165,7 +165,7 @@ pub struct VolumeSpec {
     pub persistent_volume_claim: Option<PersistentVolumeClaimVolumeSource>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct VolumeMount {
     pub mount_path: String,
@@ -175,7 +175,7 @@ pub struct VolumeMount {
     pub sub_path: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SecretVolumeSpec {
     pub default_mode: u16,
@@ -183,7 +183,7 @@ pub struct SecretVolumeSpec {
     pub optional: Option<bool>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigMapVolumeSource {
     pub default_mode: Option<i32>,
@@ -191,7 +191,7 @@ pub struct ConfigMapVolumeSource {
     pub name: Option<String>,
     pub optional: Option<bool>,
 }
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyToPath {
     pub key: String,
@@ -199,7 +199,7 @@ pub struct KeyToPath {
     pub path: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistentVolumeClaimVolumeSource {
     claim_name: String,

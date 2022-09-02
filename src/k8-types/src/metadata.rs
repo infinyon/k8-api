@@ -35,7 +35,7 @@ pub trait LabelProvider: Sized {
 
 /// metadata associated with object when returned
 /// here name and namespace must be populated
-#[derive(Deserialize, Serialize, PartialEq, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ObjectMeta {
     // mandatory fields
@@ -273,7 +273,7 @@ impl K8Meta for UpdateItemMeta {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct OwnerReferences {
     pub api_version: String,
@@ -521,7 +521,7 @@ impl From<ItemMeta> for InputObjectMeta {
 }
 
 /// name is optional for template
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TemplateMeta {
     pub name: Option<String>,
@@ -549,7 +549,7 @@ impl TemplateMeta {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateSpec<S> {
     pub metadata: Option<TemplateMeta>,
@@ -634,7 +634,7 @@ pub struct ListMetadata {
     pub resource_version: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelSelector {
     pub match_labels: HashMap<String, String>,
@@ -650,7 +650,7 @@ impl LabelSelector {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Env {
     pub name: String,
@@ -680,13 +680,13 @@ impl Env {
     }
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvVarSource {
     field_ref: Option<ObjectFieldSelector>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectFieldSelector {
     pub field_path: String,

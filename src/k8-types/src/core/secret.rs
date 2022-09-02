@@ -30,11 +30,11 @@ impl Spec for SecretSpec {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SecretSpec {}
 
-#[derive(Deserialize, Serialize, Default, PartialEq, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Eq, PartialEq, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SecretStatus {}
 
