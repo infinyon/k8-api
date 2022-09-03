@@ -116,6 +116,8 @@ impl K8Client {
 
         self.finish_request(&mut request)?;
 
+        trace!("request: {:#?}", request);
+
         let resp = self.client.request(request).await?;
 
         let status = resp.status();
