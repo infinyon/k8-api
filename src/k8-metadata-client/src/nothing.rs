@@ -124,7 +124,7 @@ impl MetadataClient for DoNothingClient {
         Err(DoNothingError::NotFound) as Result<DeleteStatus<S>, Self::MetadataClientError>
     }
 
-    async fn delete_collection<S, M>(
+    async fn delete_collection<S>(
         &self,
         _namespace: NameSpace,
         _label_selector: Option<&str>,
@@ -132,7 +132,6 @@ impl MetadataClient for DoNothingClient {
     ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
     where
         S: Spec,
-        M: K8Meta + Send + Sync,
     {
         Err(DoNothingError::NotFound) as Result<DeleteStatus<S>, Self::MetadataClientError>
     }

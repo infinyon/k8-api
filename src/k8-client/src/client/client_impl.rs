@@ -374,7 +374,7 @@ impl MetadataClient for K8Client {
         self.delete::<S>(uri, option).await
     }
 
-    async fn delete_collection<S, M>(
+    async fn delete_collection<S>(
         &self,
         namespace: NameSpace,
         label_selector: Option<&str>,
@@ -382,7 +382,6 @@ impl MetadataClient for K8Client {
     ) -> Result<DeleteStatus<S>, ClientError>
     where
         S: Spec,
-        M: K8Meta + Send + Sync,
     {
         let list_options = label_selector
             .map(|s| ListOptions{label_selector: Some(s.to_owned()), ..Default::default()});
