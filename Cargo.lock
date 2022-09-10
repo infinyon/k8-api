@@ -895,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "7.0.0"
+version = "7.0.1"
 dependencies = [
  "async-trait",
  "base64",
@@ -922,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "k8-config"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "dirs",
  "fluvio-future",
@@ -952,7 +952,7 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "async-trait",
  "futures-util",
@@ -966,7 +966,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "serde",
  "serde_json",

@@ -21,4 +21,8 @@ spec:
             - name: RUST_LOG
               value: debug
           command: ["/hello"]
-  
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 1
+          maxSurge: 25%

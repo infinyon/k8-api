@@ -1,4 +1,5 @@
 mod crd;
+mod int_or_string;
 mod metadata;
 pub mod options;
 pub mod store;
@@ -75,3 +76,5 @@ mod spec_def {
 
     impl Header for DefaultHeader {}
 }
+
+pub use int_or_string::Int32OrString;

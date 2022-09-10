@@ -34,7 +34,7 @@ impl Spec for NamespaceSpec {
 
 default_store_spec!(NamespaceSpec, NamespaceStatus, "Namespace");
 
-#[derive(Deserialize, Serialize, PartialEq, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct NamespaceStatus {
     pub phase: String,

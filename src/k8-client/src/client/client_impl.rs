@@ -47,7 +47,7 @@ pub struct K8Client {
     token: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct VersionInfo {
     pub major: String,
