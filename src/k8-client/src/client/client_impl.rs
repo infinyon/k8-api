@@ -107,6 +107,40 @@ impl K8Client {
         Ok(())
     }
 
+    async fn delete<S>(&self, uri: Uri, options: Option<DeleteOptions>) -> Result<DeleteStatus<S>, ClientError>
+    where
+        S: Spec
+    {
+        use k8_types::DeletedStatus;
+
+        let body = if let Some(option_value) = options {
+            let bytes = serde_json::to_vec(&option_value)?;
+            trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
+
+            bytes.into()
+        } else {
+            Body::empty()
+        };
+        let request = Request::delete(uri)
+            .header(ACCEPT, "application/json")
+            .body(body)?;
+        let values: serde_json::Map<String, serde_json::Value> =
+            self.handle_request(request).await?;
+        if let Some(kind) = values.get("kind") {
+            if kind == "Status" {
+                let status: DeletedStatus =
+                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                Ok(DeleteStatus::Deleted(status))
+            } else {
+                let status: K8Obj<S> =
+                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
+                Ok(DeleteStatus::ForegroundDelete(status))
+            }
+        } else {
+            Err(ClientError::Other(format!("missing kind: {:#?}", values)))
+        }
+    }
+
     /// handle request. this is async function
     async fn handle_request<T>(&self, mut request: Request<Body>) -> Result<T, ClientError>
     where
@@ -334,37 +368,28 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        use k8_types::DeletedStatus;
-
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: delete item on url: {}", S::label(), uri);
 
-        let body = if let Some(option_value) = option {
-            let bytes = serde_json::to_vec(&option_value)?;
-            trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
+        self.delete::<S>(uri, option).await
+    }
 
-            bytes.into()
-        } else {
-            Body::empty()
-        };
-        let request = Request::delete(uri)
-            .header(ACCEPT, "application/json")
-            .body(body)?;
-        let values: serde_json::Map<String, serde_json::Value> =
-            self.handle_request(request).await?;
-        if let Some(kind) = values.get("kind") {
-            if kind == "Status" {
-                let status: DeletedStatus =
-                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
-                Ok(DeleteStatus::Deleted(status))
-            } else {
-                let status: K8Obj<S> =
-                    serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
-                Ok(DeleteStatus::ForegroundDelete(status))
-            }
-        } else {
-            Err(ClientError::Other(format!("missing kind: {:#?}", values)))
-        }
+    async fn delete_collection<S>(
+        &self,
+        namespace: NameSpace,
+        label_selector: Option<&str>,
+        option: Option<DeleteOptions>,
+    ) -> Result<DeleteStatus<S>, ClientError>
+    where
+        S: Spec,
+    {
+        let list_options = label_selector
+            .map(|s| ListOptions{label_selector: Some(s.to_owned()), ..Default::default()});
+
+        let uri = items_uri::<S>(self.hostname(), namespace, list_options);
+        debug!("{}: delete collection on url: {}", S::label(), uri);
+
+        self.delete::<S>(uri, option).await
     }
 
     /// create new object
