@@ -110,7 +110,9 @@ mod integration_tests {
             .await
             .expect_err("update");
         match err {
-            ClientError::Client(status) => assert_eq!(status, StatusCode::CONFLICT),
+            ClientError::ApiResponse(status) => {
+                assert_eq!(status.code, Some(StatusCode::CONFLICT.as_u16()))
+            }
             _ => panic!(),
         }
 

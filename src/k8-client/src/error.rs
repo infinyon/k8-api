@@ -8,6 +8,7 @@ use hyper::Error as HyperError;
 use k8_config::ConfigError;
 use k8_diff::DiffError;
 use k8_metadata_client::MetadataClientError;
+use k8_types::MetaStatus;
 
 use crate::http::header::InvalidHeaderValue;
 use crate::http::status::StatusCode;
@@ -26,7 +27,8 @@ pub enum ClientError {
     K8ConfigError(ConfigError),
     PatchError,
     HyperError(HyperError),
-    Client(StatusCode),
+    HttpResponse(StatusCode),
+    ApiResponse(MetaStatus),
     Other(String),
     #[cfg(feature = "openssl_tls")]
     Tls(fluvio_future::openssl::TlsError),
@@ -43,7 +45,8 @@ impl std::error::Error for ClientError {
             Self::InvalidHttpHeader(err) => Some(err),
             Self::K8ConfigError(err) => Some(err),
             Self::HyperError(err) => Some(err),
-            Self::Client(_) => None,
+            Self::HttpResponse(_) => None,
+            Self::ApiResponse(_) => None,
             Self::PatchError => None,
             Self::Other(_) => None,
             #[cfg(feature = "openssl_tls")]
@@ -109,7 +112,7 @@ impl From<ConfigError> for ClientError {
 
 impl From<StatusCode> for ClientError {
     fn from(code: StatusCode) -> Self {
-        Self::Client(code)
+        Self::HttpResponse(code)
     }
 }
 
@@ -126,7 +129,8 @@ impl fmt::Display for ClientError {
             Self::HttpError(err) => write!(f, "{}", err),
             Self::EnvError(err) => write!(f, "{}", err),
             Self::JsonError(err) => write!(f, "{}", err),
-            Self::Client(status) => write!(f, "client error: {}", status),
+            Self::ApiResponse(err) => write!(f, "{:#?}", err),
+            Self::HttpResponse(status) => write!(f, "client error: {}", status),
             Self::DiffError(err) => write!(f, "{:#?}", err),
             Self::InvalidHttpHeader(err) => write!(f, "{:#?}", err),
             Self::PatchError => write!(f, "patch error"),
@@ -146,7 +150,7 @@ impl MetadataClientError for ClientError {
 
     fn not_found(&self) -> bool {
         match self {
-            Self::Client(status) => status == &StatusCode::NOT_FOUND,
+            Self::ApiResponse(status) => status.code == Some(StatusCode::NOT_FOUND.as_u16()),
             _ => false,
         }
     }

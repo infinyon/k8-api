@@ -303,14 +303,13 @@ pub enum DeleteStatus<S>
 where
     S: Spec,
 {
-    Deleted(DeletedStatus),
+    Deleted(MetaStatus),
     ForegroundDelete(K8Obj<S>),
 }
 
-/// status for actual deletion
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct DeletedStatus {
+pub struct MetaStatus {
     pub api_version: String,
     pub code: Option<u16>,
     pub details: Option<StatusDetails>,
@@ -340,7 +339,7 @@ pub struct StatusDetails {
     pub name: String,
     pub group: Option<String>,
     pub kind: String,
-    pub uid: String,
+    pub uid: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
@@ -660,7 +659,7 @@ pub struct Env {
 
 impl Env {
     pub fn key_value<T: Into<String>>(name: T, value: T) -> Self {
-        Env {
+        Self {
             name: name.into(),
             value: Some(value.into()),
             value_from: None,
@@ -668,28 +667,46 @@ impl Env {
     }
 
     pub fn key_field_ref<T: Into<String>>(name: T, field_path: T) -> Self {
-        Env {
+        Self {
             name: name.into(),
             value: None,
-            value_from: Some(EnvVarSource {
-                field_ref: Some(ObjectFieldSelector {
-                    field_path: field_path.into(),
-                }),
-            }),
+            value_from: Some(EnvVarSource::FieldRef(ObjectFieldSelector {
+                field_path: field_path.into(),
+            })),
         }
     }
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum EnvVarSource {
+    ConfigMapKeyRef(KeySelector),
+    FieldRef(ObjectFieldSelector),
+    ResourceFieldRef(ResourceFieldSelector),
+    SecretKeyRef(KeySelector),
+}
+
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct EnvVarSource {
-    field_ref: Option<ObjectFieldSelector>,
+pub struct KeySelector {
+    pub key: String,
+    pub name: String,
+    #[serde(default)]
+    pub optional: bool,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectFieldSelector {
     pub field_path: String,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ResourceFieldSelector {
+    pub container_name: Option<String>,
+    pub divisor: Option<String>,
+    pub resource: String,
 }
 
 #[cfg(test)]

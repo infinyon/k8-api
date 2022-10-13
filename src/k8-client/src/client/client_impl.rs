@@ -116,31 +116,38 @@ impl K8Client {
 
         self.finish_request(&mut request)?;
 
+        trace!("request url: {}", request.uri());
+        trace!("request body: {:?}", request.body());
+
         let resp = self.client.request(request).await?;
 
         let status = resp.status();
-        debug!("response status: {:#?}", status);
 
         if status.is_success() {
             let mut reader = (aggregate(resp).await?).reader();
             let mut buffer = Vec::new();
             reader.read_to_end(&mut buffer)?;
-            trace!("success response: {}", String::from_utf8_lossy(&buffer));
+            trace!(%status, "success response: {}", String::from_utf8_lossy(&buffer));
             serde_json::from_slice(&buffer).map_err(|err| {
                 error!("json error: {}", err);
                 error!("source: {}", String::from_utf8_lossy(&buffer));
                 err.into()
             })
         } else {
-            Err(ClientError::Client(status))
+            trace!(%status, "error response received");
+            let mut reader = (aggregate(resp).await?).reader();
+            let mut buffer = Vec::new();
+            reader.read_to_end(&mut buffer).map_err(|err| {
+                error!("unable to read error response: {}", err);
+                ClientError::HttpResponse(status)
+            })?;
+            trace!("error response: {}", String::from_utf8_lossy(&buffer));
+            let api_status = serde_json::from_slice(&buffer).map_err(|err| {
+                error!("json error: {}", err);
+                err
+            })?;
+            Err(ClientError::ApiResponse(api_status))
         }
-
-        /*
-        if status.as_u16() == StatusCode::NOT_FOUND {
-            debug!("returning not found");
-            return Err(ClientError::NotFound);
-        }
-        */
     }
 
     /// return stream of chunks, chunk is a bytes that are stream thru http channel
@@ -334,7 +341,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        use k8_types::DeletedStatus;
+        use k8_types::MetaStatus;
 
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: delete item on url: {}", S::label(), uri);
@@ -354,7 +361,7 @@ impl MetadataClient for K8Client {
             self.handle_request(request).await?;
         if let Some(kind) = values.get("kind") {
             if kind == "Status" {
-                let status: DeletedStatus =
+                let status: MetaStatus =
                     serde::Deserialize::deserialize(serde_json::Value::Object(values))?;
                 Ok(DeleteStatus::Deleted(status))
             } else {
