@@ -182,7 +182,7 @@ checksum = "b6d7b9decdf35d8908a7e3ef02f64c5e9b1695e230154c0e8de3969142d9b94c"
 dependencies = [
  "futures",
  "pharos",
- "rustc_version 0.4.0",
+ "rustc_version",
 ]
 
 [[package]]
@@ -446,19 +446,6 @@ dependencies = [
 
 [[package]]
 name = "fluvio-future"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "631ef3c6d2682640740296c24ae95f5cf98f3dcf86363f4c698a44d963bf516d"
-dependencies = [
- "fluvio-wasm-timer",
- "fluvio_ws_stream_wasm",
- "log",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "fluvio-future"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87c637d55360a7a105c387b7cc04d19c5f1532366cade02e6b258f06835a65e1"
@@ -509,24 +496,6 @@ dependencies = [
  "js-sys",
  "parking_lot",
  "pin-utils",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "fluvio_ws_stream_wasm"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9875a7ffd1467f052ee51d936dc916f3b040ee3989d6abc875a10f0d2b204cdf"
-dependencies = [
- "async_io_stream",
- "futures",
- "js-sys",
- "pharos",
- "rustc_version 0.3.3",
- "send_wrapper",
- "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -907,7 +876,7 @@ dependencies = [
  "base64",
  "bytes",
  "cfg-if",
- "fluvio-future 0.4.2",
+ "fluvio-future",
  "futures-util",
  "http",
  "hyper",
@@ -931,7 +900,7 @@ name = "k8-config"
 version = "2.0.1"
 dependencies = [
  "dirs",
- "fluvio-future 0.3.15",
+ "fluvio-future",
  "hostfile",
  "serde",
  "serde_json",
@@ -1267,7 +1236,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e9567389417feee6ce15dd6527a8a1ecac205ef62c2932bcf3d9f6fc5b78b414"
 dependencies = [
  "futures",
- "rustc_version 0.4.0",
+ "rustc_version",
 ]
 
 [[package]]
@@ -1495,20 +1464,11 @@ dependencies = [
 
 [[package]]
 name = "rustc_version"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0dfe2087c51c460008730de8b57e6a320782fbfb312e1f4d520e6c6fae155ee"
-dependencies = [
- "semver 0.11.0",
-]
-
-[[package]]
-name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
 dependencies = [
- "semver 1.0.4",
+ "semver",
 ]
 
 [[package]]
@@ -1598,27 +1558,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f301af10236f6df4160f7c3f04eec6dbc70ace82d23326abad5edee88801c6b6"
-dependencies = [
- "semver-parser",
-]
-
-[[package]]
-name = "semver"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "568a8e6258aa33c13358f81fd834adb854c6f7c9468520910a9b1e8fac068012"
-
-[[package]]
-name = "semver-parser"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b0bef5b7f9e0df16536d3961cfb6e84331c065b4066afb39768d0e319411f7"
-dependencies = [
- "pest",
-]
 
 [[package]]
 name = "send_wrapper"
@@ -2269,7 +2211,7 @@ dependencies = [
  "futures",
  "js-sys",
  "pharos",
- "rustc_version 0.4.0",
+ "rustc_version",
  "send_wrapper",
  "thiserror",
  "wasm-bindgen",
