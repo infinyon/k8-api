@@ -16,7 +16,7 @@ mod integration_tests {
     use fluvio_future::timer::sleep;
 
     use k8_client::{ClientError, K8Client};
-    use k8_metadata_client::{ApplyResult, MetadataClient};
+    use k8_metadata_client::{ApplyResult, MetadataClient, NameSpace};
     use k8_types::core::service::{ServicePort, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
 
@@ -145,6 +145,42 @@ mod integration_tests {
         }
     }
 
+    async fn collection_operations(client: &K8Client) {
+        // Ensure collection is initially empty
+        client
+            .delete_collection::<ServiceSpec>(NameSpace::All, None, None)
+            .await
+            .expect("could not delete items");
+
+        // Create many items
+        for i in 0..ITER {
+            let new_item = new_service(i);
+            debug!("creating service: {}", i);
+            _ = client
+                .create_item::<ServiceSpec>(new_item)
+                .await
+                .expect("service should be created");
+            sleep(DELAY).await;
+        }
+
+        let items = client
+            .retrieve_items::<ServiceSpec, _>(NameSpace::All)
+            .await
+            .expect("could not retrieve items");
+        assert_eq!(items.items.len(), ITER as usize);
+
+        client
+            .delete_collection::<ServiceSpec>(NameSpace::All, None, None)
+            .await
+            .expect("could not delete items");
+
+        let items = client
+            .retrieve_items::<ServiceSpec, _>(NameSpace::All)
+            .await
+            .expect("retrieval failed after item deletion");
+        assert_eq!(items.items.len(), 0);
+    }
+
     // verify client
     async fn verify_client(client: &K8Client) {
         // there should be only 1 service (kubernetes)
@@ -209,6 +245,15 @@ mod integration_tests {
         let client = create_client();
 
         join(generate_services_data(&client), verify_client(&client)).await;
+
+        Ok(())
+    }
+
+    #[test_async]
+    async fn test_collection_operations() -> Result<(), ClientError> {
+        let client = create_client();
+
+        collection_operations(&client).await;
 
         Ok(())
     }
