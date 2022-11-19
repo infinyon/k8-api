@@ -89,7 +89,7 @@ impl MinikubeContext {
     /// Updates the `kubectl` context to use the current settings
     fn update_kubectl_context(&self) -> Result<(), ConfigError> {
         Command::new("kubectl")
-            .args(&["config", "set-cluster", &self.name])
+            .args(["config", "set-cluster", &self.name])
             .arg(&format!(
                 "--server=https://minikubeCA:{}",
                 self.profile.port()
@@ -100,7 +100,7 @@ impl MinikubeContext {
             .status()?;
 
         Command::new("kubectl")
-            .args(&["config", "set-context", &self.name])
+            .args(["config", "set-context", &self.name])
             .arg("--user=minikube")
             .arg(&format!("--cluster={}", &self.name))
             .stdout(Stdio::inherit())
@@ -108,7 +108,7 @@ impl MinikubeContext {
             .status()?;
 
         Command::new("kubectl")
-            .args(&["config", "use-context", &self.name])
+            .args(["config", "use-context", &self.name])
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .status()?;
@@ -202,7 +202,7 @@ impl MinikubeProfile {
     /// Gets minikube's current profile
     fn load() -> Result<MinikubeProfile, ConfigError> {
         let output = Command::new("minikube")
-            .args(&["profile", "list", "-o", "json"])
+            .args(["profile", "list", "-o", "json"])
             .output()?;
         let output_string = String::from_utf8(output.stdout).map_err(|e| {
             ConfigError::Other(format!(
