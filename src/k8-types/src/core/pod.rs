@@ -160,9 +160,14 @@ impl ContainerPortSpec {
 #[serde(rename_all = "camelCase")]
 pub struct VolumeSpec {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<SecretVolumeSpec>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub config_map: Option<ConfigMapVolumeSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub persistent_volume_claim: Option<PersistentVolumeClaimVolumeSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub empty_dir: Option<EmptyDirVolumeSource>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
@@ -216,6 +221,15 @@ pub struct PodStatus {
     pub pod_ip: Option<String>,
     pub start_time: String,
     pub container_statuses: Vec<ContainerStatus>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct EmptyDirVolumeSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub medium: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size_limit: Option<String>,
 }
 
 impl Status for PodStatus {}
