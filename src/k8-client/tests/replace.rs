@@ -19,7 +19,7 @@ mod integration_tests {
     const SPU_DEFAULT_NAME: &str = "spu";
 
     fn create_client() -> K8Client {
-        K8Client::default().expect("cluster not initialized")
+        K8Client::try_default().expect("cluster not initialized")
     }
 
     fn new_service() -> InputK8Obj<ServiceSpec> {

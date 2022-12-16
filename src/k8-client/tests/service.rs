@@ -28,7 +28,7 @@ mod integration_tests {
     const DELAY: Duration = Duration::from_millis(100);
 
     fn create_client() -> K8Client {
-        K8Client::default().expect("cluster not initialized")
+        K8Client::try_default().expect("cluster not initialized")
     }
 
     static PREFIX: Lazy<String> = Lazy::new(|| {

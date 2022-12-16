@@ -15,7 +15,7 @@ mod integration_tests {
     const JOB_NAME: &str = "job-test-name";
 
     fn create_client() -> K8Client {
-        K8Client::default().expect("cluster not initialized")
+        K8Client::try_default().expect("cluster not initialized")
     }
 
     async fn create_job(client: &K8Client) {

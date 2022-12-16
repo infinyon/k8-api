@@ -16,7 +16,7 @@ mod canary_test {
     // get services to find kubernetes api
     #[test_async]
     async fn test_client_server_version() -> Result<(), ClientError> {
-        let client = K8Client::default().expect("cluster could not be configured");
+        let client = K8Client::try_default().expect("cluster could not be configured");
         let version = client.server_version().await?;
         info!(
             "server version reported: {}.{}",
@@ -28,7 +28,7 @@ mod canary_test {
     // get services to find kubernetes api
     #[test_async]
     async fn test_client_get_services() -> Result<(), ClientError> {
-        let client = K8Client::default().expect("cluster could not be configured");
+        let client = K8Client::try_default().expect("cluster could not be configured");
         let services = client.retrieve_items::<ServiceSpec, _>("default").await?;
         debug!("service: {} has been retrieved", services.items.len());
 
@@ -44,7 +44,7 @@ mod canary_test {
 
     #[test_async]
     async fn test_client_secrets() -> Result<(), ClientError> {
-        let client = K8Client::default().expect("cluster could not be configured");
+        let client = K8Client::try_default().expect("cluster could not be configured");
         let secrets = client
             .retrieve_items::<SecretSpec, _>(NameSpace::All)
             .await
@@ -70,7 +70,7 @@ mod canary_test {
     async fn test_pods() -> Result<(), ClientError> {
         use k8_types::core::pod::PodSpec;
 
-        let client = K8Client::default().expect("cluster could not be configured");
+        let client = K8Client::try_default().expect("cluster could not be configured");
         let pod_items = client
             .retrieve_items::<PodSpec, _>("default")
             .await
