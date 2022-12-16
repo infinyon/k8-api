@@ -63,7 +63,7 @@ pub struct VersionInfo {
 
 impl K8Client {
     // load using default k8 config
-    pub fn default() -> Result<Self, ClientError> {
+    pub fn try_default() -> Result<Self, ClientError> {
         let config = K8Config::load()?;
         Self::new(config)
     }
