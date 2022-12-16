@@ -6,53 +6,54 @@ on:
       - staging
       - trying
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
+  K3D_VERSION: v5.4.3
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-
   unit_test:
     name: Unit test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest,macOS-latest]
+        os: [ubuntu-latest, macOS-latest]
         rust: [stable]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Install ${{ matrix.rust }}
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.rust }}
-        override: true
-    - name: Run unit tests
-      run:  cargo test --lib --all-features
+      - uses: actions/checkout@v3
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Run unit tests
+        run: cargo test --lib --all-features
 
   unit_test_k8_client_feature_flags:
     name: Unit test feature flags
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest,macOS-latest]
+        os: [ubuntu-latest, macOS-latest]
         rust: [stable]
-        features: ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
+        features:
+          ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Install ${{ matrix.rust }}
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.rust }}
-        override: true
-    - name: Run unit tests
-      run:  cargo test --lib -p k8-client --no-default-features --features ${{ matrix.features }}
+      - uses: actions/checkout@v3
+      - name: Install ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Run unit tests
+        run: cargo test --lib -p k8-client --no-default-features --features ${{ matrix.features }}
 
   check_fmt:
     name: check cargo fmt
@@ -91,17 +92,16 @@ jobs:
       - name: clippy
         run: make check-clippy
 
-
   k8_integration_test:
-      name: Kubernetes integration test
-      runs-on: ${{ matrix.os }}
-      strategy:
-        matrix:
-          os: [ubuntu-latest]
-          k8: [minikube,k3d,kind]
-          rust: [stable]
+    name: Kubernetes integration test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        k8: [minikube, k3d, kind]
+        rust: [stable]
 
-      steps:
+    steps:
       - uses: actions/checkout@v3
       - name: Install ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -116,14 +116,14 @@ jobs:
         uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: "v1.22.0"
-          kubernetes version: "v1.21.2"
+          kubernetes version: "v1.23.10"
           github token: ${{ secrets.GITHUB_TOKEN }}
           driver: docker
       - name: Install k3d
         if: startsWith(matrix.k8,'k3d')
         run: |
-          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-          k3d cluster create fluvio-k3d --image rancher/k3s:v1.19.12-k3s1-amd64
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=${{ env.K3D_VERSION }} bash
+          k3d cluster create fluvio-k3d --image rancher/k3s:v1.23.14-k3s1-amd64
       - name: Install Kind
         if: startsWith(matrix.k8,'kind')
         run: |
@@ -143,7 +143,7 @@ jobs:
   done:
     name: Done
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-    needs: 
+    needs:
       - unit_test
       - check_fmt
       - check_clippy
@@ -153,4 +153,3 @@ jobs:
     steps:
       - name: Done
         run: echo "Done!"
-
