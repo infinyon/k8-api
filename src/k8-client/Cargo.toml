@@ -20,7 +20,7 @@ rust_tls = ["rustls", "fluvio-future/tls"]
 [dependencies]
 cfg-if = "1.0"
 tracing = "0.1.19"
-bytes = "1.0.1"
+bytes = "1.4.0"
 base64 = { version="0.13.0" }
 futures-util = { version="0.3.21", features=["io"] }
 rand = { version="0.8.3" }
