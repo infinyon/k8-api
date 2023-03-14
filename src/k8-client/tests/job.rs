@@ -70,7 +70,11 @@ mod integration_tests {
         for job in job_items.items {
             assert_eq!(job.metadata.name, JOB_NAME);
             assert_eq!(
-                job.spec.template.metadata.annotations,
+                job.spec
+                    .template
+                    .metadata
+                    .expect("expected meta")
+                    .annotations,
                 vec![("some-key".to_string(), "some-value".to_string())]
                     .into_iter()
                     .collect(),
