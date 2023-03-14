@@ -9,6 +9,7 @@ mod integration_tests {
         InputK8Obj, InputObjectMeta, TemplateSpec,
         batch::job::JobSpec,
         core::pod::{ContainerSpec, PodSpec, PodRestartPolicy},
+        TemplateMeta,
     };
 
     const NS: &str = "default";
@@ -26,20 +27,29 @@ mod integration_tests {
         };
 
         let job = JobSpec {
-            template: TemplateSpec::new(PodSpec {
-                containers: vec![ContainerSpec {
-                    name: JOB_NAME.to_string(),
-                    image: Some("busybox".to_string()),
-                    command: vec![
-                        "sh".to_string(),
-                        "-c".to_string(),
-                        "echo \"Hello, Kubernetes!\"".to_string(),
-                    ],
+            template: TemplateSpec {
+                spec: PodSpec {
+                    containers: vec![ContainerSpec {
+                        name: JOB_NAME.to_string(),
+                        image: Some("busybox".to_string()),
+                        command: vec![
+                            "sh".to_string(),
+                            "-c".to_string(),
+                            "echo \"Hello, Kubernetes!\"".to_string(),
+                        ],
+                        ..Default::default()
+                    }],
+                    restart_policy: Some(PodRestartPolicy::Never),
                     ..Default::default()
-                }],
-                restart_policy: Some(PodRestartPolicy::Never),
-                ..Default::default()
-            }),
+                },
+                metadata: Some(TemplateMeta {
+                    name: Some("busybox-pod-name".to_string()),
+                    annotations: vec![("some-key".to_string(), "some-value".to_string())]
+                        .into_iter()
+                        .collect(),
+                    ..Default::default()
+                }),
+            },
             active_deadline_seconds: Some(60),
             backoff_limit: Some(1),
             ..Default::default()
@@ -59,6 +69,12 @@ mod integration_tests {
         assert_eq!(job_items.items.len(), 1);
         for job in job_items.items {
             assert_eq!(job.metadata.name, JOB_NAME);
+            assert_eq!(
+                job.spec.template.metadata.annotations,
+                vec![("some-key".to_string(), "some-value".to_string())]
+                    .into_iter()
+                    .collect(),
+            );
         }
     }
     #[test_async]
