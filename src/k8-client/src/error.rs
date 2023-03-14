@@ -28,7 +28,7 @@ pub enum ClientError {
     PatchError,
     HyperError(HyperError),
     HttpResponse(StatusCode),
-    ApiResponse(MetaStatus),
+    ApiResponse(Box<MetaStatus>),
     Other(String),
     #[cfg(feature = "openssl_tls")]
     Tls(fluvio_future::openssl::TlsError),
