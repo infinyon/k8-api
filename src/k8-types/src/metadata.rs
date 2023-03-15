@@ -526,6 +526,7 @@ pub struct TemplateMeta {
     pub name: Option<String>,
     pub creation_timestamp: Option<String>,
     pub labels: HashMap<String, String>,
+    pub annotations: HashMap<String, String>,
 }
 
 impl LabelProvider for TemplateMeta {
