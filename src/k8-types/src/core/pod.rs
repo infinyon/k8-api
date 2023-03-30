@@ -168,6 +168,8 @@ pub struct VolumeSpec {
     pub persistent_volume_claim: Option<PersistentVolumeClaimVolumeSource>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub empty_dir: Option<EmptyDirVolumeSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub csi: Option<CsiVolumeSource>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
@@ -230,6 +232,23 @@ pub struct EmptyDirVolumeSource {
     pub medium: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size_limit: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CsiVolumeSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub driver: Option<String>,
+    pub read_only: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume_attributes: Option<CsiVolumeAttributes>,
+}
+
+#[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CsiVolumeAttributes {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret_provider_class: Option<String>,
 }
 
 impl Status for PodStatus {}
