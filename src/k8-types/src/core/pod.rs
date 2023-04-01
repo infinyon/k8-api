@@ -234,14 +234,19 @@ pub struct EmptyDirVolumeSource {
     pub size_limit: Option<String>,
 }
 
+// ref https://kubernetes.io/docs/concepts/storage/volumes/#csi
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CsiVolumeSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub driver: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fs_type: Option<String>,
     pub read_only: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub volume_attributes: Option<CsiVolumeAttributes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume_handle: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
