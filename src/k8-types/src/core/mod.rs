@@ -4,4 +4,5 @@ pub mod plugin;
 pub mod pod;
 pub mod secret;
 pub mod service;
+pub mod service_account;
 pub mod node;
