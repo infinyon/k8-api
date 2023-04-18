@@ -133,6 +133,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-rustls"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93b21a03b7c21702a0110f9f8d228763a533570deb376119042dabf33c37a01a"
+dependencies = [
+ "futures-io",
+ "rustls",
+ "webpki",
+]
+
+[[package]]
 name = "async-std"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -485,32 +496,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluvio-async-tls"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aab83884d2a39e57047387dc20a62cf6e28d1e3212591ad64826c4dbb5dfa76"
-dependencies = [
- "futures-core",
- "futures-io",
- "rustls",
- "rustls-pemfile",
- "webpki",
- "webpki-roots",
-]
-
-[[package]]
 name = "fluvio-future"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87c637d55360a7a105c387b7cc04d19c5f1532366cade02e6b258f06835a65e1"
+checksum = "8186006d0ce6a5a65b200f53139ad151c568644a47dd122f3d0a683c74c4fad5"
 dependencies = [
  "async-io",
  "async-native-tls",
  "async-net",
+ "async-rustls",
  "async-std",
  "async-trait",
  "cfg-if",
- "fluvio-async-tls",
  "fluvio-test-derive",
  "fluvio-wasm-timer",
  "futures-lite",
@@ -520,12 +517,10 @@ dependencies = [
  "openssl",
  "openssl-sys",
  "pin-project",
- "rustls",
  "rustls-pemfile",
  "thiserror",
  "tracing",
  "tracing-subscriber",
- "webpki",
  "ws_stream_wasm",
 ]
 
@@ -2221,15 +2216,6 @@ checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
 dependencies = [
  "ring",
  "untrusted",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "0.22.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "368bfe657969fb01238bb756d351dcade285e0f6fcbd36dcb23359a5169975be"
-dependencies = [
- "webpki",
 ]
 
 [[package]]
