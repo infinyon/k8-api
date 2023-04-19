@@ -7,3 +7,6 @@ members = [
     "src/k8-client",
     "src/k8-ctx-util"
 ]
+
+[workspace.dependencies]
+fluvio-future = "0.5"
