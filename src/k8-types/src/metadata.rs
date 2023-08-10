@@ -613,7 +613,7 @@ pub trait DeserializeWith: Sized {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type", content = "object")]
 #[serde(bound(serialize = "K8Obj<S>: Serialize"))]
 #[serde(bound(deserialize = "K8Obj<S>: DeserializeOwned"))]
