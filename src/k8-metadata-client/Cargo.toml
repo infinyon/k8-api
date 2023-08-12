@@ -1,5 +1,5 @@
 [package]
-edition = "2018"
+edition = "2021"
 name = "k8-metadata-client"
 version = "5.1.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
