@@ -158,15 +158,18 @@ impl ConfigBuilder for HyperClientBuilder {
 
     fn build(self) -> Result<Self::Client, ClientError> {
         let ca_cert = match self.ca_cert {
-            Some(cert) => cert.build()?,
-            None => return Err(ClientError::Other("no ca cert".to_string())),
+            Some(cert) => cert.build().ok(),
+            None => None,
         };
         let mut connector_builder = TlsConnector::builder()?;
 
         if let Some(builder) = self.client_identity {
             connector_builder = connector_builder.with_identity(builder)?;
         }
-        let connector_builder = connector_builder.add_root_certificate(ca_cert)?;
+
+        if ca_cert.is_some(){
+            connector_builder = connector_builder.add_root_certificate(ca_cert.expect("failed using server CA"))?;
+        }
 
         let connector = connector_builder.build();
         Ok(Client::builder()

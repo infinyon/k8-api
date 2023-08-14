@@ -163,20 +163,17 @@ where
             builder.load_ca_cert_with_data(pem_bytes)?
         } else {
             // let not inline, then must must ref to file
-            let ca_certificate_path = current_cluster
-                .cluster
-                .certificate_authority
-                .as_ref()
-                .ok_or_else(|| {
-                    IoError::new(
-                        ErrorKind::InvalidInput,
-                        "current cluster must have CA crt path".to_owned(),
-                    )
-                })?;
-
-            debug!("loading cluster CA from: {:#?}", ca_certificate_path);
-
-            builder.load_ca_certificate(ca_certificate_path)?
+            if let Some(ca_certificate_path) =
+                current_cluster
+                    .cluster
+                    .certificate_authority
+                    .as_ref() {
+                debug!("loading cluster CA from: {:#?}", ca_certificate_path);
+                builder.load_ca_certificate(ca_certificate_path)?
+            }
+            else {
+                return Ok((builder,None));
+            }
         };
 
         // load client certs
