@@ -162,8 +162,7 @@ impl ConfigBuilder for HyperClientBuilder {
         };
 
         if let Some(ca_cert) = ca_cert {
-            connector_builder = connector_builder
-                .add_root_certificate(ca_cert)?
+            connector_builder = connector_builder.add_root_certificate(ca_cert)?
         }
 
         let connector = connector_builder.build();
