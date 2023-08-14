@@ -161,8 +161,9 @@ impl ConfigBuilder for HyperClientBuilder {
             None => ConnectorBuilder::anonymous(),
         };
 
-        if ca_cert.is_some(){
-            connector_builder = connector_builder.add_root_certificate(ca_cert.expect("failed while using server CA builder"))?
+        if ca_cert.is_some() {
+            connector_builder = connector_builder
+                .add_root_certificate(ca_cert.expect("failed while using server CA builder"))?
         }
 
         let connector = connector_builder.build();

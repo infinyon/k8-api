@@ -164,15 +164,12 @@ where
         } else {
             // let not inline, then must must ref to file
             if let Some(ca_certificate_path) =
-                current_cluster
-                    .cluster
-                    .certificate_authority
-                    .as_ref() {
+                current_cluster.cluster.certificate_authority.as_ref()
+            {
                 debug!("loading cluster CA from: {:#?}", ca_certificate_path);
                 builder.load_ca_certificate(ca_certificate_path)?
-            }
-            else {
-                return Ok((builder,None));
+            } else {
+                return Ok((builder, None));
             }
         };
 
