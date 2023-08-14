@@ -154,15 +154,16 @@ impl ConfigBuilder for HyperClientBuilder {
     }
 
     fn build(self) -> Result<Self::Client, ClientError> {
-        let ca_cert = match self.ca_cert {
-            Some(cert) => cert,
-            None => return Err(ClientError::Other("no ca cert".to_string())),
+        let ca_cert = self.ca_cert;
+
+        let mut connector_builder = match self.client_identity {
+            Some(builder) => ConnectorBuilder::identity(builder)?,
+            None => ConnectorBuilder::anonymous(),
         };
 
-        let connector_builder = match self.client_identity {
-            Some(builder) => ConnectorBuilder::identity(builder)?.add_root_certificate(ca_cert)?,
-            None => ConnectorBuilder::anonymous().add_root_certificate(ca_cert)?,
-        };
+        if let Some(ca_cert) = ca_cert {
+            connector_builder = connector_builder.add_root_certificate(ca_cert)?
+        }
 
         let connector = connector_builder.build();
         Ok(Client::builder()
