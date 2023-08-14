@@ -1,6 +1,6 @@
 [package]
 name = "k8-diff"
-edition = "2018"
+edition = "2021"
 version = "0.1.2"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Used for computing diff between Kubernetes objects"

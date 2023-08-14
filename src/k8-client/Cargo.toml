@@ -1,5 +1,5 @@
 [package]
-edition = "2018"
+edition = "2021"
 name = "k8-client"
 version = "10.0.1"
 authors = ["Fluvio Contributors <team@fluvio.io>"]

@@ -1,6 +1,6 @@
 [package]
 name = "k8-fixtures"
-edition = "2018"
+edition = "2021"
 version = "0.2.2"
 authors = ["fluvio.io"]
 

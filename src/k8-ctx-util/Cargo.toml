@@ -1,6 +1,6 @@
 [package]
 name = "k8-ctx-util"
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "utility to create dns based kube config context"
