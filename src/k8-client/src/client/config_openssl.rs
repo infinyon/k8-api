@@ -167,9 +167,9 @@ impl ConfigBuilder for HyperClientBuilder {
             connector_builder = connector_builder.with_identity(builder)?;
         }
 
-        if ca_cert.is_some() {
+        if let Some(ca_cert) = ca_cert {
             connector_builder =
-                connector_builder.add_root_certificate(ca_cert.expect("failed using server CA"))?;
+                connector_builder.add_root_certificate(ca_cert)?;
         }
 
         let connector = connector_builder.build();
