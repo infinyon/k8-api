@@ -39,7 +39,6 @@ pub trait LabelProvider: Sized {
 #[serde(rename_all = "camelCase", default)]
 pub struct ObjectMeta {
     // mandatory fields
-    // mandatory fields
     pub name: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub namespace: String,
