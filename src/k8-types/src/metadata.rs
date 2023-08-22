@@ -39,20 +39,33 @@ pub trait LabelProvider: Sized {
 #[serde(rename_all = "camelCase", default)]
 pub struct ObjectMeta {
     // mandatory fields
+    // mandatory fields
     pub name: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub namespace: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub uid: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub creation_timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generation: Option<i32>,
+    #[serde(skip_serializing_if = "String::is_empty")]
     #[serde(default)]
     pub resource_version: String,
     // optional
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cluster_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub deletion_timestamp: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub deletion_grace_period_seconds: Option<u32>,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub labels: HashMap<String, String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub owner_references: Vec<OwnerReferences>,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub annotations: HashMap<String, String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub finalizers: Vec<String>,
 }
 
