@@ -5,8 +5,7 @@ mod pod;
 #[cfg(feature = "context")]
 pub mod context;
 
-pub use config::KubeConfig;
-pub use config::UserDetail;
+pub use config::{KubeConfig, ClusterDetail, Context, Cluster, ContextDetail, User, UserDetail};
 pub use error::ConfigError;
 pub use pod::PodConfig;
 
