@@ -4,8 +4,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use anyhow::Result;
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures_util::stream::BoxStream;
 use futures_util::stream::StreamExt;

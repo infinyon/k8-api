@@ -979,6 +979,8 @@ name = "k8-client"
 version = "11.0.0"
 dependencies = [
  "anyhow",
+ "async-channel",
+ "async-lock",
  "async-trait",
  "base64 0.13.1",
  "bytes",
@@ -998,6 +1000,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs",
+ "serde_yaml",
  "tokio",
  "tracing",
 ]

@@ -181,6 +181,11 @@ pub trait MetadataClient: Send + Sync {
                     code: Some(404), ..
                 }) = err.downcast_ref()
                 {
+                    debug!(
+                        "{}: item '{}' not found, creating ...",
+                        S::label(),
+                        value.metadata.name
+                    );
                     let created_item = self.create_item(value).await?;
                     Ok(ApplyResult::Created(created_item))
                 } else {

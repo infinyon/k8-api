@@ -1,5 +1,7 @@
 mod client_impl;
 mod log_stream;
+#[cfg(feature = "memory_client")]
+pub mod memory;
 
 mod list_stream;
 mod wstream;
