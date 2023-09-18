@@ -1,22 +1,21 @@
-use std::fmt::Debug;
 use std::fmt::Display;
-use std::io::Error as IoError;
 use std::sync::Arc;
 
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures_util::future::ready;
 use futures_util::future::FutureExt;
 use futures_util::stream::once;
 use futures_util::stream::BoxStream;
 use futures_util::stream::StreamExt;
+use k8_types::MetaStatus;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use serde_json::Error as SerdeJsonError;
 use serde_json::Value;
 use tracing::debug;
 use tracing::trace;
 
-use k8_diff::{Changes, Diff, DiffError};
+use k8_diff::{Changes, Diff};
 use k8_types::{InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use k8_types::options::DeleteOptions;
 use crate::diff::PatchMergeType;
@@ -60,30 +59,12 @@ pub struct ListArg {
     pub label_selector: Option<String>,
 }
 
-/// trait for metadata client
-pub trait MetadataClientError: Debug + Display {
-    /// is not founded
-    #[deprecated(
-        since = "3.3.0",
-        note = "This method is no longer used. Use not_found instead"
-    )]
-    fn not_founded(&self) -> bool {
-        self.not_found()
-    }
-
-    /// is not found
-    fn not_found(&self) -> bool;
-
-    // create new patch error
-    fn patch_error() -> Self;
-}
-
 // For error mapping: see: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 
-pub type TokenStreamResult<S, E> = Result<Vec<Result<K8Watch<S>, E>>, E>;
+pub type TokenStreamResult<S> = Result<Vec<Result<K8Watch<S>>>>;
 
 #[allow(clippy::redundant_closure)]
-pub fn as_token_stream_result<S, E>(events: Vec<K8Watch<S>>) -> TokenStreamResult<S, E>
+pub fn as_token_stream_result<S, E>(events: Vec<K8Watch<S>>) -> TokenStreamResult<S>
 where
     S: Spec,
     S::Status: Serialize + DeserializeOwned,
@@ -94,28 +75,15 @@ where
 
 #[async_trait]
 pub trait MetadataClient: Send + Sync {
-    type MetadataClientError: MetadataClientError
-        + Send
-        + Display
-        + From<IoError>
-        + From<DiffError>
-        + From<SerdeJsonError>;
-
     /// retrieval a single item
-    async fn retrieve_item<S, M>(
-        &self,
-        metadata: &M,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
 
     /// retrieve all items a single chunk
     /// this may cause client to hang if there are too many items
-    async fn retrieve_items<S, N>(
-        &self,
-        namespace: N,
-    ) -> Result<K8List<S>, Self::MetadataClientError>
+    async fn retrieve_items<S, N>(&self, namespace: N) -> Result<K8List<S>>
     where
         S: Spec,
         N: Into<NameSpace> + Send + Sync,
@@ -127,7 +95,7 @@ pub trait MetadataClient: Send + Sync {
         &self,
         namespace: N,
         option: Option<ListArg>,
-    ) -> Result<K8List<S>, Self::MetadataClientError>
+    ) -> Result<K8List<S>>
     where
         S: Spec,
         N: Into<NameSpace> + Send + Sync;
@@ -147,15 +115,12 @@ pub trait MetadataClient: Send + Sync {
         &self,
         metadata: &M,
         option: Option<DeleteOptions>,
-    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    ) -> Result<DeleteStatus<S>>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
 
-    async fn delete_item<S, M>(
-        &self,
-        metadata: &M,
-    ) -> Result<DeleteStatus<S>, Self::MetadataClientError>
+    async fn delete_item<S, M>(&self, metadata: &M) -> Result<DeleteStatus<S>>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -164,10 +129,7 @@ pub trait MetadataClient: Send + Sync {
     }
 
     /// create new object
-    async fn create_item<S>(
-        &self,
-        value: InputK8Obj<S>,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn create_item<S>(&self, value: InputK8Obj<S>) -> Result<K8Obj<S>>
     where
         S: Spec;
 
@@ -175,13 +137,9 @@ pub trait MetadataClient: Send + Sync {
     /// for now, this doesn't do any optimization
     /// if object doesn't exist, it will be created
     /// if object exist, it will be patched by using strategic merge diff
-    async fn apply<S>(
-        &self,
-        value: InputK8Obj<S>,
-    ) -> Result<ApplyResult<S>, Self::MetadataClientError>
+    async fn apply<S>(&self, value: InputK8Obj<S>) -> Result<ApplyResult<S>>
     where
         S: Spec,
-        Self::MetadataClientError: From<serde_json::Error> + From<DiffError> + Send,
     {
         debug!("{}: applying '{}' changes", S::label(), value.metadata.name);
         trace!("{}: applying {:#?}", S::label(), value);
@@ -215,16 +173,14 @@ pub trait MetadataClient: Send + Sync {
                         let patch_result = self.patch_obj(&value.metadata, &json_diff).await?;
                         Ok(ApplyResult::Patched(patch_result))
                     }
-                    _ => Err(Self::MetadataClientError::patch_error()),
+                    _ => Err(anyhow!("unsupported diff type")),
                 }
             }
             Err(err) => {
-                if err.not_found() {
-                    debug!(
-                        "{}: item '{}' not found, creating ...",
-                        S::label(),
-                        value.metadata.name
-                    );
+                if let Some(MetaStatus {
+                    code: Some(404), ..
+                }) = err.downcast_ref()
+                {
                     let created_item = self.create_item(value).await?;
                     Ok(ApplyResult::Created(created_item))
                 } else {
@@ -235,19 +191,12 @@ pub trait MetadataClient: Send + Sync {
     }
 
     /// update status
-    async fn update_status<S>(
-        &self,
-        value: &UpdateK8ObjStatus<S>,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn update_status<S>(&self, value: &UpdateK8ObjStatus<S>) -> Result<K8Obj<S>>
     where
         S: Spec;
 
     /// patch existing obj
-    async fn patch_obj<S, M>(
-        &self,
-        metadata: &M,
-        patch: &Value,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    async fn patch_obj<S, M>(&self, metadata: &M, patch: &Value) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -262,7 +211,7 @@ pub trait MetadataClient: Send + Sync {
         metadata: &M,
         patch: &Value,
         merge_type: PatchMergeType,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    ) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync;
@@ -273,7 +222,7 @@ pub trait MetadataClient: Send + Sync {
         metadata: &M,
         patch: &Value,
         merge_type: PatchMergeType,
-    ) -> Result<K8Obj<S>, Self::MetadataClientError>
+    ) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync;
@@ -283,15 +232,12 @@ pub trait MetadataClient: Send + Sync {
         &self,
         namespace: N,
         resource_version: Option<String>,
-    ) -> BoxStream<'_, TokenStreamResult<S, Self::MetadataClientError>>
+    ) -> BoxStream<'_, TokenStreamResult<S>>
     where
         S: Spec + 'static,
         N: Into<NameSpace>;
 
-    fn watch_stream_now<S>(
-        &self,
-        ns: String,
-    ) -> BoxStream<'_, TokenStreamResult<S, Self::MetadataClientError>>
+    fn watch_stream_now<S>(&self, ns: String) -> BoxStream<'_, TokenStreamResult<S>>
     where
         S: Spec + 'static,
     {
@@ -322,7 +268,7 @@ pub trait MetadataClient: Send + Sync {
     }
 
     /// Check if the object exists, return true or false.
-    async fn exists<S, M>(&self, metadata: &M) -> Result<bool, Self::MetadataClientError>
+    async fn exists<S, M>(&self, metadata: &M) -> Result<bool>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -331,7 +277,10 @@ pub trait MetadataClient: Send + Sync {
         match self.retrieve_item::<S, M>(metadata).await {
             Ok(_) => Ok(true),
             Err(err) => {
-                if err.not_found() {
+                if let Some(MetaStatus {
+                    code: Some(404), ..
+                }) = err.downcast_ref()
+                {
                     Ok(false)
                 } else {
                     Err(err)

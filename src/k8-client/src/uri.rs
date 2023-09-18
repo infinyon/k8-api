@@ -1,8 +1,9 @@
-use crate::http::Uri;
-use crate::ClientError;
+use anyhow::Result;
 
 use k8_types::{Crd, Spec};
-use k8_types::options::{ListOptions};
+use k8_types::options::ListOptions;
+
+use crate::http::Uri;
 use crate::meta_client::NameSpace;
 
 /// items uri
@@ -11,7 +12,7 @@ pub fn item_uri<S>(
     name: &str,
     namespace: &str,
     sub_resource: Option<&str>,
-) -> Result<Uri, ClientError>
+) -> Result<Uri>
 where
     S: Spec,
 {

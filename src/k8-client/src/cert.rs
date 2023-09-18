@@ -2,6 +2,7 @@ use std::io::Error as IoError;
 use std::io::ErrorKind;
 use std::path::Path;
 
+use anyhow::Result;
 use tracing::debug;
 
 use k8_config::K8Config;
@@ -9,14 +10,12 @@ use k8_config::KubeConfig;
 use k8_config::PodConfig;
 use k8_config::AuthProviderDetail;
 
-use crate::ClientError;
-
 pub trait ConfigBuilder: Sized {
     type Client;
 
     fn new() -> Self;
 
-    fn build(self) -> Result<Self::Client, ClientError>;
+    fn build(self) -> Result<Self::Client>;
 
     fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>;
 
@@ -76,7 +75,7 @@ where
         &self.config
     }
 
-    pub fn token(&self) -> Result<Option<String>, ClientError> {
+    pub fn token(&self) -> Result<Option<String>> {
         if let Some(token) = &self.external_token {
             Ok(Some(token.clone()))
         } else if let K8Config::KubeConfig(context) = &self.k8_config() {
@@ -119,7 +118,7 @@ where
         self.k8_config().api_path().to_owned()
     }
 
-    pub fn build(self) -> Result<B::Client, ClientError> {
+    pub fn build(self) -> Result<B::Client> {
         self.builder.build()
     }
 

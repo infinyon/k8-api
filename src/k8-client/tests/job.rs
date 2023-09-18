@@ -3,7 +3,8 @@ mod integration_tests {
 
     use fluvio_future::test_async;
 
-    use k8_client::{ClientError, K8Client};
+    use anyhow::Result;
+    use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
     use k8_types::{
         InputK8Obj, InputObjectMeta, TemplateSpec,
@@ -82,7 +83,7 @@ mod integration_tests {
         }
     }
     #[test_async]
-    async fn test_job_created() -> Result<(), ClientError> {
+    async fn test_job_created() -> Result<()> {
         let client = create_client();
 
         create_job(&client).await;

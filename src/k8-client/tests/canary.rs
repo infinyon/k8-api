@@ -2,11 +2,11 @@
 #[cfg(not(feature = "k8_stream"))]
 mod canary_test {
 
+    use anyhow::Result;
     use tracing::debug;
     use tracing::info;
 
     use fluvio_future::test_async;
-    use k8_client::ClientError;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
     use k8_metadata_client::NameSpace;
@@ -15,7 +15,7 @@ mod canary_test {
 
     // get services to find kubernetes api
     #[test_async]
-    async fn test_client_server_version() -> Result<(), ClientError> {
+    async fn test_client_server_version() -> Result<()> {
         let client = K8Client::try_default().expect("cluster could not be configured");
         let version = client.server_version().await?;
         info!(
@@ -27,7 +27,7 @@ mod canary_test {
 
     // get services to find kubernetes api
     #[test_async]
-    async fn test_client_get_services() -> Result<(), ClientError> {
+    async fn test_client_get_services() -> Result<()> {
         let client = K8Client::try_default().expect("cluster could not be configured");
         let services = client.retrieve_items::<ServiceSpec, _>("default").await?;
         debug!("service: {} has been retrieved", services.items.len());
@@ -43,7 +43,7 @@ mod canary_test {
     use k8_types::core::secret::SecretSpec;
 
     #[test_async]
-    async fn test_client_secrets() -> Result<(), ClientError> {
+    async fn test_client_secrets() -> Result<()> {
         let client = K8Client::try_default().expect("cluster could not be configured");
         let secrets = client
             .retrieve_items::<SecretSpec, _>(NameSpace::All)
@@ -67,7 +67,7 @@ mod canary_test {
     }
 
     #[test_async]
-    async fn test_pods() -> Result<(), ClientError> {
+    async fn test_pods() -> Result<()> {
         use k8_types::core::pod::PodSpec;
 
         let client = K8Client::try_default().expect("cluster could not be configured");

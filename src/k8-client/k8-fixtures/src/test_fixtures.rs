@@ -8,8 +8,6 @@ use std::path::{Path, PathBuf};
 use k8_metadata_core::metadata::K8Watch;
 use k8_metadata::client::TokenStreamResult;
 use k8_metadata::topic::{TopicSpec, TopicStatus};
-use k8_client::ClientError;
-
 
 //
 // Topic Watch Fixtures
@@ -62,7 +60,7 @@ pub fn create_topic_watch(ttw: &TestTopicWatch) -> K8Watch<TopicSpec, TopicStatu
 
 pub fn create_topic_stream_result(
     ttw_list: &TestTopicWatchList,
-) -> TokenStreamResult<TopicSpec, TopicStatus,ClientError> {
+) -> TokenStreamResult<TopicSpec, TopicStatus> {
     let mut topic_watch_list = vec![];
     for ttw in ttw_list {
         topic_watch_list.push(Ok(create_topic_watch(&ttw)));
