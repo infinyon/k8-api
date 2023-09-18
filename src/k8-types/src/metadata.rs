@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt;
+use std::fmt::{self, Display};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -331,6 +331,23 @@ pub struct MetaStatus {
     pub status: StatusEnum,
 }
 
+impl Display for MetaStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.status)?;
+
+        if let Some(ref code) = self.code {
+            write!(f, " ({})", code)?;
+        }
+        if let Some(ref message) = self.message {
+            write!(f, ":{}.", message)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl std::error::Error for MetaStatus {}
+
 /// Default status implementation
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
@@ -339,6 +356,15 @@ pub enum StatusEnum {
     SUCCESS,
     #[serde(rename = "Failure")]
     FAILURE,
+}
+
+impl Display for StatusEnum {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::SUCCESS => write!(f, "Success"),
+            Self::FAILURE => write!(f, "Failure"),
+        }
+    }
 }
 
 /*
