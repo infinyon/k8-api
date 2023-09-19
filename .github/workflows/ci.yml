@@ -43,7 +43,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
         rust: [stable]
         features:
-          ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls"]
+          ["openssl_tls,k8", "openssl_tls", "native_tls,k8", "native_tls", "rust_tls"]
 
     steps:
       - uses: actions/checkout@v4
