@@ -41,8 +41,8 @@ async-trait = "0.1.52"
 fluvio-future = { workspace = true, features=["net", "task"] }
 k8-metadata-client = { version="6.0.0", path="../k8-metadata-client" } 
 k8-diff = { version="0.1.0", path="../k8-diff" }
-k8-config = { version="2.0.0", path="../k8-config" }
-k8-types = { version="0.8.0", path="../k8-types", features=["core", "batch"] }
+k8-config = { version="2.2.0", path="../k8-config" }
+k8-types = { version="0.8.5", path="../k8-types", features=["core", "batch"] }
 
 [dev-dependencies]
 rand = "0.8.3"
