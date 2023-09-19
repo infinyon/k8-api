@@ -21,7 +21,6 @@ use fluvio_future::rust_tls::{ConnectorBuilder, DefaultClientTlsStream, TlsConne
 
 use super::executor::FluvioHyperExecutor;
 use crate::cert::{ClientConfigBuilder, ConfigBuilder};
-use crate::ClientError;
 
 pub type HyperClient = Client<TlsHyperConnector, Body>;
 
@@ -81,7 +80,7 @@ impl TlsHyperConnector {
 
 impl Service<Uri> for TlsHyperConnector {
     type Response = HyperTlsStream;
-    type Error = ClientError;
+    type Error = anyhow::Error;
 
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
@@ -95,23 +94,18 @@ impl Service<Uri> for TlsHyperConnector {
         Box::pin(async move {
             let host = match uri.host() {
                 Some(h) => h,
-                None => return Err(ClientError::Other("no host".to_string())),
+                None => return Err(anyhow!("no host")),
             };
 
             match uri.scheme_str() {
-                Some("http") => Err(ClientError::Other("http not supported".to_string())),
+                Some("http") => Err(anyhow!("http not supported")),
                 Some("https") => {
                     let socket_addr = {
                         let host = host.to_string();
                         let port = uri.port_u16().unwrap_or(443);
                         match (host.as_str(), port).to_socket_addrs()?.next() {
                             Some(addr) => addr,
-                            None => {
-                                return Err(ClientError::Other(format!(
-                                    "host resolution: {} failed",
-                                    host
-                                )))
-                            }
+                            None => return Err(anyhow!("host resolution: {} failed", host)),
                         }
                     };
                     debug!("socket address to: {}", socket_addr);
@@ -122,7 +116,7 @@ impl Service<Uri> for TlsHyperConnector {
                     })?;
                     Ok(HyperTlsStream(stream))
                 }
-                scheme => Err(ClientError::Other(format!("{:?}", scheme))),
+                scheme => Err(anyhow!("{:?}", scheme)),
             }
         })
     }
@@ -138,7 +132,7 @@ impl ConfigBuilder for HyperClientBuilder {
         Self(ConnectorBuilder::new())
     }
 
-    fn build(self) -> Result<Self::Client, ClientError> {
+    fn build(self) -> Result<Self::Client> {
         let connector = self.0.build();
 
         Ok(Client::builder()

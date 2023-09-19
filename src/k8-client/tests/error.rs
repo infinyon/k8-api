@@ -4,18 +4,18 @@ mod integration_tests {
 
     use std::collections::HashMap;
 
+    use anyhow::Result;
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
     use tracing::debug;
 
     use fluvio_future::test_async;
     use k8_client::http::status::StatusCode;
-    use k8_client::ClientError;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
     use k8_types::core::service::ServicePort;
     use k8_types::core::service::{LoadBalancerIngress, ServiceSpec};
-    use k8_types::{InputK8Obj, InputObjectMeta, Spec};
+    use k8_types::{InputK8Obj, InputObjectMeta, Spec, MetaStatus};
 
     const SPU_DEFAULT_NAME: &str = "spu";
 
@@ -64,7 +64,7 @@ mod integration_tests {
     }
 
     #[test_async]
-    async fn test_object_conflict() -> Result<(), ClientError> {
+    async fn test_object_conflict() -> Result<()> {
         let new_item = new_service();
         debug!("creating new service: {:#?}", &new_item);
         let client = create_client();
@@ -109,11 +109,10 @@ mod integration_tests {
             .update_status(&status_update2)
             .await
             .expect_err("update");
-        match err {
-            ClientError::ApiResponse(status) => {
-                assert_eq!(status.code, Some(StatusCode::CONFLICT.as_u16()))
-            }
-            _ => panic!(),
+        if let Some(status) = err.downcast_ref::<MetaStatus>() {
+            assert_eq!(status.code, Some(StatusCode::CONFLICT.as_u16()))
+        } else {
+            panic!("expecting conflict error");
         }
 
         // clean up

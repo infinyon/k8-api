@@ -42,6 +42,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.75"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
+
+[[package]]
 name = "async-channel"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -970,8 +976,9 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "10.1.0"
+version = "11.0.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "base64 0.13.1",
  "bytes",
@@ -1027,8 +1034,9 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "5.1.0"
+version = "6.0.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "futures-util",
  "k8-diff",
@@ -1041,7 +1049,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "serde",
  "serde_json",
@@ -1946,18 +1954,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.47"
+version = "1.0.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97a802ec30afc17eee47b2855fc72e0c4cd62be9b4efe6591edde0ec5bd68d8f"
+checksum = "9d6d7a740b8a666a7e828dd00da9c0dc290dff53154ea77ac109281de90589b7"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.47"
+version = "1.0.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bb623b56e39ab7dcd4b1b98bb6c8f8d907ed255b18de254088016b27a8ee19b"
+checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
 dependencies = [
  "proc-macro2",
  "quote",

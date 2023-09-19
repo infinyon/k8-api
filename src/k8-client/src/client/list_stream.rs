@@ -20,12 +20,11 @@ use k8_metadata_client::NameSpace;
 
 use k8_types::{K8List, Spec};
 use k8_types::options::ListOptions;
-use crate::ClientError;
 use crate::K8Client;
 use crate::SharedK8Client;
 
 type K8ListImpl<'a, S> =
-    Option<Pin<Box<dyn Future<Output = Result<K8List<S>, ClientError>> + Send + 'a>>>;
+    Option<Pin<Box<dyn Future<Output = anyhow::Result<K8List<S>>> + Send + 'a>>>;
 
 pub struct ListStream<'a, S>
 where

@@ -1,9 +1,8 @@
-use serde::Deserialize;
-use serde::Serialize;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::sync::Arc;
 
+use anyhow::Result;
 use async_trait::async_trait;
 use bytes::Buf;
 use futures_util::future::FutureExt;
@@ -12,6 +11,7 @@ use futures_util::stream::BoxStream;
 use futures_util::stream::Stream;
 use futures_util::stream::StreamExt;
 use futures_util::stream::TryStreamExt;
+use http::header::InvalidHeaderValue;
 use hyper::body::aggregate;
 use hyper::body::Bytes;
 use hyper::header::HeaderValue;
@@ -21,20 +21,20 @@ use hyper::header::CONTENT_TYPE;
 use hyper::Body;
 use hyper::Request;
 use hyper::Uri;
+use serde::{Serialize, Deserialize};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
-use k8_types::UpdatedK8Obj;
+use k8_types::{UpdatedK8Obj, MetaStatus};
 use k8_config::K8Config;
-use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
 use k8_types::{InputK8Obj, K8List, K8Meta, K8Obj, DeleteStatus, K8Watch, Spec, UpdateK8ObjStatus};
 use k8_types::options::{ListOptions, DeleteOptions};
 
 use crate::uri::{item_uri, items_uri};
-use crate::ClientError;
+use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, TokenStreamResult};
 
 use super::wstream::WatchStream;
 use super::{HyperClient, HyperConfigBuilder, ListStream, LogStream};
@@ -63,12 +63,12 @@ pub struct VersionInfo {
 
 impl K8Client {
     // load using default k8 config
-    pub fn try_default() -> Result<Self, ClientError> {
+    pub fn try_default() -> Result<Self> {
         let config = K8Config::load()?;
         Self::new(config)
     }
 
-    pub fn new(config: K8Config) -> Result<Self, ClientError> {
+    pub fn new(config: K8Config) -> Result<Self> {
         let helper = HyperConfigBuilder::new(config)?;
         let host = helper.host();
         let token = helper.token()?;
@@ -81,7 +81,7 @@ impl K8Client {
         })
     }
 
-    pub async fn server_version(&self) -> Result<VersionInfo, ClientError> {
+    pub async fn server_version(&self) -> Result<VersionInfo> {
         let uri = format!("{}/version", self.host);
         let info = self
             .handle_request(Request::get(uri).body(Body::empty())?)
@@ -94,7 +94,7 @@ impl K8Client {
         &self.host
     }
 
-    fn finish_request<B>(&self, request: &mut Request<B>) -> Result<(), ClientError>
+    fn finish_request<B>(&self, request: &mut Request<B>) -> Result<(), InvalidHeaderValue>
     where
         B: Into<Body>,
     {
@@ -108,7 +108,7 @@ impl K8Client {
     }
 
     /// handle request. this is async function
-    async fn handle_request<T>(&self, mut request: Request<Body>) -> Result<T, ClientError>
+    async fn handle_request<T>(&self, mut request: Request<Body>) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -139,14 +139,14 @@ impl K8Client {
             let mut buffer = Vec::new();
             reader.read_to_end(&mut buffer).map_err(|err| {
                 error!("unable to read error response: {}", err);
-                ClientError::HttpResponse(status)
+                err
             })?;
             trace!("error response: {}", String::from_utf8_lossy(&buffer));
-            let api_status = serde_json::from_slice(&buffer).map_err(|err| {
+            let api_status: MetaStatus = serde_json::from_slice(&buffer).map_err(|err| {
                 error!("json error: {}", err);
                 err
             })?;
-            Err(ClientError::ApiResponse(api_status))
+            Err(api_status.into())
         }
     }
 
@@ -157,7 +157,6 @@ impl K8Client {
 
         let request = http::Request::get(uri)
             .body(Body::empty())
-            .map_err(ClientError::from)
             .and_then(|mut req| {
                 self.finish_request(&mut req)?;
                 Ok(req)
@@ -191,7 +190,7 @@ impl K8Client {
     }
 
     /// return get stream of uri
-    fn stream<S>(&self, uri: Uri) -> impl Stream<Item = TokenStreamResult<S, ClientError>> + '_
+    fn stream<S>(&self, uri: Uri) -> impl Stream<Item = TokenStreamResult<S>> + '_
     where
         K8Watch<S>: DeserializeOwned,
         S: Spec + 'static,
@@ -227,7 +226,7 @@ impl K8Client {
         &self,
         namespace: N,
         options: Option<ListOptions>,
-    ) -> Result<K8List<S>, ClientError>
+    ) -> Result<K8List<S>>
     where
         S: Spec,
         N: Into<NameSpace> + Send + Sync,
@@ -243,7 +242,7 @@ impl K8Client {
 
     /// replace existing object.
     /// object must exist
-    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<K8Obj<S>, ClientError>
+    pub async fn replace_item<S>(&self, value: UpdatedK8Obj<S>) -> Result<K8Obj<S>>
     where
         S: Spec,
     {
@@ -272,7 +271,7 @@ impl K8Client {
         namespace: &str,
         pod_name: &str,
         container_name: &str,
-    ) -> Result<LogStream, ClientError> {
+    ) -> Result<LogStream> {
         let sub_resource = format!("/log?container={}&follow={}", container_name, false);
         let uri = item_uri::<k8_types::core::pod::PodSpec>(
             self.hostname(),
@@ -287,10 +286,8 @@ impl K8Client {
 
 #[async_trait]
 impl MetadataClient for K8Client {
-    type MetadataClientError = ClientError;
-
     /// retrieval a single item
-    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>, ClientError>
+    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -306,7 +303,7 @@ impl MetadataClient for K8Client {
         &self,
         namespace: N,
         option: Option<ListArg>,
-    ) -> Result<K8List<S>, ClientError>
+    ) -> Result<K8List<S>>
     where
         S: Spec,
         N: Into<NameSpace> + Send + Sync,
@@ -336,7 +333,7 @@ impl MetadataClient for K8Client {
         &self,
         metadata: &M,
         option: Option<DeleteOptions>,
-    ) -> Result<DeleteStatus<S>, ClientError>
+    ) -> Result<DeleteStatus<S>>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -370,12 +367,12 @@ impl MetadataClient for K8Client {
                 Ok(DeleteStatus::ForegroundDelete(status))
             }
         } else {
-            Err(ClientError::Other(format!("missing kind: {:#?}", values)))
+            Err(anyhow::anyhow!("missing kind: {:#?}", values))
         }
     }
 
     /// create new object
-    async fn create_item<S>(&self, value: InputK8Obj<S>) -> Result<K8Obj<S>, ClientError>
+    async fn create_item<S>(&self, value: InputK8Obj<S>) -> Result<K8Obj<S>>
     where
         S: Spec,
     {
@@ -400,7 +397,7 @@ impl MetadataClient for K8Client {
     }
 
     /// update status
-    async fn update_status<S>(&self, value: &UpdateK8ObjStatus<S>) -> Result<K8Obj<S>, ClientError>
+    async fn update_status<S>(&self, value: &UpdateK8ObjStatus<S>) -> Result<K8Obj<S>>
     where
         S: Spec,
     {
@@ -432,7 +429,7 @@ impl MetadataClient for K8Client {
         metadata: &M,
         patch: &Value,
         merge_type: PatchMergeType,
-    ) -> Result<K8Obj<S>, ClientError>
+    ) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -463,7 +460,7 @@ impl MetadataClient for K8Client {
         metadata: &M,
         patch: &Value,
         merge_type: PatchMergeType,
-    ) -> Result<K8Obj<S>, ClientError>
+    ) -> Result<K8Obj<S>>
     where
         S: Spec,
         M: K8Meta + Display + Send + Sync,
@@ -498,7 +495,7 @@ impl MetadataClient for K8Client {
         &self,
         namespace: N,
         resource_version: Option<String>,
-    ) -> BoxStream<'_, TokenStreamResult<S, Self::MetadataClientError>>
+    ) -> BoxStream<'_, TokenStreamResult<S>>
     where
         S: Spec + 'static,
         S::Status: 'static,

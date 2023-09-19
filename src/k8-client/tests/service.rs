@@ -4,6 +4,7 @@ mod integration_tests {
     use std::collections::HashMap;
     use std::time::Duration;
 
+    use anyhow::Result;
     use futures_util::future::join;
     use futures_util::StreamExt;
     use once_cell::sync::Lazy;
@@ -15,7 +16,7 @@ mod integration_tests {
     use fluvio_future::test_async;
     use fluvio_future::timer::sleep;
 
-    use k8_client::{ClientError, K8Client};
+    use k8_client::K8Client;
     use k8_metadata_client::{ApplyResult, MetadataClient};
     use k8_types::core::service::{ServicePort, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, K8Watch, Spec};
@@ -205,7 +206,7 @@ mod integration_tests {
     }
 
     #[test_async]
-    async fn test_service_changes() -> Result<(), ClientError> {
+    async fn test_service_changes() -> Result<()> {
         let client = create_client();
 
         join(generate_services_data(&client), verify_client(&client)).await;
@@ -217,7 +218,7 @@ mod integration_tests {
     TODO: fix this test
 
     #[test_async]
-    async fn test_service_delete_with_option() -> Result<(), ClientError> {
+    async fn test_service_delete_with_option() -> Result<()> {
         use k8_obj_core::metadata::options::{ DeleteOptions, PropogationPolicy };
 
         let client = create_client();

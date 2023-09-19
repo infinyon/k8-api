@@ -4,16 +4,16 @@ mod integration_tests {
 
     use std::collections::HashMap;
 
+    use anyhow::Result;
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
     use tracing::debug;
 
     use fluvio_future::test_async;
-    use k8_client::ClientError;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
     use k8_types::core::service::ServicePort;
-    use k8_types::core::service::{ServiceSpec};
+    use k8_types::core::service::ServiceSpec;
     use k8_types::{InputK8Obj, InputObjectMeta, Spec};
 
     const SPU_DEFAULT_NAME: &str = "spu";
@@ -63,7 +63,7 @@ mod integration_tests {
     }
 
     #[test_async]
-    async fn test_object_replace() -> Result<(), ClientError> {
+    async fn test_object_replace() -> Result<()> {
         let new_item = new_service();
         debug!("creating new service: {:#?}", &new_item);
         let client = create_client();

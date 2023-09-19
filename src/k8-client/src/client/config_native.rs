@@ -5,6 +5,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+use anyhow::{anyhow, Result};
 use futures_util::future::Future;
 use futures_util::io::{AsyncRead as StdAsyncRead, AsyncWrite as StdAsyncWrite};
 use http::Uri;
@@ -14,7 +15,7 @@ use hyper::service::Service;
 use hyper::Body;
 use hyper::Client;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
-use tracing::{debug};
+use tracing::debug;
 
 use fluvio_future::native_tls::{
     CertBuilder, ConnectorBuilder, DefaultClientTlsStream, IdentityBuilder, PrivateKeyBuilder,
@@ -24,7 +25,6 @@ use fluvio_future::net::TcpStream;
 use fluvio_future::task::spawn;
 
 use crate::cert::{ClientConfigBuilder, ConfigBuilder};
-use crate::ClientError;
 
 pub type HyperClient = Client<TlsHyperConnector, Body>;
 
@@ -93,7 +93,7 @@ impl TlsHyperConnector {
 #[allow(clippy::type_complexity)]
 impl Service<Uri> for TlsHyperConnector {
     type Response = HyperTlsStream;
-    type Error = ClientError;
+    type Error = anyhow::Error;
 
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
@@ -107,23 +107,18 @@ impl Service<Uri> for TlsHyperConnector {
         Box::pin(async move {
             let host = match uri.host() {
                 Some(h) => h,
-                None => return Err(ClientError::Other("no host".to_string())),
+                None => return Err(anyhow!("no host")),
             };
 
             match uri.scheme_str() {
-                Some("http") => Err(ClientError::Other("http not supported".to_string())),
+                Some("http") => Err(anyhow!("http not supported")),
                 Some("https") => {
                     let socket_addr = {
                         let host = host.to_string();
                         let port = uri.port_u16().unwrap_or(443);
                         match (host.as_str(), port).to_socket_addrs()?.next() {
                             Some(addr) => addr,
-                            None => {
-                                return Err(ClientError::Other(format!(
-                                    "host resolution: {} failed",
-                                    host
-                                )))
-                            }
+                            None => return Err(anyhow!("host resolution: {} failed", host)),
                         }
                     };
                     debug!("socket address to: {}", socket_addr);
@@ -134,7 +129,7 @@ impl Service<Uri> for TlsHyperConnector {
                     })?;
                     Ok(HyperTlsStream(stream))
                 }
-                scheme => Err(ClientError::Other(format!("{:?}", scheme))),
+                scheme => Err(anyhow::anyhow!("{:?}", scheme)),
             }
         })
     }
@@ -153,7 +148,7 @@ impl ConfigBuilder for HyperClientBuilder {
         Self::default()
     }
 
-    fn build(self) -> Result<Self::Client, ClientError> {
+    fn build(self) -> Result<Self::Client> {
         let ca_cert = self.ca_cert;
 
         let mut connector_builder = match self.client_identity {

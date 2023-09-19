@@ -10,4 +10,6 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
+anyhow = "1.0.38"
 fluvio-future = "0.6"
+serde_yaml = { version = "0.9.0", default-features = false }
