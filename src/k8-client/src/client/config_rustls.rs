@@ -5,6 +5,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+use anyhow::anyhow;
 use futures_util::future::Future;
 use futures_util::io::{AsyncRead as StdAsyncRead, AsyncWrite as StdAsyncWrite};
 use http::Uri;
