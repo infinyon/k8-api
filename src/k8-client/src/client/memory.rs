@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use core::fmt::Display;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_channel::{Sender, Receiver, bounded};
 use async_lock::Mutex;
 use async_lock::RwLock;
@@ -18,14 +18,14 @@ use k8_types::Spec;
 use k8_types::ListMetadata;
 use k8_types::MetaStatus;
 use k8_types::K8Watch;
+use k8_types::options::DeleteOptions;
 use k8_metadata_client::TokenStreamResult;
 use k8_metadata_client::PatchMergeType;
 use k8_metadata_client::NameSpace;
 use k8_metadata_client::ListArg;
 use k8_metadata_client::MetadataClient;
 use k8_types::ObjectMeta;
-
-use k8_types::options::DeleteOptions;
+use k8_metadata_client::ObjectKeyNotFound;
 use k8_types::UpdateK8ObjStatus;
 use k8_types::DeleteStatus;
 use k8_types::K8List;
@@ -201,7 +201,7 @@ impl MemoryClient {
 #[async_trait::async_trait]
 impl MetadataClient for MemoryClient {
     /// retrieval a single item
-    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>>
+    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<Option<K8Obj<S>>>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -209,11 +209,7 @@ impl MetadataClient for MemoryClient {
         let store = self.get_store::<S>().await;
 
         let name: String = metadata.name().to_owned();
-        let Ok(Some(data)) = store.get::<K8Obj<S>>(&name).await else {
-            return Err(anyhow!("not found"));
-        };
-
-        Ok(data)
+        store.get::<K8Obj<S>>(&name).await
     }
 
     async fn retrieve_items_with_option<S, N>(
@@ -304,7 +300,7 @@ impl MetadataClient for MemoryClient {
         debug!(key,?value.status,"start updating status");
 
         let k8_value: Option<K8Obj<S>> = store.get(&key).await?;
-        let k8_value = k8_value.ok_or(anyhow!("not found"))?;
+        let k8_value = k8_value.ok_or(ObjectKeyNotFound::new(key.clone()))?;
 
         let k8_obj = k8_value.set_status(value.status.clone());
         debug!(key,?value.status,"overwrite set");

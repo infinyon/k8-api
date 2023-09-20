@@ -11,6 +11,7 @@ use futures_util::stream::BoxStream;
 use futures_util::stream::Stream;
 use futures_util::stream::StreamExt;
 use futures_util::stream::TryStreamExt;
+use http::StatusCode;
 use http::header::InvalidHeaderValue;
 use hyper::body::aggregate;
 use hyper::body::Bytes;
@@ -287,7 +288,7 @@ impl K8Client {
 #[async_trait]
 impl MetadataClient for K8Client {
     /// retrieval a single item
-    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>>
+    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<Option<K8Obj<S>>>
     where
         S: Spec,
         M: K8Meta + Send + Sync,
@@ -295,8 +296,27 @@ impl MetadataClient for K8Client {
         let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
         debug!("{}: retrieving item: {}", S::label(), uri);
 
-        self.handle_request(Request::get(uri).body(Body::empty())?)
-            .await
+        let result: Result<K8Obj<S>> = self
+            .handle_request(Request::get(uri).body(Body::empty())?)
+            .await;
+
+        match result {
+            Ok(item) => Ok(Some(item)),
+            Err(err) => {
+                if let Some(MetaStatus {
+                    code: Some(code), ..
+                }) = err.downcast_ref()
+                {
+                    if *code == StatusCode::NOT_FOUND.as_u16() {
+                        Ok(None)
+                    } else {
+                        Err(err)
+                    }
+                } else {
+                    Err(err)
+                }
+            }
+        }
     }
 
     async fn retrieve_items_with_option<S, N>(
