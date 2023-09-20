@@ -8,7 +8,6 @@ use futures_util::future::FutureExt;
 use futures_util::stream::once;
 use futures_util::stream::BoxStream;
 use futures_util::stream::StreamExt;
-use k8_types::MetaStatus;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
@@ -25,6 +24,25 @@ use crate::{ApplyResult, DiffableK8Obj};
 pub enum NameSpace {
     All,
     Named(String),
+}
+
+#[derive(Debug)]
+pub struct ObjectKeyNotFound {
+    key: String,
+}
+
+impl ObjectKeyNotFound {
+    pub fn new(key: String) -> Self {
+        Self { key }
+    }
+}
+
+impl std::error::Error for ObjectKeyNotFound {}
+
+impl Display for ObjectKeyNotFound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "'{}' not found", self.key)
+    }
 }
 
 impl NameSpace {
@@ -76,7 +94,7 @@ where
 #[async_trait]
 pub trait MetadataClient: Send + Sync {
     /// retrieval a single item
-    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<K8Obj<S>>
+    async fn retrieve_item<S, M>(&self, metadata: &M) -> Result<Option<K8Obj<S>>>
     where
         S: Spec,
         M: K8Meta + Send + Sync;
@@ -144,7 +162,7 @@ pub trait MetadataClient: Send + Sync {
         debug!("{}: applying '{}' changes", S::label(), value.metadata.name);
         trace!("{}: applying {:#?}", S::label(), value);
         match self.retrieve_item(&value.metadata).await {
-            Ok(old_item) => {
+            Ok(Some(old_item)) => {
                 let mut old_spec: S = old_item.spec;
                 old_spec.make_same(&value.spec);
                 // we don't care about status
@@ -176,22 +194,16 @@ pub trait MetadataClient: Send + Sync {
                     _ => Err(anyhow!("unsupported diff type")),
                 }
             }
-            Err(err) => {
-                if let Some(MetaStatus {
-                    code: Some(404), ..
-                }) = err.downcast_ref()
-                {
-                    debug!(
-                        "{}: item '{}' not found, creating ...",
-                        S::label(),
-                        value.metadata.name
-                    );
-                    let created_item = self.create_item(value).await?;
-                    Ok(ApplyResult::Created(created_item))
-                } else {
-                    Err(err)
-                }
+            Ok(None) => {
+                debug!(
+                    "{}: item '{}' not found, creating ...",
+                    S::label(),
+                    value.metadata.name
+                );
+                let created_item = self.create_item(value).await?;
+                Ok(ApplyResult::Created(created_item))
             }
+            Err(err) => Err(err),
         }
     }
 
@@ -280,17 +292,9 @@ pub trait MetadataClient: Send + Sync {
     {
         debug!("check if '{}' exists", metadata);
         match self.retrieve_item::<S, M>(metadata).await {
-            Ok(_) => Ok(true),
-            Err(err) => {
-                if let Some(MetaStatus {
-                    code: Some(404), ..
-                }) = err.downcast_ref()
-                {
-                    Ok(false)
-                } else {
-                    Err(err)
-                }
-            }
+            Ok(Some(_)) => Ok(true),
+            Ok(None) => Ok(false),
+            Err(err) => Err(err),
         }
     }
 }
