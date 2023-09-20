@@ -88,7 +88,8 @@ mod integration_tests {
         let updated_service = client
             .retrieve_item::<ServiceSpec, _>(&update_item.metadata)
             .await
-            .expect("retrieval");
+            .expect("retrieval")
+            .expect("not found");
 
         assert!(updated_service.metadata.labels.is_empty());
 
