@@ -38,7 +38,7 @@ mod spec_def {
 
     /// Kubernetes Spec
     pub trait Spec:
-        Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync
+        Sized + Debug + Clone + Default + Serialize + DeserializeOwned + Send + Sync + 'static
     {
         type Status: Status;
 
