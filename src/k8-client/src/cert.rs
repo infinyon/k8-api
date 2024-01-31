@@ -186,7 +186,19 @@ where
             );
 
             let credential: K8Obj<ExecCredentialSpec> =
-                serde_json::from_slice(&token_output.stdout)?;
+                serde_json::from_slice(&token_output.stdout).map_err(|err| {
+                    let cmd_token = String::from_utf8_lossy(&token_output.stdout).to_string();
+                    IoError::new(
+                        ErrorKind::Other,
+                        format!(
+                            "error parsing credential from: {} {}\nreply: {}\nerr: {}",
+                            exec.command,
+                            exec.args.join(" "),
+                            cmd_token,
+                            err
+                        ),
+                    )
+                })?;
             let token = credential.status.token;
             debug!(?token);
             Ok((builder, Some(token)))
