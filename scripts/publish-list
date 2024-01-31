@@ -1,0 +1,10 @@
+# This list is approximately sorted for dependency resolution
+# Used by publish crate and crate version check scripts
+
+PUBLISH_CRATES=(
+    k8-config
+    k8-diff
+    k8-types
+    k8-metadata-client
+    k8-client
+)
