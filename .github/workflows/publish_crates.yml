@@ -1,0 +1,46 @@
+name: Publish crates to crates.io
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        required: false
+        type: string
+        description: 'Fluvio git commit override (latest `master` by default)'
+        default: ''
+  workflow_call:
+    inputs:
+      commit:
+        required: false
+        type: string
+        description: 'Fluvio git commit override (latest `master` by default)'
+        default: ''
+
+jobs:
+  publish_crates:
+    name: Publish crates to crates.io
+    strategy:
+      matrix:
+        rust: [stable]
+    runs-on: ubuntu-latest
+    #permissions: write-all
+    steps:
+      - name: Install Rust ${{ matrix.rust }} toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit }}
+
+      - name: Run publish script
+        env:
+          VERBOSE: true
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          ./scripts/publish-crates.sh
+
