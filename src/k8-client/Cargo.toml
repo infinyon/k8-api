@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "k8-client"
-version = "12.0.0"
+version = "12.0.1"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -39,7 +39,7 @@ serde_qs = "0.12.0"
 serde_yaml = { workspace = true, optional = true }
 async-trait = "0.1.52"
 fluvio-future = { workspace = true, features=["net", "task"] }
-k8-metadata-client = { version="7.0.0", path="../k8-metadata-client" } 
+k8-metadata-client = { version="7.0.0", path="../k8-metadata-client" }
 k8-diff = { version="0.1.0", path="../k8-diff" }
 k8-config = { version="2.2.0", path="../k8-config" }
 k8-types = { version="0.8.5", path="../k8-types", features=["core", "batch"] }
