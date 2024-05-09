@@ -860,9 +860,9 @@ checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
 
 [[package]]
 name = "hostfile"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2733206bcc0550a15b450c64d8aa859f486d7281c4c0c36ef904b361960d658"
+checksum = "d72fd847c96f06bdb098b085660dca099381b7b14314f771deb3add755399e0c"
 
 [[package]]
 name = "http"
