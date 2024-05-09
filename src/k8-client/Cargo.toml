@@ -29,7 +29,7 @@ base64 = { version="0.13.0" }
 futures-util = { version="0.3.21", features=["io"] }
 rand = { version="0.8.3" }
 rustls = { version="0.21", optional=true }
-hyper = { version="0.14.17", features=["client", "http1", "http2", "stream"] }
+hyper = { version="0.14.28", features=["client", "http1", "http2", "stream"] }
 http = { version="0.2" }
 tokio = { version="1.17.0" }
 pin-utils = "0.1.0"
