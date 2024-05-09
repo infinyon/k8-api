@@ -44,6 +44,7 @@ mod executor {
 
     use fluvio_future::task::spawn;
 
+    #[allow(dead_code)]
     pub(crate) struct FluvioHyperExecutor;
 
     impl<F: Future + Send + 'static> Executor<F> for FluvioHyperExecutor {
