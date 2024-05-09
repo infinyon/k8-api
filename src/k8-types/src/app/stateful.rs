@@ -37,7 +37,8 @@ impl Spec for StatefulSetSpec {
 
     // statefulset doesnt' like to change volume claim template
     fn make_same(&mut self, other: &Self) {
-        self.volume_claim_templates = other.volume_claim_templates.clone();
+        self.volume_claim_templates
+            .clone_from(&other.volume_claim_templates)
     }
 }
 

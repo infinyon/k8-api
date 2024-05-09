@@ -45,7 +45,7 @@ impl Spec for ServiceSpec {
 
     fn make_same(&mut self, other: &Self) {
         if other.cluster_ip.is_empty() {
-            self.cluster_ip = "".to_owned();
+            "".clone_into(&mut self.cluster_ip);
         }
     }
 }
