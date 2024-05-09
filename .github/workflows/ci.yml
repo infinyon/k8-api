@@ -1,10 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - staging
-      - trying
   pull_request:
     branches: [master]
 
@@ -142,7 +138,6 @@ jobs:
 
   done:
     name: Done
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     needs:
       - unit_test
       - check_fmt
@@ -151,5 +146,23 @@ jobs:
       - unit_test_k8_client_feature_flags
     runs-on: ubuntu-latest
     steps:
+      - name: Dump needs context
+        env:
+          CONTEXT: ${{ toJson(needs) }}
+        run: |
+          echo -e "\033[33;1;4mDump context\033[0m"
+          echo -e "$CONTEXT\n"
+      - name: Report failure on cancellation
+        if: ${{ contains(needs.*.result, 'cancelled') || cancelled() }}
+        run: exit 1
+      - name: Failing test and build
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
+      - name: Don't allow skipped
+        if: ${{ contains(needs.*.result, 'skipped')  && github.event_name == 'merge_group' }}
+        run: exit 1
+      - name: Successful test and build
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
       - name: Done
         run: echo "Done!"
