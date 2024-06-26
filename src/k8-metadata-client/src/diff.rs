@@ -17,6 +17,7 @@ pub enum PatchMergeType {
     Json,
     JsonMerge,
     StrategicMerge, // for aggegration API
+    Apply,
 }
 
 impl PatchMergeType {
@@ -33,6 +34,7 @@ impl PatchMergeType {
             PatchMergeType::Json => "application/json-patch+json",
             PatchMergeType::JsonMerge => "application/merge-patch+json",
             PatchMergeType::StrategicMerge => "application/strategic-merge-patch+json",
+            PatchMergeType::Apply => "application/apply-patch+yaml",
         }
     }
 }
