@@ -56,7 +56,7 @@ impl<'de> serde::Deserialize<'de> for Int32OrString {
             where
                 E: serde::de::Error,
             {
-                if v < i64::from(i32::min_value()) || v > i64::from(i32::max_value()) {
+                if v < i64::from(i32::MIN) || v > i64::from(i32::MAX) {
                     return Err(serde::de::Error::invalid_value(
                         serde::de::Unexpected::Signed(v),
                         &"a 32-bit integer",
@@ -73,7 +73,7 @@ impl<'de> serde::Deserialize<'de> for Int32OrString {
             {
                 #[allow(clippy::cast_sign_loss)]
                 {
-                    if v > i32::max_value() as u64 {
+                    if v > i32::MAX as u64 {
                         return Err(serde::de::Error::invalid_value(
                             serde::de::Unexpected::Unsigned(v),
                             &"a 32-bit integer",
