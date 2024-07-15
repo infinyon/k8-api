@@ -17,7 +17,7 @@ use hyper::Body;
 use hyper::Client;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use rustls::WantsVerifier;
-use rustls::client::WantsTransparencyPolicyOrClientCert;
+use rustls::client::WantsClientCert;
 
 use fluvio_future::net::TcpStream;
 use fluvio_future::rust_tls::{
@@ -98,7 +98,7 @@ impl Service<Uri> for TlsHyperConnector {
 
         Box::pin(async move {
             let host = match uri.host() {
-                Some(h) => h,
+                Some(h) => h.to_owned(),
                 None => return Err(anyhow!("no host")),
             };
 
@@ -132,60 +132,42 @@ impl Service<Uri> for TlsHyperConnector {
 
 pub enum ConnectorBuilderStages {
     WantsVerifier(ConnectorBuilderStage<WantsVerifier>),
-    WantsTransparencyPolicyOrClientCert(ConnectorBuilderStage<WantsTransparencyPolicyOrClientCert>),
+    WantsClientCert(ConnectorBuilderStage<WantsClientCert>),
     ConnectorBuilder(ConnectorBuilderWithConfig),
 }
 
 impl ConnectorBuilderStages {
     pub fn build(self) -> Result<TlsConnector> {
         match self {
-            Self::WantsVerifier(_) => {
-                Err(IoError::new(ErrorKind::Other, "missing verifier").into())
-            }
-            Self::WantsTransparencyPolicyOrClientCert(_) => {
-                Err(IoError::new(ErrorKind::Other, "missing client cert").into())
-            }
+            Self::WantsVerifier(_) => Err(anyhow!("missing verifier")),
+            Self::WantsClientCert(_) => Err(anyhow!("missing client cert")),
             Self::ConnectorBuilder(builder) => Ok(builder.build()),
         }
     }
 
-    pub fn load_client_certs<P: AsRef<Path>>(
-        self,
-        cert_path: P,
-        key_path: P,
-    ) -> Result<Self, IoError> {
+    pub fn load_client_certs<P: AsRef<Path>>(self, cert_path: P, key_path: P) -> Result<Self> {
         match self {
-            Self::WantsVerifier(_) => Err(IoError::new(ErrorKind::Other, "missing verifier")),
-            Self::WantsTransparencyPolicyOrClientCert(builder) => {
+            Self::WantsVerifier(_) => Err(anyhow!("missing verifier")),
+            Self::WantsClientCert(builder) => {
                 Ok(builder.load_client_certs(cert_path, key_path)?.into())
             }
-            Self::ConnectorBuilder(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded client cert"))
-            }
+            Self::ConnectorBuilder(_) => Err(anyhow!("already loaded client cert")),
         }
     }
 
-    pub fn load_ca_cert<P: AsRef<Path>>(self, path: P) -> Result<Self, IoError> {
+    pub fn load_ca_cert<P: AsRef<Path>>(self, path: P) -> Result<Self> {
         match self {
             Self::WantsVerifier(builder) => Ok(builder.load_ca_cert(path)?.into()),
-            Self::WantsTransparencyPolicyOrClientCert(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded ca cert"))
-            }
-            Self::ConnectorBuilder(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded ca cert"))
-            }
+            Self::WantsClientCert(_) => Err(anyhow!("already loaded ca cert")),
+            Self::ConnectorBuilder(_) => Err(anyhow!("already loaded ca cert")),
         }
     }
 
-    pub fn load_ca_cert_from_bytes(self, buffer: &[u8]) -> Result<Self, IoError> {
+    pub fn load_ca_cert_from_bytes(self, buffer: &[u8]) -> Result<Self> {
         match self {
             Self::WantsVerifier(builder) => Ok(builder.load_ca_cert_from_bytes(buffer)?.into()),
-            Self::WantsTransparencyPolicyOrClientCert(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded ca cert"))
-            }
-            Self::ConnectorBuilder(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded ca cert"))
-            }
+            Self::WantsClientCert(_) => Err(anyhow!("already loaded ca cert")),
+            Self::ConnectorBuilder(_) => Err(anyhow!("already loaded ca cert")),
         }
     }
 
@@ -193,15 +175,13 @@ impl ConnectorBuilderStages {
         self,
         cert_buffer: &[u8],
         key_buffer: &[u8],
-    ) -> Result<Self, IoError> {
+    ) -> Result<Self> {
         match self {
-            Self::WantsVerifier(_) => Err(IoError::new(ErrorKind::Other, "missing verifier")),
-            Self::WantsTransparencyPolicyOrClientCert(builder) => Ok(builder
+            Self::WantsVerifier(_) => Err(anyhow!("missing verifier")),
+            Self::WantsClientCert(builder) => Ok(builder
                 .load_client_certs_from_bytes(cert_buffer, key_buffer)?
                 .into()),
-            Self::ConnectorBuilder(_) => {
-                Err(IoError::new(ErrorKind::Other, "already loaded client cert"))
-            }
+            Self::ConnectorBuilder(_) => Err(anyhow!("already loaded client cert")),
         }
     }
 }
@@ -212,9 +192,9 @@ impl From<ConnectorBuilderStage<WantsVerifier>> for ConnectorBuilderStages {
     }
 }
 
-impl From<ConnectorBuilderStage<WantsTransparencyPolicyOrClientCert>> for ConnectorBuilderStages {
-    fn from(builder: ConnectorBuilderStage<WantsTransparencyPolicyOrClientCert>) -> Self {
-        Self::WantsTransparencyPolicyOrClientCert(builder)
+impl From<ConnectorBuilderStage<WantsClientCert>> for ConnectorBuilderStages {
+    fn from(builder: ConnectorBuilderStage<WantsClientCert>) -> Self {
+        Self::WantsClientCert(builder)
     }
 }
 
@@ -242,11 +222,11 @@ impl ConfigBuilder for HyperClientBuilder {
             .build::<_, Body>(TlsHyperConnector::new(connector)))
     }
 
-    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError> {
+    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self> {
         Ok(Self(self.0.load_ca_cert(ca_path)?))
     }
 
-    fn load_ca_cert_with_data(self, ca_data: Vec<u8>) -> Result<Self, IoError> {
+    fn load_ca_cert_with_data(self, ca_data: Vec<u8>) -> Result<Self> {
         Ok(Self(self.0.load_ca_cert_from_bytes(&ca_data)?))
     }
 
@@ -254,7 +234,7 @@ impl ConfigBuilder for HyperClientBuilder {
         self,
         client_crt: Vec<u8>,
         client_key: Vec<u8>,
-    ) -> Result<Self, IoError> {
+    ) -> Result<Self> {
         Ok(Self(
             self.0
                 .load_client_certs_from_bytes(&client_crt, &client_key)?,
@@ -265,7 +245,7 @@ impl ConfigBuilder for HyperClientBuilder {
         self,
         client_crt_path: P,
         client_key_path: P,
-    ) -> Result<Self, IoError> {
+    ) -> Result<Self> {
         Ok(Self(
             self.0.load_client_certs(client_crt_path, client_key_path)?,
         ))

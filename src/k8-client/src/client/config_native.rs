@@ -166,7 +166,7 @@ impl ConfigBuilder for HyperClientBuilder {
             .build::<_, Body>(TlsHyperConnector::new(connector)))
     }
 
-    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError> {
+    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self> {
         let ca_builder = X509PemBuilder::from_path(ca_path)?;
         Ok(Self {
             ca_cert: Some(ca_builder),
@@ -174,7 +174,7 @@ impl ConfigBuilder for HyperClientBuilder {
         })
     }
 
-    fn load_ca_cert_with_data(self, ca_data: Vec<u8>) -> Result<Self, IoError> {
+    fn load_ca_cert_with_data(self, ca_data: Vec<u8>) -> Result<Self> {
         let ca_builder = X509PemBuilder::new(ca_data);
 
         Ok(Self {
@@ -187,7 +187,7 @@ impl ConfigBuilder for HyperClientBuilder {
         self,
         client_crt_path: P,
         client_key_path: P,
-    ) -> Result<Self, IoError> {
+    ) -> Result<Self> {
         debug!("loading client crt from: {:#?}", client_crt_path.as_ref());
         debug!("loading client key from: {:#?}", client_key_path.as_ref());
 
@@ -206,7 +206,7 @@ impl ConfigBuilder for HyperClientBuilder {
         self,
         client_crt: Vec<u8>,
         client_key: Vec<u8>,
-    ) -> Result<Self, IoError> {
+    ) -> Result<Self> {
         let identity = IdentityBuilder::from_x509(
             X509PemBuilder::new(client_crt),
             PrivateKeyBuilder::new(client_key),
