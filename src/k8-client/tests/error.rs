@@ -13,7 +13,7 @@ mod integration_tests {
     use k8_client::http::status::StatusCode;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
-    use k8_types::core::service::ServicePort;
+    use k8_types::core::service::{LoadBalancerType, ServicePort};
     use k8_types::core::service::{LoadBalancerIngress, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, Spec, MetaStatus};
 
@@ -44,6 +44,7 @@ mod integration_tests {
                 ..Default::default()
             }],
             selector: Some(selector),
+            r#type: Some(LoadBalancerType::LoadBalancer),
             ..Default::default()
         };
 
