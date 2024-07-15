@@ -38,7 +38,6 @@ mod integration_tests {
         selector.insert("app".to_owned(), SPU_DEFAULT_NAME.to_owned());
 
         let service_spec = ServiceSpec {
-            cluster_ip: "None".to_owned(),
             ports: vec![ServicePort {
                 port: 9092,
                 ..Default::default()
