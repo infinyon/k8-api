@@ -80,6 +80,7 @@ mod integration_tests {
         let mut new_status = item.status.clone();
         let ingress = LoadBalancerIngress {
             ip: Some("0.0.0.0".to_string()),
+            ip_mode: Some("VIP".to_string()),
             ..Default::default()
         };
         new_status.load_balancer.ingress.push(ingress);
@@ -87,6 +88,7 @@ mod integration_tests {
         let mut new_status2 = item.status.clone();
         let ingress = LoadBalancerIngress {
             ip: Some("1.1.1.1".to_string()),
+            ip_mode: Some("Proxy".to_string()),
             ..Default::default()
         };
         new_status2.load_balancer.ingress.push(ingress);

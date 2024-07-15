@@ -118,6 +118,7 @@ impl LoadBalancerStatus {
 pub struct LoadBalancerIngress {
     pub hostname: Option<String>,
     pub ip: Option<String>,
+    pub ip_mode: Option<String>,
 }
 
 impl LoadBalancerIngress {
