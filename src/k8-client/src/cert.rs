@@ -135,7 +135,7 @@ where
     ) -> Result<(B, Option<String>)> {
         use std::process::Command;
 
-        use base64::decode;
+        use base64::prelude::{Engine, BASE64_STANDARD};
 
         use k8_types::core::plugin::ExecCredentialSpec;
         use k8_types::K8Obj;
@@ -152,7 +152,7 @@ where
 
         let builder = if let Some(ca_data) = &current_cluster.cluster.certificate_authority_data {
             debug!("detected in-line cluster CA certs");
-            let pem_bytes = decode(ca_data).unwrap();
+            let pem_bytes = BASE64_STANDARD.decode(ca_data).unwrap();
             builder.load_ca_cert_with_data(pem_bytes)?
         } else {
             // let not inline, then must must ref to file
@@ -195,16 +195,19 @@ where
             Ok((builder, Some(token)))
         } else if let Some(client_cert_data) = &current_user.user.client_certificate_data {
             debug!("detected in-line cluster CA certs");
-            let client_cert_pem_bytes = decode(client_cert_data).context("base64 decoding err")?;
+            let client_cert_pem_bytes = BASE64_STANDARD
+                .decode(client_cert_data)
+                .context("base64 decoding err")?;
 
-            let client_key_pem_bytes = decode(
-                current_user
-                    .user
-                    .client_key_data
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("current user must have client key data"))?,
-            )
-            .context("base64 decoding err")?;
+            let client_key_pem_bytes = BASE64_STANDARD
+                .decode(
+                    current_user
+                        .user
+                        .client_key_data
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("current user must have client key data"))?,
+                )
+                .context("base64 decoding err")?;
 
             Ok((
                 builder.load_client_certificate_with_data(

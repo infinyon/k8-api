@@ -25,28 +25,28 @@ async-lock = { version = "3.3.0", optional = true }
 cfg-if = "1.0"
 tracing = "0.1.19"
 bytes = "1.6.0"
-base64 = { version="0.13.0" }
-futures-util = { version="0.3.21", features=["io"] }
-rand = { version="0.8.3" }
-rustls = { version="0.23.11", optional = true }
-hyper = { version="0.14.28", features=["client", "http1", "http2", "stream"] }
-http = { version="0.2.9" }
-tokio = { version="1.37.0" }
+base64 = { version = "0.22.1" }
+futures-util = { version = "0.3.21", features = ["io"] }
+rand = { version = "0.8.3" }
+rustls = { version = "0.23.11", optional = true }
+hyper = { version = "0.14.28", features = ["client", "http1", "http2", "stream"] }
+http = { version = "0.2.9" }
+tokio = { version = "1.37.0" }
 pin-utils = "0.1.0"
-serde = { version="1.0.136", features=['derive'] }
+serde = { version = "1.0.136", features = ['derive'] }
 serde_json = "1.0.40"
 serde_qs = "0.13.0"
 serde_yaml = { workspace = true, optional = true }
 async-trait = "0.1.52"
-fluvio-future = { workspace = true, features=["net", "task"] }
-k8-metadata-client = { version="7.0.0", path="../k8-metadata-client" }
-k8-diff = { version="0.1.0", path="../k8-diff" }
-k8-config = { version="2.3.0", path="../k8-config" }
-k8-types = { version="0.8.5", path="../k8-types", features=["core", "batch"] }
+fluvio-future = { workspace = true, features = ["net", "task"] }
+k8-metadata-client = { version = "7.0.0", path = "../k8-metadata-client" }
+k8-diff = { version = "0.1.0", path = "../k8-diff" }
+k8-config = { version = "2.3.0", path = "../k8-config" }
+k8-types = { version = "0.8.5", path = "../k8-types", features = ["core", "batch"] }
 
 [dev-dependencies]
 rand = "0.8.3"
 once_cell = "1.19.0"
 async-trait = "0.1.52"
 
-fluvio-future = { workspace = true, features=["fixture", "timer"] }
+fluvio-future = { workspace = true, features = ["fixture", "timer"] }
