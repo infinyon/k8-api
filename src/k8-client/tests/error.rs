@@ -3,6 +3,7 @@
 mod integration_tests {
 
     use std::collections::HashMap;
+    use std::time::Duration;
 
     use anyhow::Result;
     use rand::distributions::Alphanumeric;
@@ -10,6 +11,7 @@ mod integration_tests {
     use tracing::debug;
 
     use fluvio_future::test_async;
+    use fluvio_future::timer::sleep;
     use k8_client::http::status::StatusCode;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
@@ -18,6 +20,7 @@ mod integration_tests {
     use k8_types::{InputK8Obj, InputObjectMeta, Spec, MetaStatus};
 
     const SPU_DEFAULT_NAME: &str = "spu";
+    const DELAY: Duration = Duration::from_millis(100);
 
     fn create_client() -> K8Client {
         K8Client::try_default().expect("cluster not initialized")
@@ -68,10 +71,18 @@ mod integration_tests {
         let new_item = new_service();
         debug!("creating new service: {:#?}", &new_item);
         let client = create_client();
-        let item = client
+        let created_item = client
             .create_item::<ServiceSpec>(new_item)
             .await
             .expect("service should be created");
+
+        sleep(DELAY).await;
+
+        let item = client
+            .retrieve_item::<ServiceSpec, _>(&created_item.metadata)
+            .await
+            .expect("retrieval")
+            .expect("service should exist");
 
         let initial_version = item.metadata.resource_version.clone();
         debug!("client resource_version: {}", initial_version);
