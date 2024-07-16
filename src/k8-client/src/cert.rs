@@ -1,7 +1,7 @@
-use std::io::Error as IoError;
-use std::io::ErrorKind;
 use std::path::Path;
 
+use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use tracing::debug;
 
@@ -17,23 +17,23 @@ pub trait ConfigBuilder: Sized {
 
     fn build(self) -> Result<Self::Client>;
 
-    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self, IoError>;
+    fn load_ca_certificate(self, ca_path: impl AsRef<Path>) -> Result<Self>;
 
     // load from ca data
-    fn load_ca_cert_with_data(self, data: Vec<u8>) -> Result<Self, IoError>;
+    fn load_ca_cert_with_data(self, data: Vec<u8>) -> Result<Self>;
 
     // load client certificate (crt) and private key
     fn load_client_certificate<P: AsRef<Path>>(
         self,
         client_crt_path: P,
         client_key_path: P,
-    ) -> Result<Self, IoError>;
+    ) -> Result<Self>;
 
     fn load_client_certificate_with_data(
         self,
         client_crt: Vec<u8>,
         client_key: Vec<u8>,
-    ) -> Result<Self, IoError>;
+    ) -> Result<Self>;
 }
 
 /// Build Client
@@ -48,7 +48,7 @@ impl<B> ClientConfigBuilder<B>
 where
     B: ConfigBuilder,
 {
-    pub fn new(config: K8Config) -> Result<Self, IoError> {
+    pub fn new(config: K8Config) -> Result<Self> {
         let (builder, external_token) = Self::config(&config)?;
 
         Ok(Self {
@@ -59,7 +59,7 @@ where
     }
 
     /// configure based con k8 config
-    fn config(config: &K8Config) -> Result<(B, Option<String>), IoError> {
+    fn config(config: &K8Config) -> Result<(B, Option<String>)> {
         let builder = B::new();
         match config {
             K8Config::Pod(pod_config) => {
@@ -122,7 +122,7 @@ where
         self.builder.build()
     }
 
-    fn configure_in_cluster(builder: B, pod: &PodConfig) -> Result<B, IoError> {
+    fn configure_in_cluster(builder: B, pod: &PodConfig) -> Result<B> {
         debug!("configure as pod in cluster");
         let path = pod.ca_path();
         debug!("loading ca at: {}", path);
@@ -132,33 +132,27 @@ where
     fn configure_out_of_cluster(
         builder: B,
         kube_config: &KubeConfig,
-    ) -> Result<(B, Option<String>), IoError> {
+    ) -> Result<(B, Option<String>)> {
         use std::process::Command;
 
-        use base64::decode;
+        use base64::prelude::{Engine, BASE64_STANDARD};
 
         use k8_types::core::plugin::ExecCredentialSpec;
         use k8_types::K8Obj;
 
-        let current_user = kube_config.current_user().ok_or_else(|| {
-            IoError::new(
-                ErrorKind::InvalidInput,
-                "config must have current user".to_owned(),
-            )
-        })?;
+        let current_user = kube_config
+            .current_user()
+            .ok_or_else(|| anyhow!("config must have current user"))?;
 
-        let current_cluster = kube_config.current_cluster().ok_or_else(|| {
-            IoError::new(
-                ErrorKind::InvalidInput,
-                "config must have current cluster".to_owned(),
-            )
-        })?;
+        let current_cluster = kube_config
+            .current_cluster()
+            .ok_or_else(|| anyhow!("config must have current cluster"))?;
 
         // load CA cluster
 
         let builder = if let Some(ca_data) = &current_cluster.cluster.certificate_authority_data {
             debug!("detected in-line cluster CA certs");
-            let pem_bytes = decode(ca_data).unwrap();
+            let pem_bytes = BASE64_STANDARD.decode(ca_data).unwrap();
             builder.load_ca_cert_with_data(pem_bytes)?
         } else {
             // let not inline, then must must ref to file
@@ -188,15 +182,12 @@ where
             let credential: K8Obj<ExecCredentialSpec> =
                 serde_json::from_slice(&token_output.stdout).map_err(|err| {
                     let cmd_token = String::from_utf8_lossy(&token_output.stdout).to_string();
-                    IoError::new(
-                        ErrorKind::Other,
-                        format!(
-                            "error parsing credential from: {} {}\nreply: {}\nerr: {}",
-                            exec.command,
-                            exec.args.join(" "),
-                            cmd_token,
-                            err
-                        ),
+                    anyhow!(
+                        "error parsing credential from: {} {}\nreply: {}\nerr: {}",
+                        exec.command,
+                        exec.args.join(" "),
+                        cmd_token,
+                        err
                     )
                 })?;
             let token = credential.status.token;
@@ -204,26 +195,19 @@ where
             Ok((builder, Some(token)))
         } else if let Some(client_cert_data) = &current_user.user.client_certificate_data {
             debug!("detected in-line cluster CA certs");
-            let client_cert_pem_bytes = decode(client_cert_data).map_err(|err| {
-                IoError::new(
-                    ErrorKind::InvalidInput,
-                    format!("base64 decoding err: {}", err),
-                )
-            })?;
+            let client_cert_pem_bytes = BASE64_STANDARD
+                .decode(client_cert_data)
+                .context("base64 decoding err")?;
 
-            let client_key_pem_bytes =
-                decode(current_user.user.client_key_data.as_ref().ok_or_else(|| {
-                    IoError::new(
-                        ErrorKind::InvalidInput,
-                        "current user must have client key data".to_owned(),
-                    )
-                })?)
-                .map_err(|err| {
-                    IoError::new(
-                        ErrorKind::InvalidInput,
-                        format!("base64 decoding err: {}", err),
-                    )
-                })?;
+            let client_key_pem_bytes = BASE64_STANDARD
+                .decode(
+                    current_user
+                        .user
+                        .client_key_data
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("current user must have client key data"))?,
+                )
+                .context("base64 decoding err")?;
 
             Ok((
                 builder.load_client_certificate_with_data(
@@ -233,12 +217,11 @@ where
                 None,
             ))
         } else if let Some(client_crt_path) = current_user.user.client_certificate.as_ref() {
-            let client_key_path = current_user.user.client_key.as_ref().ok_or_else(|| {
-                IoError::new(
-                    ErrorKind::InvalidInput,
-                    "current user must have client key".to_owned(),
-                )
-            })?;
+            let client_key_path = current_user
+                .user
+                .client_key
+                .as_ref()
+                .ok_or_else(|| anyhow!("current user must have client key"))?;
 
             debug!(
                 "loading client crt: {} and client key: {}",
@@ -253,9 +236,8 @@ where
         } else if let Some(AuthProviderDetail::Gcp(_)) = &current_user.user.auth_provider {
             Ok((builder, None))
         } else {
-            Err(IoError::new(
-                ErrorKind::InvalidInput,
-                "no client cert crt data, path or user token were found".to_owned(),
+            Err(anyhow!(
+                "no client cert crt data, path or user token were found"
             ))
         }
     }

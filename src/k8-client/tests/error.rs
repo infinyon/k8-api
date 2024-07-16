@@ -3,6 +3,7 @@
 mod integration_tests {
 
     use std::collections::HashMap;
+    use std::time::Duration;
 
     use anyhow::Result;
     use rand::distributions::Alphanumeric;
@@ -10,14 +11,16 @@ mod integration_tests {
     use tracing::debug;
 
     use fluvio_future::test_async;
+    use fluvio_future::timer::sleep;
     use k8_client::http::status::StatusCode;
     use k8_client::K8Client;
     use k8_metadata_client::MetadataClient;
-    use k8_types::core::service::ServicePort;
+    use k8_types::core::service::{LoadBalancerType, ServicePort};
     use k8_types::core::service::{LoadBalancerIngress, ServiceSpec};
     use k8_types::{InputK8Obj, InputObjectMeta, Spec, MetaStatus};
 
     const SPU_DEFAULT_NAME: &str = "spu";
+    const DELAY: Duration = Duration::from_millis(100);
 
     fn create_client() -> K8Client {
         K8Client::try_default().expect("cluster not initialized")
@@ -38,12 +41,12 @@ mod integration_tests {
         selector.insert("app".to_owned(), SPU_DEFAULT_NAME.to_owned());
 
         let service_spec = ServiceSpec {
-            cluster_ip: "None".to_owned(),
             ports: vec![ServicePort {
                 port: 9092,
                 ..Default::default()
             }],
             selector: Some(selector),
+            r#type: Some(LoadBalancerType::LoadBalancer),
             ..Default::default()
         };
 
@@ -68,10 +71,18 @@ mod integration_tests {
         let new_item = new_service();
         debug!("creating new service: {:#?}", &new_item);
         let client = create_client();
-        let item = client
+        let created_item = client
             .create_item::<ServiceSpec>(new_item)
             .await
             .expect("service should be created");
+
+        sleep(DELAY).await;
+
+        let item = client
+            .retrieve_item::<ServiceSpec, _>(&created_item.metadata)
+            .await
+            .expect("retrieval")
+            .expect("service should exist");
 
         let initial_version = item.metadata.resource_version.clone();
         debug!("client resource_version: {}", initial_version);
@@ -80,6 +91,7 @@ mod integration_tests {
         let mut new_status = item.status.clone();
         let ingress = LoadBalancerIngress {
             ip: Some("0.0.0.0".to_string()),
+            ip_mode: Some("VIP".to_string()),
             ..Default::default()
         };
         new_status.load_balancer.ingress.push(ingress);
@@ -87,6 +99,7 @@ mod integration_tests {
         let mut new_status2 = item.status.clone();
         let ingress = LoadBalancerIngress {
             ip: Some("1.1.1.1".to_string()),
+            ip_mode: Some("Proxy".to_string()),
             ..Default::default()
         };
         new_status2.load_balancer.ingress.push(ingress);
