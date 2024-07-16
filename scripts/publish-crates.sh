@@ -38,7 +38,7 @@ function cargo_publish_all() {
 
             # Save the `cargo publish` in case we get a non-zero exit
             cargo publish -p $crate 2>&1 | tee "$CARGO_OUTPUT_TMP"
-            result="$?";
+            result="${PIPESTATUS[0]}";
 
             # cargo publish exit codes:
             if [[ "$result" != 0 ]];
