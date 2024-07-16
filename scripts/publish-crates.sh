@@ -28,15 +28,6 @@ function check_if_crate_uploaded() {
     fi
 }
 
-
-# We're relying on CARGO_REGISTRY_TOKEN to be set in CI
-function cargo_publish() {
-    cargo publish 2>&1 | tee "$CARGO_OUTPUT_TMP"
-
-    return "${PIPESTATUS[0]}"
-
-}
-
 function cargo_publish_all() {
     # We want to loop though each of the crates and attempt to publish.
 
@@ -44,14 +35,10 @@ function cargo_publish_all() {
     then
         for crate in "${PUBLISH_CRATES[@]}" ; do
             echo "$crate";
-            pushd crates/"$crate";
 
             # Save the `cargo publish` in case we get a non-zero exit
-            cargo_publish;
-            result="$?";
-
-            #echo "PUBLISH STEP HERE"
-            #(exit 101)
+            cargo publish -p $crate 2>&1 | tee "$CARGO_OUTPUT_TMP"
+            result="${PIPESTATUS[0]}";
 
             # cargo publish exit codes:
             if [[ "$result" != 0 ]];
@@ -60,8 +47,6 @@ function cargo_publish_all() {
             else
                 CRATES_UPLOADED=$((CRATES_UPLOADED+1));
             fi
-
-            popd
         done
     else
         echo "❌ Max number of publish attempts reached"
