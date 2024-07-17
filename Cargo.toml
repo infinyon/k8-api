@@ -13,3 +13,4 @@ resolver = "2"
 anyhow = "1.0"
 fluvio-future = "0.7.0"
 serde_yaml = { version = "0.9.0", default-features = false }
+serde_qs = "0.13.0"

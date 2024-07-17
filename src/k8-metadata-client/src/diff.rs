@@ -13,11 +13,16 @@ where
 }
 
 #[allow(dead_code)]
+#[derive(Debug, Serialize)]
 pub enum PatchMergeType {
     Json,
     JsonMerge,
     StrategicMerge, // for aggegration API
-    Apply,
+    #[serde(untagged, rename_all = "camelCase")]
+    Apply {
+        force: bool,
+        field_manager: Option<String>,
+    },
 }
 
 impl PatchMergeType {
@@ -34,7 +39,7 @@ impl PatchMergeType {
             PatchMergeType::Json => "application/json-patch+json",
             PatchMergeType::JsonMerge => "application/merge-patch+json",
             PatchMergeType::StrategicMerge => "application/strategic-merge-patch+json",
-            PatchMergeType::Apply => "application/apply-patch+yaml",
+            PatchMergeType::Apply { .. } => "application/apply-patch+yaml",
         }
     }
 }

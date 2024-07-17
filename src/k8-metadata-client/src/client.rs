@@ -244,6 +244,17 @@ pub trait MetadataClient: Send + Sync {
         S: Spec,
         M: K8Meta + Display + Send + Sync;
 
+    async fn patch_subresource<S, M>(
+        &self,
+        metadata: &M,
+        subresource: String,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync;
+
     /// stream items since resource versions
     fn watch_stream_since<S, N>(
         &self,

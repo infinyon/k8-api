@@ -342,6 +342,21 @@ impl MetadataClient for MemoryClient {
         unimplemented!()
     }
 
+    async fn patch_subresource<S, M>(
+        &self,
+        _metadata: &M,
+        _subresource: String,
+        _patch: &serde_json::Value,
+        _merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        // TODO: implement or move to another trait
+        unimplemented!()
+    }
+
     /// stream items since resource versions
     fn watch_stream_since<S, N>(
         &self,

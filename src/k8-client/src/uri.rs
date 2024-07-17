@@ -2,29 +2,39 @@ use anyhow::Result;
 
 use k8_types::{Crd, Spec};
 use k8_types::options::ListOptions;
+use serde::Serialize;
 
 use crate::http::Uri;
 use crate::meta_client::NameSpace;
 
 /// items uri
-pub fn item_uri<S>(
+pub fn item_uri<S, Q>(
     host: &str,
     name: &str,
     namespace: &str,
     sub_resource: Option<&str>,
+    query_params: Option<&Q>,
 ) -> Result<Uri>
 where
     S: Spec,
+    Q: Serialize,
 {
     let ns = if S::NAME_SPACED {
         NameSpace::Named(namespace.to_owned())
     } else {
         NameSpace::All
     };
+
     let crd = S::metadata();
     let prefix = prefix_uri(crd, host, ns, None);
-    let uri_value = format!("{}/{}{}", prefix, name, sub_resource.unwrap_or(""));
+    let sub_resource = sub_resource.unwrap_or("");
+    let query = query_params
+        .and_then(|qp| serde_qs::to_string(&qp).ok().map(|v| format!("?{v}")))
+        .unwrap_or_default();
+
+    let uri_value = format!("{prefix}/{name}{sub_resource}{query}",);
     let uri: Uri = uri_value.parse()?;
+
     Ok(uri)
 }
 
@@ -90,10 +100,11 @@ where
 
 #[cfg(test)]
 mod test {
-
+    use k8_metadata_client::PatchMergeType;
+    use k8_types::core::pod::PodSpec;
     use k8_types::{Crd, CrdNames, DEFAULT_NS};
 
-    use super::prefix_uri;
+    use super::{prefix_uri, item_uri};
     use super::ListOptions;
 
     const G1: Crd = Crd {
@@ -154,6 +165,25 @@ mod test {
 
         let qs = serde_qs::to_string(&opt).unwrap();
         assert_eq!(qs, "pretty=true&watch=true")
+    }
+
+    #[test]
+    fn support_item_uri_params() {
+        let patch_params = PatchMergeType::Apply {
+            force: true,
+            field_manager: Some(String::from("fluvio")),
+        };
+        let uri = item_uri::<PodSpec, PatchMergeType>(
+            "http://localhost:8001",
+            "test",
+            DEFAULT_NS,
+            Some("/status"),
+            Some(&patch_params),
+        );
+        assert_eq!(
+            uri.unwrap().to_string(),
+            "http://localhost:8001/api/v1/namespaces/default/pods/test/status?force=true&fieldManager=fluvio"
+        );
     }
 }
 
