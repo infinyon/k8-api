@@ -12,17 +12,19 @@ where
     Patched(K8Obj<S>),
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplyOptions {
+    pub force: bool,
+    pub field_manager: Option<String>,
+}
+
+#[allow(dead_code)]
 pub enum PatchMergeType {
     Json,
     JsonMerge,
     StrategicMerge, // for aggegration API
-    #[serde(untagged, rename_all = "camelCase")]
-    Apply {
-        force: bool,
-        field_manager: Option<String>,
-    },
+    Apply(ApplyOptions),
 }
 
 impl PatchMergeType {

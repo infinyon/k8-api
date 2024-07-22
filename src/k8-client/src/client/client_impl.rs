@@ -250,7 +250,7 @@ impl K8Client {
         let metadata = &value.metadata;
         debug!( name = %metadata.name,"replace item");
         trace!("replace {:#?}", value);
-        let uri = item_uri::<S, ()>(
+        let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
@@ -280,7 +280,7 @@ impl K8Client {
         container_name: &str,
     ) -> Result<LogStream> {
         let sub_resource = format!("/log?container={}&follow={}", container_name, false);
-        let uri = item_uri::<k8_types::core::pod::PodSpec, ()>(
+        let uri = item_uri::<k8_types::core::pod::PodSpec>(
             self.hostname(),
             pod_name,
             namespace,
@@ -300,7 +300,7 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        let uri = item_uri::<S, ()>(
+        let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
@@ -373,7 +373,7 @@ impl MetadataClient for K8Client {
     {
         use k8_types::MetaStatus;
 
-        let uri = item_uri::<S, ()>(
+        let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
@@ -440,7 +440,7 @@ impl MetadataClient for K8Client {
     where
         S: Spec,
     {
-        let uri = item_uri::<S, ()>(
+        let uri = item_uri::<S>(
             self.hostname(),
             &value.metadata.name,
             &value.metadata.namespace,
@@ -476,7 +476,7 @@ impl MetadataClient for K8Client {
     {
         debug!(%metadata, "patching");
         trace!("patch json value: {:#?}", patch);
-        let uri = item_uri::<S, ()>(
+        let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
@@ -528,12 +528,19 @@ impl MetadataClient for K8Client {
     {
         tracing::info!(%metadata, "patching subresource");
         tracing::info!("patch json value: {:#?}", patch);
-        let uri = item_uri::<S, PatchMergeType>(
+        let params = match &merge_type {
+            PatchMergeType::Apply(params) => {
+                let params = serde_qs::to_string(&params)?;
+                Some(params)
+            }
+            _ => None,
+        };
+        let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
             Some(&subresource),
-            Some(&merge_type),
+            params.as_deref(),
         )?;
 
         let bytes = serde_json::to_vec(&patch)?;
