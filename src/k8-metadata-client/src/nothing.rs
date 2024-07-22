@@ -114,6 +114,20 @@ impl MetadataClient for DoNothingClient {
         Err(ObjectKeyNotFound::new(metadata.name().into()).into())
     }
 
+    async fn patch_subresource<S, M>(
+        &self,
+        metadata: &M,
+        _subresource: String,
+        _patch: &Value,
+        _merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        Err(ObjectKeyNotFound::new(metadata.name().into()).into())
+    }
+
     fn watch_stream_since<S, N>(
         &self,
         _namespace: N,

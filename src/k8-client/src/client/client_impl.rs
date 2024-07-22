@@ -250,7 +250,13 @@ impl K8Client {
         let metadata = &value.metadata;
         debug!( name = %metadata.name,"replace item");
         trace!("replace {:#?}", value);
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+        let uri = item_uri::<S>(
+            self.hostname(),
+            metadata.name(),
+            metadata.namespace(),
+            None,
+            None,
+        )?;
 
         let bytes = serde_json::to_vec(&value)?;
 
@@ -279,6 +285,7 @@ impl K8Client {
             pod_name,
             namespace,
             Some(&sub_resource),
+            None,
         )?;
         let stream = self.stream_of_chunks(uri);
         Ok(LogStream(Box::pin(stream)))
@@ -293,7 +300,13 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Send + Sync,
     {
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+        let uri = item_uri::<S>(
+            self.hostname(),
+            metadata.name(),
+            metadata.namespace(),
+            None,
+            None,
+        )?;
         debug!("{}: retrieving item: {}", S::label(), uri);
 
         let result: Result<K8Obj<S>> = self
@@ -360,7 +373,13 @@ impl MetadataClient for K8Client {
     {
         use k8_types::MetaStatus;
 
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+        let uri = item_uri::<S>(
+            self.hostname(),
+            metadata.name(),
+            metadata.namespace(),
+            None,
+            None,
+        )?;
         debug!("{}: delete item on url: {}", S::label(), uri);
 
         let body = if let Some(option_value) = option {
@@ -426,6 +445,7 @@ impl MetadataClient for K8Client {
             &value.metadata.name,
             &value.metadata.namespace,
             Some("/status"),
+            None,
         )?;
         debug!("updating '{}' status - uri: {}", value.metadata.name, uri);
         trace!("update status: {:#?}", &value);
@@ -456,7 +476,13 @@ impl MetadataClient for K8Client {
     {
         debug!(%metadata, "patching");
         trace!("patch json value: {:#?}", patch);
-        let uri = item_uri::<S>(self.hostname(), metadata.name(), metadata.namespace(), None)?;
+        let uri = item_uri::<S>(
+            self.hostname(),
+            metadata.name(),
+            metadata.namespace(),
+            None,
+            None,
+        )?;
 
         let bytes = serde_json::to_vec(&patch)?;
 
@@ -485,19 +511,42 @@ impl MetadataClient for K8Client {
         S: Spec,
         M: K8Meta + Display + Send + Sync,
     {
-        debug!(%metadata, "patching status");
-        trace!("patch json value: {:#?}", patch);
+        self.patch_subresource(metadata, String::from("/status"), patch, merge_type)
+            .await
+    }
+
+    async fn patch_subresource<S, M>(
+        &self,
+        metadata: &M,
+        subresource: String,
+        patch: &Value,
+        merge_type: PatchMergeType,
+    ) -> Result<K8Obj<S>>
+    where
+        S: Spec,
+        M: K8Meta + Display + Send + Sync,
+    {
+        tracing::info!(%metadata, "patching subresource");
+        tracing::info!("patch json value: {:#?}", patch);
+        let params = match &merge_type {
+            PatchMergeType::Apply(params) => {
+                let params = serde_qs::to_string(&params)?;
+                Some(params)
+            }
+            _ => None,
+        };
         let uri = item_uri::<S>(
             self.hostname(),
             metadata.name(),
             metadata.namespace(),
-            Some("/status"),
+            Some(&subresource),
+            params.as_deref(),
         )?;
 
         let bytes = serde_json::to_vec(&patch)?;
 
-        trace!(
-            "patch uri: {}, raw: {}",
+        tracing::info!(
+            "patch subresource uri: {}, raw: {}",
             uri,
             String::from_utf8_lossy(&bytes).to_string()
         );
