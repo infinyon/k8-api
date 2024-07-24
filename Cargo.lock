@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "13.0.0"
+version = "13.1.0"
 dependencies = [
  "anyhow",
  "async-channel 2.3.1",
@@ -1241,7 +1241,7 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "7.0.0"
+version = "7.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1257,7 +1257,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.8.6"
+version = "0.8.7"
 dependencies = [
  "serde",
  "serde_json",
@@ -2288,9 +2288,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.37.0"
+version = "1.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1adbebffeca75fcfd058afa480fb6c0b81e165a0323f9c9d39c9697e37c46787"
+checksum = "d040ac2b29ab03b09d4129c2f5bbd012a3ac2f79d38ff506a4bf8dd34b0eac8a"
 dependencies = [
  "backtrace",
  "bytes",
