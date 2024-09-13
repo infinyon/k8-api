@@ -391,9 +391,9 @@ checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
 
 [[package]]
 name = "bytes"
-version = "1.6.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
+checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
 
 [[package]]
 name = "cc"
@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "13.0.0"
+version = "13.1.1"
 dependencies = [
  "anyhow",
  "async-channel 2.3.1",
@@ -1241,7 +1241,7 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "7.0.0"
+version = "7.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1257,7 +1257,7 @@ dependencies = [
 
 [[package]]
 name = "k8-types"
-version = "0.8.6"
+version = "0.8.7"
 dependencies = [
  "serde",
  "serde_json",

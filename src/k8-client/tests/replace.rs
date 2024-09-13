@@ -1,5 +1,4 @@
 #[cfg(feature = "k8")]
-#[cfg(not(feature = "k8_stream"))]
 mod integration_tests {
 
     use std::collections::HashMap;

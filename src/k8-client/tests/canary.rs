@@ -1,5 +1,4 @@
 #[cfg(feature = "k8")]
-#[cfg(not(feature = "k8_stream"))]
 mod canary_test {
 
     use anyhow::Result;
