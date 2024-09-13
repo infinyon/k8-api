@@ -90,11 +90,11 @@ impl MinikubeContext {
     fn update_kubectl_context(&self) -> Result<(), ConfigError> {
         Command::new("kubectl")
             .args(["config", "set-cluster", &self.name])
-            .arg(&format!(
+            .arg(format!(
                 "--server=https://minikubeCA:{}",
                 self.profile.port()
             ))
-            .arg(&format!("--certificate-authority={}", load_cert_auth()))
+            .arg(format!("--certificate-authority={}", load_cert_auth()))
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .status()?;
@@ -102,7 +102,7 @@ impl MinikubeContext {
         Command::new("kubectl")
             .args(["config", "set-context", &self.name])
             .arg("--user=minikube")
-            .arg(&format!("--cluster={}", &self.name))
+            .arg(format!("--cluster={}", &self.name))
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .status()?;

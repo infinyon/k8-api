@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "k8-client"
-version = "13.1.0"
+version = "13.1.1"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Core Kubernetes metadata traits"
 repository = "https://github.com/infinyon/k8-api"
@@ -24,7 +24,7 @@ async-channel = { version = "2.3.1", optional = true }
 async-lock = { version = "3.3.0", optional = true }
 cfg-if = "1.0"
 tracing = "0.1.19"
-bytes = "1.6.0"
+bytes = "1.7.1"
 base64 = { version = "0.22.1" }
 futures-util = { version = "0.3.21", features = ["io"] }
 rand = { version = "0.8.3" }
