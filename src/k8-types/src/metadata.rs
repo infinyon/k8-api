@@ -226,7 +226,10 @@ impl From<ObjectMeta> for InputObjectMeta {
         Self {
             name: meta.name,
             namespace: meta.namespace,
-            ..Default::default()
+            labels: meta.labels,
+            finalizers: meta.finalizers,
+            annotations: meta.annotations,
+            owner_references: meta.owner_references,
         }
     }
 }
