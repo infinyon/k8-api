@@ -152,7 +152,9 @@ impl ObjectMeta {
             name: self.name.clone(),
             namespace: self.namespace.clone(),
             owner_references: self.owner_references.clone(),
-            ..Default::default()
+            labels: self.labels.clone(),
+            finalizers: self.finalizers.clone(),
+            annotations: self.annotations.clone(),
         }
     }
 
