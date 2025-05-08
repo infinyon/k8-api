@@ -44,6 +44,8 @@ pub struct PodSpec {
     pub security_context: Option<PodSecurityContext>,
     pub scheduler_name: Option<String>,
     pub node_selector: Option<HashMap<String, String>>,
+    pub priority: Option<i32>,
+    pub priority_class_name: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
