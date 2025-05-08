@@ -8,8 +8,6 @@ use tracing::trace;
 const BASE_DIR: &str = "/var/run/secrets/kubernetes.io/serviceaccount";
 const API_SERVER: &str = "https://kubernetes.default.svc";
 
-///var/run/secrets/kubernetes.io/serviceaccount
-
 /// Configuration as Pod
 #[derive(Debug, Default, Clone)]
 pub struct PodConfig {

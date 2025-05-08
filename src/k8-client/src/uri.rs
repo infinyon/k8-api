@@ -55,7 +55,6 @@ where
 ///
 /// generate prefix for given crd
 /// if crd group is core then /api is used otherwise /apis + group
-
 pub fn prefix_uri<N>(crd: &Crd, host: &str, ns: N, options: Option<ListOptions>) -> String
 where
     N: Into<NameSpace>,
