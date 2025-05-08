@@ -62,7 +62,7 @@ where
     }
 }
 
-impl<'a, S> Unpin for ListStream<'a, S> where S: Spec {}
+impl<S> Unpin for ListStream<'_, S> where S: Spec {}
 
 impl<'a, S> ListStream<'a, S>
 where
