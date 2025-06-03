@@ -1,4 +1,4 @@
-use std::io::{Error as IoError, ErrorKind, Result as IoResult};
+use std::io::Result as IoResult;
 use std::net::ToSocketAddrs;
 use std::path::Path;
 use std::pin::Pin;
@@ -124,9 +124,7 @@ impl Service<Uri> for TlsHyperConnector {
                     debug!("socket address to: {}", socket_addr);
                     let tcp_stream = TcpStream::connect(&socket_addr).await?;
 
-                    let stream = connector.connect(host, tcp_stream).await.map_err(|err| {
-                        IoError::new(ErrorKind::Other, format!("tls handshake: {}", err))
-                    })?;
+                    let stream = connector.connect(host, tcp_stream).await?;
                     Ok(HyperTlsStream(stream))
                 }
                 scheme => Err(anyhow::anyhow!("{:?}", scheme)),
