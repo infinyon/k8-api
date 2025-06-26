@@ -1038,7 +1038,7 @@ dependencies = [
 
 [[package]]
 name = "k8-client"
-version = "14.1.0"
+version = "15.0.0"
 dependencies = [
  "anyhow",
  "async-channel",
@@ -1099,7 +1099,7 @@ dependencies = [
 
 [[package]]
 name = "k8-metadata-client"
-version = "8.1.0"
+version = "9.0.0"
 dependencies = [
  "anyhow",
  "async-trait",

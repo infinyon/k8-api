@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "k8-metadata-client"
-version = "8.1.0"
+version = "9.0.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 description = "Trait for interfacing kubernetes metadata service"
 repository = "https://github.com/infinyon/k8-api"

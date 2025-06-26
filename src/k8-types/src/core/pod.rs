@@ -227,8 +227,7 @@ pub struct PodStatus {
     #[serde(rename = "podIP")]
     pub pod_ip: Option<String>,
     pub start_time: Option<String>,
-    #[serde(default)]
-    pub container_statuses: Vec<ContainerStatus>,
+    pub container_statuses: Option<Vec<ContainerStatus>>,
 }
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone, Eq, PartialEq)]
