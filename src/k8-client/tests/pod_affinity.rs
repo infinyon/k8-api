@@ -83,7 +83,7 @@ mod integration_tests {
                     }]),
                 }),
                 pod_affinity: Some(PodAffinity {
-                    required: None, // Remove required pod affinity for single-node compatibility
+                    required: None,
                     preferred: Some(vec![WeightedPodAffinityTerm {
                         weight: 50,
                         pod_affinity_term: PodAffinityTerm {
