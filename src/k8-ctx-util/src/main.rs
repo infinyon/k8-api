@@ -6,7 +6,7 @@ use k8_config::ConfigError;
 ///     create new kubectl cluster and context which uses minikube name
 fn main() {
     if let Err(e) = run() {
-        println!("{}", e);
+        println!("{e}");
     }
 }
 

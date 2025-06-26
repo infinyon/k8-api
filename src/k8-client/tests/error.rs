@@ -32,7 +32,7 @@ mod integration_tests {
             .map(char::from)
             .take(5)
             .collect();
-        let name = format!("test{}", rname);
+        let name = format!("test{rname}");
 
         let mut labels = HashMap::new();
         labels.insert("app".to_owned(), SPU_DEFAULT_NAME.to_owned());

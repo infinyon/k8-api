@@ -206,15 +206,13 @@ impl MinikubeProfile {
             .output()?;
         let output_string = String::from_utf8(output.stdout).map_err(|e| {
             ConfigError::Other(format!(
-                "`minikube profile list -o json` did not give UTF-8: {}",
-                e
+                "`minikube profile list -o json` did not give UTF-8: {e}"
             ))
         })?;
         let profiles: MinikubeProfileWrapper =
             serde_json::from_str(&output_string).map_err(|e| {
                 ConfigError::Other(format!(
-                    "`minikube profile list -o json` did not give valid JSON: {}",
-                    e
+                    "`minikube profile list -o json` did not give valid JSON: {e}"
                 ))
             })?;
         let profile_json = profiles
@@ -265,7 +263,7 @@ impl MinikubeProfile {
 fn get_host_entry(hostname: &str) -> Result<std::option::Option<IpAddr>, ConfigError> {
     // Get all of the host entries
     let hosts = hostfile::parse_hostfile()
-        .map_err(|e| ConfigError::Other(format!("failed to get /etc/hosts entries: {}", e)))?;
+        .map_err(|e| ConfigError::Other(format!("failed to get /etc/hosts entries: {e}")))?;
     // Try to find a host entry with the given hostname
     let minikube_entry = hosts
         .into_iter()

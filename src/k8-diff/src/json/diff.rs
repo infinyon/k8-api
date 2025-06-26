@@ -106,7 +106,7 @@ mod test {
         match diff {
             Diff::Patch(p) => {
                 let json_diff = serde_json::to_value(p).expect("json");
-                println!("json diff: {:#?}", json_diff);
+                println!("json diff: {json_diff:#?}");
                 assert_eq!(json_diff, json!({ "choice": null }));
             }
             _ => assert!(false),
