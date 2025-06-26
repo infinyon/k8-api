@@ -11,6 +11,8 @@ use crate::Env;
 use crate::Spec;
 use crate::Status;
 
+use super::affinity::Affinity;
+
 const POD_API: Crd = Crd {
     group: "core",
     version: "v1",
@@ -46,6 +48,7 @@ pub struct PodSpec {
     pub node_selector: Option<HashMap<String, String>>,
     pub priority: Option<i32>,
     pub priority_class_name: Option<String>,
+    pub affinity: Option<Affinity>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
@@ -219,11 +222,13 @@ pub struct PersistentVolumeClaimVolumeSource {
 #[serde(rename_all = "camelCase")]
 pub struct PodStatus {
     pub phase: String,
-    #[serde(rename = "hostIP")]
+    #[serde(rename = "hostIP", default)]
     pub host_ip: String,
     #[serde(rename = "podIP")]
     pub pod_ip: Option<String>,
+    #[serde(default)]
     pub start_time: String,
+    #[serde(default)]
     pub container_statuses: Vec<ContainerStatus>,
 }
 

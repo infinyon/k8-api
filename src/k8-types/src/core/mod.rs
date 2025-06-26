@@ -6,3 +6,4 @@ pub mod secret;
 pub mod service;
 pub mod service_account;
 pub mod node;
+pub mod affinity;
