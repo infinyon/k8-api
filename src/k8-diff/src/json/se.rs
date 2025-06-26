@@ -90,7 +90,7 @@ mod test {
 
         let diff = old_spec.diff(&new_spec).expect("diff");
         assert!(diff.is_patch());
-        println!("final diff: {:#?}", diff);
+        println!("final diff: {diff:#?}");
         let expected = json!({
             "spec": {
             "replicas": 3

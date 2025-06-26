@@ -26,7 +26,7 @@ where
     let crd = S::metadata();
     let prefix = prefix_uri(crd, host, ns, None);
     let sub_resource = sub_resource.unwrap_or("");
-    let query = query.map(|q| format!("?{}", q)).unwrap_or_default();
+    let query = query.map(|q| format!("?{q}")).unwrap_or_default();
     let uri_value = format!("{prefix}/{name}{sub_resource}{query}");
     let uri: Uri = uri_value.parse()?;
 
@@ -65,7 +65,7 @@ where
     let group = crd.group;
     let api_prefix = match group {
         "core" => "api".to_owned(),
-        _ => format!("apis/{}", group),
+        _ => format!("apis/{group}"),
     };
 
     let query = if let Some(opt) = options {
@@ -78,7 +78,7 @@ where
     };
 
     if namespace.is_all() {
-        format!("{}/{}/{}/{}{}", host, api_prefix, version, plural, query)
+        format!("{host}/{api_prefix}/{version}/{plural}{query}")
     } else {
         format!(
             "{}/{}/{}/namespaces/{}/{}{}",

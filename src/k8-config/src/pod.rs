@@ -45,7 +45,7 @@ impl PodConfig {
 
 // read file
 fn read_file(name: &str) -> Option<String> {
-    let full_path = format!("{}/{}", BASE_DIR, name);
+    let full_path = format!("{BASE_DIR}/{name}");
     match read_to_string(&full_path) {
         Ok(value) => Some(value),
         Err(err) => {

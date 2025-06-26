@@ -71,8 +71,8 @@ pub enum TargetPort {
 impl std::fmt::Display for TargetPort {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::Number(value) => write!(f, "{}", value),
-            Self::Name(value) => write!(f, "{}", value),
+            Self::Number(value) => write!(f, "{value}"),
+            Self::Name(value) => write!(f, "{value}"),
         }
     }
 }
