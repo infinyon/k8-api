@@ -336,10 +336,10 @@ impl Display for MetaStatus {
         write!(f, "{}", self.status)?;
 
         if let Some(ref code) = self.code {
-            write!(f, " ({})", code)?;
+            write!(f, " ({code})")?;
         }
         if let Some(ref message) = self.message {
-            write!(f, ":{}.", message)?;
+            write!(f, ":{message}.")?;
         }
 
         Ok(())

@@ -100,7 +100,7 @@ impl K8Client {
         B: Into<Body>,
     {
         if let Some(ref token) = self.token {
-            let full_token = format!("Bearer {}", token);
+            let full_token = format!("Bearer {token}");
             request
                 .headers_mut()
                 .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);

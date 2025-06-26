@@ -76,7 +76,7 @@ mod canary_test {
             .expect("pods should exist");
 
         for pod in pod_items.items {
-            println!("pod: {:#?}", pod);
+            println!("pod: {pod:#?}");
         }
 
         Ok(())
