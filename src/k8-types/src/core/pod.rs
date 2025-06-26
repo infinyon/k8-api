@@ -222,12 +222,11 @@ pub struct PersistentVolumeClaimVolumeSource {
 #[serde(rename_all = "camelCase")]
 pub struct PodStatus {
     pub phase: String,
-    #[serde(rename = "hostIP", default)]
-    pub host_ip: String,
+    #[serde(rename = "hostIP")]
+    pub host_ip: Option<String>,
     #[serde(rename = "podIP")]
     pub pod_ip: Option<String>,
-    #[serde(default)]
-    pub start_time: String,
+    pub start_time: Option<String>,
     #[serde(default)]
     pub container_statuses: Vec<ContainerStatus>,
 }
