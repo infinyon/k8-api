@@ -40,6 +40,8 @@ use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, Tok
 use super::wstream::WatchStream;
 use super::{HyperClient, HyperConfigBuilder, ListStream, LogStream};
 
+const SA_TOKEN_PATH: &str = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
 pub struct K8Client {
@@ -106,6 +108,99 @@ impl K8Client {
                 .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);
         }
         Ok(())
+    }
+
+    /// Send a request with a Vec<u8> body, and on 401 retry once with a freshly read SA token.
+    async fn handle_request_bytes<T>(&self, request: Request<Vec<u8>>) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        use std::io::Read;
+
+        let method = request.method().clone();
+        let uri = request.uri().clone();
+        let version = request.version();
+        let headers = request.headers().clone();
+        let body_buf = request.into_body();
+
+        trace!("request url: {}", uri);
+
+        // first attempt
+        let mut req1 = http::Request::builder()
+            .method(method.clone())
+            .uri(uri.clone())
+            .version(version)
+            .body(Body::from(body_buf.clone()))?;
+        {
+            let h = req1.headers_mut();
+            for (k, v) in headers.iter() {
+                h.insert(k.clone(), v.clone());
+            }
+        }
+        self.finish_request(&mut req1)?;
+
+        let resp1 = self.client.request(req1).await?;
+        let status1 = resp1.status();
+
+        let mut r1 = (aggregate(resp1).await?).reader();
+        let mut b1 = Vec::new();
+        r1.read_to_end(&mut b1)?;
+
+        // success
+        if status1.is_success() {
+            return serde_json::from_slice(&b1).map_err(|err| {
+                error!("json error: {}", err);
+                error!("source: {}", String::from_utf8_lossy(&b1));
+                err.into()
+            });
+        }
+
+        // retry once on 401 with a freshly-read token
+        if status1 == StatusCode::UNAUTHORIZED {
+            if let Ok(fresh) = std::fs::read_to_string(SA_TOKEN_PATH) {
+                let mut req2 = http::Request::builder()
+                    .method(method)
+                    .uri(uri)
+                    .version(version)
+                    .body(Body::from(body_buf))?;
+                {
+                    let h = req2.headers_mut();
+                    for (k, v) in headers.iter() {
+                        h.insert(k.clone(), v.clone());
+                    }
+                    let bearer = format!("Bearer {}", fresh.trim());
+                    h.insert(AUTHORIZATION, HeaderValue::from_str(&bearer)?);
+                }
+
+                let resp2 = self.client.request(req2).await?;
+                let status2 = resp2.status();
+
+                let mut r2 = (aggregate(resp2).await?).reader();
+                let mut b2 = Vec::new();
+                r2.read_to_end(&mut b2)?;
+
+                if status2.is_success() {
+                    return serde_json::from_slice(&b2).map_err(|err| {
+                        error!("json error: {}", err);
+                        error!("source: {}", String::from_utf8_lossy(&b2));
+                        err.into()
+                    });
+                } else {
+                    trace!(%status2, "error response received");
+                    let api_status: MetaStatus = serde_json::from_slice(&b2).map_err(|err| {
+                        error!("json error: {}", err);
+                        err
+                    })?;
+                    return Err(api_status.into());
+                }
+            }
+        }
+
+        let api_status: MetaStatus = serde_json::from_slice(&b1).map_err(|err| {
+            error!("json error: {}", err);
+            err
+        })?;
+        Err(api_status.into())
     }
 
     /// handle request. this is async function
