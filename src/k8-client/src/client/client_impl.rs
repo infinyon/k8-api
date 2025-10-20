@@ -277,11 +277,57 @@ impl K8Client {
                 }
             };
 
+            // Capture for potential retry
+            let method = request.method().clone();
+            let uri2 = request.uri().clone();
+            let version = request.version();
+            let headers = request.headers().clone();
+
             match http_client.request(request).await {
                 Ok(response) => {
                     trace!("res status: {}", response.status());
                     trace!("res header: {:#?}", response.headers());
-                    WatchStream::new(response.into_body().map_err(|err| err.into())).left_stream()
+
+                    // choose final response body; retry once on 401
+                    let final_body = if response.status() == StatusCode::UNAUTHORIZED {
+                        if let Ok(fresh) = std::fs::read_to_string(SA_TOKEN_PATH) {
+                            // rebuild the same GET with a fresh Authorization header
+                            let mut retry_req = http::Request::builder()
+                                .method(method)
+                                .uri(uri2)
+                                .version(version)
+                                .body(Body::empty())
+                                .expect("failed to build retry request");
+                            {
+                                let h = retry_req.headers_mut();
+                                for (k, v) in headers.iter() {
+                                    h.insert(k.clone(), v.clone());
+                                }
+                                let bearer = format!("Bearer {}", fresh.trim());
+                                if let Ok(hv) = HeaderValue::from_str(&bearer) {
+                                    h.insert(AUTHORIZATION, hv);
+                                }
+                            }
+                            match http_client.request(retry_req).await {
+                                Ok(resp2) => {
+                                    trace!("res2 status: {}", resp2.status());
+                                    trace!("res2 header: {:#?}", resp2.headers());
+                                    resp2.into_body()
+                                }
+                                Err(err) => {
+                                    error!("error getting streaming (retry): {}", err);
+                                    return empty().right_stream();
+                                }
+                            }
+                        } else {
+                            // couldn't read fresh token, fall back to original body
+                            response.into_body()
+                        }
+                    } else {
+                        response.into_body()
+                    };
+
+                    WatchStream::new(final_body.map_err(|err| err.into())).left_stream()
                 }
                 Err(err) => {
                     error!("error getting streaming: {}", err);
