@@ -371,9 +371,9 @@ impl K8Client {
 
         let request = Request::put(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     pub async fn retrieve_log(
@@ -489,15 +489,15 @@ impl MetadataClient for K8Client {
             let bytes = serde_json::to_vec(&option_value)?;
             trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
 
-            bytes.into()
+            bytes
         } else {
-            Body::empty()
+            Vec::new()
         };
         let request = Request::delete(uri)
             .header(ACCEPT, "application/json")
             .body(body)?;
         let values: serde_json::Map<String, serde_json::Value> =
-            self.handle_request(request).await?;
+            self.handle_request_bytes(request).await?;
         if let Some(kind) = values.get("kind") {
             if kind == "Status" {
                 let status: MetaStatus =
@@ -533,9 +533,9 @@ impl MetadataClient for K8Client {
 
         let request = Request::post(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// update status
@@ -561,9 +561,9 @@ impl MetadataClient for K8Client {
 
         let request = Request::put(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// patch existing with spec
@@ -598,9 +598,9 @@ impl MetadataClient for K8Client {
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")
             .header(CONTENT_TYPE, merge_type.content_type())
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// patch status
@@ -657,9 +657,9 @@ impl MetadataClient for K8Client {
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")
             .header(CONTENT_TYPE, merge_type.content_type())
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// stream items since resource versions
