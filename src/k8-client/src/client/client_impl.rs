@@ -47,7 +47,7 @@ const SA_TOKEN_PATH: &str = "/var/run/secrets/kubernetes.io/serviceaccount/token
 pub struct K8Client {
     client: HyperClient,
     host: String,
-    token: Option<String>,
+    token: std::sync::RwLock<Option<String>>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
@@ -80,7 +80,7 @@ impl K8Client {
         Ok(Self {
             client,
             host,
-            token,
+            token: std::sync::RwLock::new(token),
         })
     }
 
@@ -101,11 +101,13 @@ impl K8Client {
     where
         B: Into<Body>,
     {
-        if let Some(ref token) = self.token {
-            let full_token = format!("Bearer {token}");
-            request
-                .headers_mut()
-                .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);
+        if let Ok(guard) = self.token.read() {
+            if let Some(ref token) = *guard {
+                let full_token = format!("Bearer {token}");
+                request
+                    .headers_mut()
+                    .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);
+            }
         }
         Ok(())
     }
@@ -158,6 +160,8 @@ impl K8Client {
         // retry once on 401 with a freshly-read token
         if status1 == StatusCode::UNAUTHORIZED {
             if let Ok(fresh) = std::fs::read_to_string(SA_TOKEN_PATH) {
+                let fresh_trimmed = fresh.trim().to_owned();
+
                 let mut req2 = http::Request::builder()
                     .method(method)
                     .uri(uri)
@@ -168,7 +172,7 @@ impl K8Client {
                     for (k, v) in headers.iter() {
                         h.insert(k.clone(), v.clone());
                     }
-                    let bearer = format!("Bearer {}", fresh.trim());
+                    let bearer = format!("Bearer {}", fresh_trimmed);
                     h.insert(AUTHORIZATION, HeaderValue::from_str(&bearer)?);
                 }
 
@@ -180,13 +184,17 @@ impl K8Client {
                 r2.read_to_end(&mut b2)?;
 
                 if status2.is_success() {
+                    if let Ok(mut w) = self.token.write() {
+                        *w = Some(fresh_trimmed);
+                    }
+                    trace!(%status2, "success response (retry): {}", String::from_utf8_lossy(&b2));
                     return serde_json::from_slice(&b2).map_err(|err| {
                         error!("json error: {}", err);
                         error!("source: {}", String::from_utf8_lossy(&b2));
                         err.into()
                     });
                 } else {
-                    trace!(%status2, "error response received");
+                    trace!(%status2, "error response received (retry)");
                     let api_status: MetaStatus = serde_json::from_slice(&b2).map_err(|err| {
                         error!("json error: {}", err);
                         err
