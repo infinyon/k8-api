@@ -40,12 +40,14 @@ use crate::meta_client::{ListArg, MetadataClient, NameSpace, PatchMergeType, Tok
 use super::wstream::WatchStream;
 use super::{HyperClient, HyperConfigBuilder, ListStream, LogStream};
 
+const SA_TOKEN_PATH: &str = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+
 /// K8 Cluster accessible thru API
 #[derive(Debug)]
 pub struct K8Client {
     client: HyperClient,
     host: String,
-    token: Option<String>,
+    token: std::sync::RwLock<Option<String>>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Default, Clone)]
@@ -78,7 +80,7 @@ impl K8Client {
         Ok(Self {
             client,
             host,
-            token,
+            token: std::sync::RwLock::new(token),
         })
     }
 
@@ -99,13 +101,114 @@ impl K8Client {
     where
         B: Into<Body>,
     {
-        if let Some(ref token) = self.token {
-            let full_token = format!("Bearer {token}");
-            request
-                .headers_mut()
-                .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);
+        if let Ok(guard) = self.token.read() {
+            if let Some(ref token) = *guard {
+                let full_token = format!("Bearer {token}");
+                request
+                    .headers_mut()
+                    .insert(AUTHORIZATION, HeaderValue::from_str(&full_token)?);
+            }
         }
         Ok(())
+    }
+
+    /// Send a request with a Vec<u8> body, and on 401 retry once with a freshly read SA token.
+    async fn handle_request_bytes<T>(&self, request: Request<Vec<u8>>) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        use std::io::Read;
+
+        let method = request.method().clone();
+        let uri = request.uri().clone();
+        let version = request.version();
+        let headers = request.headers().clone();
+        let body_buf = request.into_body();
+
+        trace!("request url: {}", uri);
+
+        // first attempt
+        let mut req1 = http::Request::builder()
+            .method(method.clone())
+            .uri(uri.clone())
+            .version(version)
+            .body(Body::from(body_buf.clone()))?;
+        {
+            let h = req1.headers_mut();
+            for (k, v) in headers.iter() {
+                h.insert(k.clone(), v.clone());
+            }
+        }
+        self.finish_request(&mut req1)?;
+
+        let resp1 = self.client.request(req1).await?;
+        let status1 = resp1.status();
+
+        let mut r1 = (aggregate(resp1).await?).reader();
+        let mut b1 = Vec::new();
+        r1.read_to_end(&mut b1)?;
+
+        // success
+        if status1.is_success() {
+            return serde_json::from_slice(&b1).map_err(|err| {
+                error!("json error: {}", err);
+                error!("source: {}", String::from_utf8_lossy(&b1));
+                err.into()
+            });
+        }
+
+        // retry once on 401 with a freshly-read token
+        if status1 == StatusCode::UNAUTHORIZED {
+            if let Ok(fresh) = std::fs::read_to_string(SA_TOKEN_PATH) {
+                let fresh_trimmed = fresh.trim().to_owned();
+
+                let mut req2 = http::Request::builder()
+                    .method(method)
+                    .uri(uri)
+                    .version(version)
+                    .body(Body::from(body_buf))?;
+                {
+                    let h = req2.headers_mut();
+                    for (k, v) in headers.iter() {
+                        h.insert(k.clone(), v.clone());
+                    }
+                    let bearer = format!("Bearer {}", fresh_trimmed);
+                    h.insert(AUTHORIZATION, HeaderValue::from_str(&bearer)?);
+                }
+
+                let resp2 = self.client.request(req2).await?;
+                let status2 = resp2.status();
+
+                let mut r2 = (aggregate(resp2).await?).reader();
+                let mut b2 = Vec::new();
+                r2.read_to_end(&mut b2)?;
+
+                if status2.is_success() {
+                    if let Ok(mut w) = self.token.write() {
+                        *w = Some(fresh_trimmed);
+                    }
+                    trace!(%status2, "success response (retry): {}", String::from_utf8_lossy(&b2));
+                    return serde_json::from_slice(&b2).map_err(|err| {
+                        error!("json error: {}", err);
+                        error!("source: {}", String::from_utf8_lossy(&b2));
+                        err.into()
+                    });
+                } else {
+                    trace!(%status2, "error response received (retry)");
+                    let api_status: MetaStatus = serde_json::from_slice(&b2).map_err(|err| {
+                        error!("json error: {}", err);
+                        err
+                    })?;
+                    return Err(api_status.into());
+                }
+            }
+        }
+
+        let api_status: MetaStatus = serde_json::from_slice(&b1).map_err(|err| {
+            error!("json error: {}", err);
+            err
+        })?;
+        Err(api_status.into())
     }
 
     /// handle request. this is async function
@@ -174,11 +277,57 @@ impl K8Client {
                 }
             };
 
+            // Capture for potential retry
+            let method = request.method().clone();
+            let uri2 = request.uri().clone();
+            let version = request.version();
+            let headers = request.headers().clone();
+
             match http_client.request(request).await {
                 Ok(response) => {
                     trace!("res status: {}", response.status());
                     trace!("res header: {:#?}", response.headers());
-                    WatchStream::new(response.into_body().map_err(|err| err.into())).left_stream()
+
+                    // choose final response body; retry once on 401
+                    let final_body = if response.status() == StatusCode::UNAUTHORIZED {
+                        if let Ok(fresh) = std::fs::read_to_string(SA_TOKEN_PATH) {
+                            // rebuild the same GET with a fresh Authorization header
+                            let mut retry_req = http::Request::builder()
+                                .method(method)
+                                .uri(uri2)
+                                .version(version)
+                                .body(Body::empty())
+                                .expect("failed to build retry request");
+                            {
+                                let h = retry_req.headers_mut();
+                                for (k, v) in headers.iter() {
+                                    h.insert(k.clone(), v.clone());
+                                }
+                                let bearer = format!("Bearer {}", fresh.trim());
+                                if let Ok(hv) = HeaderValue::from_str(&bearer) {
+                                    h.insert(AUTHORIZATION, hv);
+                                }
+                            }
+                            match http_client.request(retry_req).await {
+                                Ok(resp2) => {
+                                    trace!("res2 status: {}", resp2.status());
+                                    trace!("res2 header: {:#?}", resp2.headers());
+                                    resp2.into_body()
+                                }
+                                Err(err) => {
+                                    error!("error getting streaming (retry): {}", err);
+                                    return empty().right_stream();
+                                }
+                            }
+                        } else {
+                            // couldn't read fresh token, fall back to original body
+                            response.into_body()
+                        }
+                    } else {
+                        response.into_body()
+                    };
+
+                    WatchStream::new(final_body.map_err(|err| err.into())).left_stream()
                 }
                 Err(err) => {
                     error!("error getting streaming: {}", err);
@@ -268,9 +417,9 @@ impl K8Client {
 
         let request = Request::put(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     pub async fn retrieve_log(
@@ -386,15 +535,15 @@ impl MetadataClient for K8Client {
             let bytes = serde_json::to_vec(&option_value)?;
             trace!("delete raw : {}", String::from_utf8_lossy(&bytes));
 
-            bytes.into()
+            bytes
         } else {
-            Body::empty()
+            Vec::new()
         };
         let request = Request::delete(uri)
             .header(ACCEPT, "application/json")
             .body(body)?;
         let values: serde_json::Map<String, serde_json::Value> =
-            self.handle_request(request).await?;
+            self.handle_request_bytes(request).await?;
         if let Some(kind) = values.get("kind") {
             if kind == "Status" {
                 let status: MetaStatus =
@@ -430,9 +579,9 @@ impl MetadataClient for K8Client {
 
         let request = Request::post(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// update status
@@ -458,9 +607,9 @@ impl MetadataClient for K8Client {
 
         let request = Request::put(uri)
             .header(CONTENT_TYPE, "application/json")
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// patch existing with spec
@@ -495,9 +644,9 @@ impl MetadataClient for K8Client {
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")
             .header(CONTENT_TYPE, merge_type.content_type())
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// patch status
@@ -554,9 +703,9 @@ impl MetadataClient for K8Client {
         let request = Request::patch(uri)
             .header(ACCEPT, "application/json")
             .header(CONTENT_TYPE, merge_type.content_type())
-            .body(bytes.into())?;
+            .body(bytes)?;
 
-        self.handle_request(request).await
+        self.handle_request_bytes(request).await
     }
 
     /// stream items since resource versions
